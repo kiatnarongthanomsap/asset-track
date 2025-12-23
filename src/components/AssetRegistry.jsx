@@ -3,10 +3,20 @@ import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2 } from 'luc
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 
-const AssetRegistry = ({ data, onEditAsset, onAddAsset }) => {
+const AssetRegistry = ({ data, onEditAsset, onAddAsset, initialFilter = 'All', onFilterChange }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterStatus, setFilterStatus] = useState('All');
+    const [filterStatus, setFilterStatus] = useState(initialFilter);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
+
+    // Sync state if prop changes (e.g. navigation from dashboard)
+    React.useEffect(() => {
+        setFilterStatus(initialFilter);
+    }, [initialFilter]);
+
+    const handleFilterChange = (status) => {
+        setFilterStatus(status);
+        onFilterChange?.(status);
+    };
 
     const filteredAssets = useMemo(() => {
         return data.filter(asset => {
@@ -65,16 +75,19 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset }) => {
                     </div>
 
                     <div className="flex items-center space-x-1">
-                        {['All', 'Normal', 'Repair'].map((status) => (
+                        {['All', 'Normal', 'Repair', 'Check', 'Disposed'].map((status) => (
                             <button
                                 key={status}
-                                onClick={() => setFilterStatus(status)}
+                                onClick={() => handleFilterChange(status)}
                                 className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${filterStatus === status
                                     ? 'bg-slate-800 text-white shadow-md'
                                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
                                     }`}
                             >
-                                {status === 'All' ? 'ทั้งหมด' : status}
+                                {status === 'All' ? 'ทั้งหมด' :
+                                    status === 'Normal' ? 'ปกติ' :
+                                        status === 'Repair' ? 'แจ้งซ่อม' :
+                                            status === 'Check' ? 'รอตรวจ' : 'จำหน่าย'}
                             </button>
                         ))}
                     </div>

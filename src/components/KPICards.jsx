@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Box, CheckCircle2, Wrench, Search, Trash2, ArrowUpRight } from 'lucide-react';
 
-const KPICards = ({ data }) => {
+const KPICards = ({ data, onStatClick }) => {
     const stats = useMemo(() => {
         if (!data) return { all: 0, normal: 0, repair: 0, check: 0, disposed: 0 };
         return {
@@ -16,6 +16,7 @@ const KPICards = ({ data }) => {
     const kpis = [
         {
             title: 'ทั้งหมด',
+            statusValue: 'All',
             subtitle: 'รายการทุกรายการในระบบ',
             value: stats.all,
             icon: Box,
@@ -26,6 +27,7 @@ const KPICards = ({ data }) => {
         },
         {
             title: 'ปกติ',
+            statusValue: 'Normal',
             subtitle: 'พร้อมสำหรับการใช้งาน',
             value: stats.normal,
             icon: CheckCircle2,
@@ -36,6 +38,7 @@ const KPICards = ({ data }) => {
         },
         {
             title: 'ชำรุด',
+            statusValue: 'Repair',
             subtitle: 'รอคิวแจ้งซ่อมบำรุง',
             value: stats.repair,
             icon: Wrench,
@@ -46,6 +49,7 @@ const KPICards = ({ data }) => {
         },
         {
             title: 'รอตรวจสอบ',
+            statusValue: 'Check',
             subtitle: 'กำลังรอการยืนยัน',
             value: stats.check,
             icon: Search,
@@ -56,6 +60,7 @@ const KPICards = ({ data }) => {
         },
         {
             title: 'จำหน่ายออก',
+            statusValue: 'Disposed',
             subtitle: 'โอนย้าย/ทำลายแล้ว',
             value: stats.disposed,
             icon: Trash2,
@@ -69,7 +74,11 @@ const KPICards = ({ data }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
             {kpis.map((kpi, index) => (
-                <div key={index} className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden">
+                <div
+                    key={index}
+                    onClick={() => onStatClick?.(kpi.statusValue)}
+                    className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden cursor-pointer"
+                >
                     {/* Background Icon Detail */}
                     <kpi.icon className={`absolute -right-4 -bottom-4 w-24 h-24 opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-125 group-hover:-rotate-12 ${kpi.color}`} />
 

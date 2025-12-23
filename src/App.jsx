@@ -31,6 +31,12 @@ export default function App() {
     const [categories, setCategories] = useState(ASSET_CATEGORIES);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
+    const [assetFilter, setAssetFilter] = useState('All');
+
+    const handleDashboardStatClick = (status) => {
+        setAssetFilter(status);
+        setActiveTab('assets');
+    };
 
     const handleAddAsset = () => {
         // Create an empty asset template
@@ -192,7 +198,10 @@ export default function App() {
                         </div>
 
                         <CoopHeader />
-                        <KPICards data={assets} />
+                        <KPICards
+                            data={assets}
+                            onStatClick={handleDashboardStatClick}
+                        />
                         <ValueStatusSection data={assets} />
 
                         <div className="grid grid-cols-1 gap-8">
@@ -208,6 +217,8 @@ export default function App() {
                         data={assets}
                         onEditAsset={handleEditAsset}
                         onAddAsset={handleAddAsset}
+                        initialFilter={assetFilter}
+                        onFilterChange={setAssetFilter}
                     />
                 )}
 
