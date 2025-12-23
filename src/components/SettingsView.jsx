@@ -14,7 +14,12 @@ import {
     Edit3,
     X,
     Check,
-    FileText
+    FileText,
+    Users,
+    Upload,
+    Lock,
+    UserPlus,
+    Download
 } from 'lucide-react';
 
 const SettingsView = ({ categories, setCategories }) => {
@@ -40,7 +45,20 @@ const SettingsView = ({ categories, setCategories }) => {
         { id: 'categories', label: 'หมวดหมู่ทรัพย์สิน', icon: Tag },
         { id: 'numbering', label: 'รหัสทรัพย์สิน', icon: Hash },
         { id: 'depreciation', label: 'การคำนวณค่าเสื่อม', icon: Calculator },
-        { id: 'database', label: 'ฐานข้อมูล', icon: Database },
+        { id: 'users', label: 'ผู้ใช้งานและสิทธิ์', icon: Users },
+        { id: 'database', label: 'ฐานข้อมูลและนำเข้า', icon: Database },
+    ];
+
+    const [users, setUsers] = useState([
+        { id: 1, name: 'นิรุตติ์ มั่งมี', email: 'nirutti.m@coop.ku.ac.th', role: 'Admin', status: 'Active' },
+        { id: 2, name: 'วิลาสินี รักงาน', email: 'wilasinee.r@coop.ku.ac.th', role: 'Staff', status: 'Active' },
+        { id: 3, name: 'สมปอง สายฮา', email: 'sompong.s@coop.ku.ac.th', role: 'Viewer', status: 'Inactive' },
+    ]);
+
+    const roles = [
+        { name: 'Admin', desc: 'เข้าถึงได้ทุกส่วนของระบบ', permissions: ['manage_assets', 'manage_users', 'view_reports', 'settings'] },
+        { name: 'Staff', desc: 'จัดการทรัพย์สินและดูรายงาน', permissions: ['manage_assets', 'view_reports'] },
+        { name: 'Viewer', desc: 'ดูข้อมูลได้อย่างเดียว', permissions: ['view_reports'] },
     ];
 
     const handleAddCategory = () => {
@@ -308,24 +326,156 @@ const SettingsView = ({ categories, setCategories }) => {
                         </div>
                     )}
 
+                    {activeSection === 'users' && (
+                        <div className="space-y-8 animate-in fade-in duration-500">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-slate-800">ผู้ใช้งานและสิทธิ์การเข้าถึง</h3>
+                                <button className="flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md">
+                                    <UserPlus className="w-4 h-4 mr-2" />
+                                    เพิ่มผู้ใช้ใหม่
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-6">
+                                {/* Users Table */}
+                                <div className="overflow-hidden border border-slate-100 rounded-2xl">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-slate-50 text-slate-400 text-xs uppercase font-bold">
+                                            <tr>
+                                                <th className="px-6 py-3">ผู้ใช้งาน</th>
+                                                <th className="px-6 py-3">สิทธิ์การใช้งาน</th>
+                                                <th className="px-6 py-3">สถานะ</th>
+                                                <th className="px-6 py-3 text-right">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {users.map((user) => (
+                                                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center">
+                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mr-3">
+                                                                {user.name.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-slate-700 text-sm">{user.name}</p>
+                                                                <p className="text-xs text-slate-400">{user.email}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Admin' ? 'bg-indigo-50 text-indigo-600' :
+                                                                user.role === 'Staff' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
+                                                            }`}>
+                                                            {user.role}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm">
+                                                        <span className={`flex items-center gap-1.5 ${user.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                            {user.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors">
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                        <button className="p-1.5 text-slate-400 hover:text-red-600 transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Roles and Permissions */}
+                                <div className="mt-4">
+                                    <h4 className="font-bold text-slate-800 mb-4 flex items-center">
+                                        <Lock className="w-5 h-5 mr-4 text-emerald-600" />
+                                        ระดับสิทธิ์และรายละเอียด
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {roles.map((role) => (
+                                            <div key={role.name} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <h5 className="font-bold text-slate-700 mb-1">{role.name}</h5>
+                                                <p className="text-xs text-slate-500 mb-4">{role.desc}</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {role.permissions.map(p => (
+                                                        <span key={p} className="text-[10px] bg-white border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded uppercase font-bold">
+                                                            {p.replace('_', ' ')}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeSection === 'database' && (
-                        <div className="space-y-6 animate-in fade-in duration-500">
-                            <h3 className="text-xl font-bold text-slate-800 mb-6">จัดการฐานข้อมูล</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button className="p-4 border-2 border-slate-50 rounded-2xl flex flex-col items-center hover:border-emerald-100 hover:bg-emerald-50/20 transition-all group">
-                                    <div className="p-3 bg-blue-100 text-blue-600 rounded-xl mb-3 group-hover:scale-110 transition-transform">
-                                        <FileText className="w-6 h-6" />
+                        <div className="space-y-8 animate-in fade-in duration-500">
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">นำเข้าและจัดการข้อมูล</h3>
+                                <p className="text-sm text-slate-500">สำรองข้อมูล ส่งออก หรือนำทรัพย์สินเข้าจากไฟล์ภายนอก</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-emerald-100 hover:bg-emerald-50/20 transition-all group">
+                                    <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                                        <FileText className="w-7 h-7" />
                                     </div>
                                     <span className="font-bold text-slate-700">ส่งออกข้อมูลรวม</span>
-                                    <span className="text-xs text-slate-400 mt-1">Export to Excel / CSV</span>
+                                    <span className="text-[11px] text-slate-400 mt-1 uppercase font-black tracking-widest">Master Export</span>
                                 </button>
-                                <button className="p-4 border-2 border-slate-50 rounded-2xl flex flex-col items-center hover:border-amber-100 hover:bg-amber-50/20 transition-all group">
-                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-xl mb-3 group-hover:scale-110 transition-transform">
-                                        <Database className="w-6 h-6" />
+
+                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-amber-100 hover:bg-amber-50/20 transition-all group">
+                                    <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                                        <Database className="w-7 h-7" />
                                     </div>
-                                    <span className="font-bold text-slate-700">สำรองข้อมูลระบบ</span>
-                                    <span className="text-xs text-slate-400 mt-1">Manual Database Backup</span>
+                                    <span className="font-bold text-slate-700">สำรองฐานข้อมูล</span>
+                                    <span className="text-[11px] text-slate-400 mt-1 uppercase font-black tracking-widest">Backup & Archive</span>
                                 </button>
+
+                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-rose-100 hover:bg-rose-50/20 transition-all group">
+                                    <div className="p-4 bg-rose-100 text-rose-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                                        <Trash2 className="w-7 h-7" />
+                                    </div>
+                                    <span className="font-bold text-slate-700 text-rose-600">ล้างฐานข้อมูล</span>
+                                    <span className="text-[11px] text-slate-400 mt-1 uppercase font-black tracking-widest text-rose-300">Danger Zone</span>
+                                </button>
+                            </div>
+
+                            <div className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h4 className="font-black text-slate-800 flex items-center">
+                                        <Upload className="w-6 h-6 mr-3 text-emerald-600" />
+                                        นำเข้าข้อมูลทรัพย์สิน (Excel / CSV)
+                                    </h4>
+                                    <button className="text-emerald-600 text-xs font-black uppercase tracking-widest flex items-center hover:underline">
+                                        <Download className="w-4 h-4 mr-1.5" />
+                                        ดาวน์โหลด Template
+                                    </button>
+                                </div>
+
+                                <div className="border-4 border-dashed border-slate-200 rounded-[2rem] p-12 flex flex-col items-center text-center group cursor-pointer hover:border-emerald-300 hover:bg-white transition-all">
+                                    <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                        <Upload className="w-10 h-10" />
+                                    </div>
+                                    <h5 className="text-xl font-black text-slate-700 mb-2 whitespace-pre-wrap">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h5>
+                                    <p className="text-sm text-slate-400 font-medium">รองรับไฟล์ .csv, .xlsx เท่านั้น (ขนาดสูงสุด 10MB)</p>
+
+                                    <div className="mt-8 flex gap-3">
+                                        <div className="flex items-center text-xs font-bold text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-100">
+                                            <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> ตรวจสอบรหัสซ้ำ
+                                        </div>
+                                        <div className="flex items-center text-xs font-bold text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-100">
+                                            <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> ตรวจสอบหมวดหมู่
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
