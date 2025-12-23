@@ -1,0 +1,35 @@
+{
+  "name": "assettrack",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ระบบครุภัณฑ์",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiatnarongthanomsap/asset-track.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kiatnarongthanomsap/asset-track/issues"
+  },
+  "homepage": "https://github.com/kiatnarongthanomsap/asset-track#readme",
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.3.0"
+  }
+}
