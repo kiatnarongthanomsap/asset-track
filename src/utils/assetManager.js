@@ -108,6 +108,35 @@ export const exportAssetsToCSV = (assets) => {
 };
 
 /**
+ * Export Assets that haven't had stickers printed (Excel Compatible)
+ */
+export const exportPendingStickersCSV = (assets) => {
+    const pendingAssets = assets.filter(a => !a.isStickerPrinted);
+
+    const headers = ['รหัสทรัพย์สิน', 'ชื่อทรัพย์สิน', 'หมวดหมู่', 'ยี่ห้อ', 'Serial Number', 'สถานที่', 'สถานะการพิมพ์สติ๊กเกอร์'];
+
+    const rows = pendingAssets.map(asset => [
+        `"${asset.code}"`,
+        `"${asset.name}"`,
+        `"${asset.category}"`,
+        `"${asset.brand || ''}"`,
+        `"${asset.serial || ''}"`,
+        `"${asset.location}"`,
+        `"ยังไม่พิมพ์"`
+    ]);
+
+    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Pending_Stickers_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+/**
  * Default Categories Configuration
  */
 export const ASSET_CATEGORIES = [

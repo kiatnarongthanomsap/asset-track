@@ -1,14 +1,15 @@
-import React from 'react';
 import {
     PlusCircle,
     Printer,
     FileSpreadsheet,
     History,
     Settings,
-    ArrowRight
+    ArrowRight,
+    Tag
 } from 'lucide-react';
+import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
-const ActionZone = () => {
+const ActionZone = ({ assets, onAddAsset, onTabChange }) => {
     const actions = [
         {
             title: 'เพิ่มครุภัณฑ์ใหม่',
@@ -16,23 +17,26 @@ const ActionZone = () => {
             icon: PlusCircle,
             color: 'bg-emerald-600',
             shadow: 'shadow-emerald-200',
-            hover: 'hover:bg-emerald-700'
+            hover: 'hover:bg-emerald-700',
+            onClick: onAddAsset
         },
         {
-            title: 'พิมพ์บาร์โค้ด',
-            desc: 'สร้าง QR Code ติดทรัพย์สิน',
-            icon: Printer,
-            color: 'bg-blue-600',
-            shadow: 'shadow-blue-200',
-            hover: 'hover:bg-blue-700'
+            title: 'สติ๊กเกอร์ค้างพิมพ์',
+            desc: 'ส่งออกรายการที่ยังไม่ได้พิมพ์',
+            icon: Tag,
+            color: 'bg-amber-500',
+            shadow: 'shadow-amber-200',
+            hover: 'hover:bg-amber-600',
+            onClick: () => exportPendingStickersCSV(assets)
         },
         {
-            title: 'ส่งออก Excel',
-            desc: 'รายงานสรุปตามหมวดหมู่',
+            title: 'รายงาน Excel',
+            desc: 'สรุปทรัพย์สินตามหมวดหมู่',
             icon: FileSpreadsheet,
             color: 'bg-indigo-600',
             shadow: 'shadow-indigo-200',
-            hover: 'hover:bg-indigo-700'
+            hover: 'hover:bg-indigo-700',
+            onClick: () => exportAssetsToCSV(assets)
         },
         {
             title: 'ประวัติธุรกรรม',
@@ -40,7 +44,8 @@ const ActionZone = () => {
             icon: History,
             color: 'bg-rose-500',
             shadow: 'shadow-rose-200',
-            hover: 'hover:bg-rose-600'
+            hover: 'hover:bg-rose-600',
+            onClick: () => onTabChange('reports')
         },
         {
             title: 'ตั้งค่าระบบ',
@@ -48,7 +53,8 @@ const ActionZone = () => {
             icon: Settings,
             color: 'bg-slate-700',
             shadow: 'shadow-slate-300',
-            hover: 'hover:bg-slate-800'
+            hover: 'hover:bg-slate-800',
+            onClick: () => onTabChange('settings')
         },
     ];
 
@@ -57,6 +63,7 @@ const ActionZone = () => {
             {actions.map((action, index) => (
                 <button
                     key={index}
+                    onClick={action.onClick}
                     className={`group relative overflow-hidden flex flex-col items-start p-6 rounded-3xl transition-all duration-300 shadow-lg ${action.shadow} ${action.color} ${action.hover} hover:-translate-y-1`}
                 >
                     {/* Background Pattern Detail */}

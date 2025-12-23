@@ -209,7 +209,11 @@ export default function App() {
 
                         <div className="grid grid-cols-1 gap-8">
                             <AuditTrailTable />
-                            <ActionZone />
+                            <ActionZone
+                                assets={assets}
+                                onAddAsset={handleAddAsset}
+                                onTabChange={setActiveTab}
+                            />
                         </div>
                     </div>
                 )}

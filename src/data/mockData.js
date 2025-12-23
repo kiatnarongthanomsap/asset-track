@@ -11,7 +11,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2014-04-09',
         category: 'Computer',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 2,
@@ -25,7 +26,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2014-04-09',
         category: 'Computer',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 3,
@@ -39,7 +41,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-02-22',
         category: 'Appliance',
         usefulLife: 3,
-        image: 'https://images.unsplash.com/photo-1579013233215-a7b3706da91a?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1579013233215-a7b3706da91a?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 4,
@@ -53,7 +56,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-07-08',
         category: 'Appliance',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 5,
@@ -67,7 +71,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-07-08',
         category: 'Appliance',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 6,
@@ -81,7 +86,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2017-11-15',
         category: 'Peripheral',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1626074213967-16016e15905d?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1626074213967-16016e15905d?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: true
     },
     {
         id: 7,
@@ -95,7 +101,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-07-08',
         category: 'Appliance',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
     {
         id: 8,
@@ -109,7 +116,8 @@ export const INITIAL_DATA = [
         purchaseDate: '2022-02-01',
         category: 'Tablet',
         usefulLife: 3,
-        image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=300'
+        image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=300',
+        isStickerPrinted: false
     },
 ];
 
