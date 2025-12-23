@@ -11,23 +11,23 @@ export const INITIAL_DATA = [
         purchaseDate: '2014-04-09',
         category: 'Computer',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300',
+        image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400',
         isStickerPrinted: false
     },
     {
         id: 2,
         code: 'A004-09-04-2557',
-        name: 'HP Envy Touch Smart 20-d106d',
-        brand: 'HP',
+        name: 'MacBook Pro 16" (2021)',
+        brand: 'Apple',
         serial: '5CM40301SS',
-        price: 26990,
+        price: 79900,
         location: 'เคาน์เตอร์ประชาสัมพันธ์',
         status: 'Normal',
-        purchaseDate: '2014-04-09',
+        purchaseDate: '2021-12-09',
         category: 'Computer',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=300',
-        isStickerPrinted: false
+        image: 'https://images.unsplash.com/photo-1517336714460-d15f697ce537?auto=format&fit=crop&q=80&w=400',
+        isStickerPrinted: true
     },
     {
         id: 3,
@@ -41,7 +41,7 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-02-22',
         category: 'Appliance',
         usefulLife: 3,
-        image: 'https://images.unsplash.com/photo-1579013233215-a7b3706da91a?auto=format&fit=crop&q=80&w=300',
+        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=400',
         isStickerPrinted: false
     },
     {
@@ -56,23 +56,23 @@ export const INITIAL_DATA = [
         purchaseDate: '2021-07-08',
         category: 'Appliance',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
+        image: 'https://images.unsplash.com/photo-1594832281358-1be2fa47f631?auto=format&fit=crop&q=80&w=400',
         isStickerPrinted: false
     },
     {
         id: 5,
         code: 'X008-08-07-2564',
-        name: 'Air Purifier KJ1000F-A03',
-        brand: 'AWAC',
-        serial: 'MPO100033',
-        price: 16050,
+        name: 'Ergonomic Office Chair',
+        brand: 'Herman Miller',
+        serial: 'HM-AERON-01',
+        price: 45000,
         location: 'หน้าเคาน์เตอร์สินเชื่อ',
         status: 'Normal',
-        purchaseDate: '2021-07-08',
-        category: 'Appliance',
-        usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
-        isStickerPrinted: false
+        purchaseDate: '2023-01-15',
+        category: 'Furniture',
+        usefulLife: 10,
+        image: 'https://images.unsplash.com/photo-1505797149-43b007664a3d?auto=format&fit=crop&q=80&w=400',
+        isStickerPrinted: true
     },
     {
         id: 6,
@@ -86,40 +86,41 @@ export const INITIAL_DATA = [
         purchaseDate: '2017-11-15',
         category: 'Peripheral',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1626074213967-16016e15905d?auto=format&fit=crop&q=80&w=300',
+        image: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&q=80&w=400',
         isStickerPrinted: true
     },
     {
         id: 7,
         code: 'X009-08-07-2564',
-        name: 'Air Purifier KJ1000F-A03',
-        brand: 'AWAC',
+        name: 'Dell UltraSharp 27 Monitor',
+        brand: 'Dell',
         serial: 'MPO100047',
-        price: 16050,
+        price: 18900,
         location: 'บริหารทั่วไป',
         status: 'Check',
-        purchaseDate: '2021-07-08',
-        category: 'Appliance',
+        purchaseDate: '2022-07-08',
+        category: 'Peripheral',
         usefulLife: 5,
-        image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=300',
+        image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=400',
         isStickerPrinted: false
     },
     {
         id: 8,
         code: 'A012-01-02-2565',
-        name: 'iPad Air 5',
+        name: 'iPad Pro 12.9" M2',
         brand: 'Apple',
         serial: 'HXC9982M',
-        price: 23900,
+        price: 36900,
         location: 'ผู้จัดการ',
         status: 'Normal',
-        purchaseDate: '2022-02-01',
+        purchaseDate: '2023-02-01',
         category: 'Tablet',
         usefulLife: 3,
-        image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=300',
-        isStickerPrinted: false
+        image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=400',
+        isStickerPrinted: true
     },
 ];
+
 
 export const AUDIT_LOGS = [
     { id: 1, date: '31/03/67', action: 'ตรวจนับ', code: 'A001-2560', operator: 'จนท.1', doc: 'คก.01' },

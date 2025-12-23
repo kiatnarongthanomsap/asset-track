@@ -50,8 +50,8 @@ export const exportAssetsToCSV = (assets) => {
         grouped[cat].push(asset);
     });
 
-    // 2. Define Headers
-    const headers = ['รหัสทรัพย์สิน', 'ชื่อทรัพย์สิน', 'หมวดหมู่', 'ยี่ห้อ', 'Serial Number', 'ราคาทุน', 'วันที่ซื้อ', 'อายุการใช้งาน', 'สถานที่', 'สถานะ'];
+    // 2. Define Headers - Extended to match all data
+    const headers = ['รหัสทรัพย์สิน', 'ชื่อทรัพย์สิน', 'หมวดหมู่', 'ยี่ห้อ', 'Serial Number', 'ราคาทุน', 'วันที่ซื้อ', 'อายุการใช้งาน', 'สถานที่', 'สถานะ', 'พิมพ์สติ๊กเกอร์'];
 
     let csvRows = [];
     csvRows.push(headers.join(","));
@@ -78,7 +78,8 @@ export const exportAssetsToCSV = (assets) => {
                 `"${asset.purchaseDate}"`,
                 asset.usefulLife,
                 `"${asset.location}"`,
-                `"${asset.status}"`
+                `"${asset.status}"`,
+                `"${asset.isStickerPrinted ? 'Yes' : 'No'}"`
             ];
             csvRows.push(row.join(","));
             categoryTotal += asset.price;
@@ -101,11 +102,76 @@ export const exportAssetsToCSV = (assets) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Asset_Categorized_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Asset_Report_Complete_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 };
+
+/**
+ * Download a template for CSV Import
+ */
+export const downloadCSVTemplate = () => {
+    const headers = ['รหัสทรัพย์สิน', 'ชื่อทรัพย์สิน', 'หมวดหมู่', 'ยี่ห้อ', 'Serial Number', 'ราคาทุน', 'วันที่ซื้อ', 'อายุการใช้งาน', 'สถานที่', 'สถานะ'];
+    const example = ['COM-2567-0001', 'เครื่องคอมพิวเตอร์พกพา', 'Computer', 'Dell', 'X123456789', '45000', '2024-01-20', '5', 'ห้องประชุม 1', 'Normal'];
+
+    const csvRows = [headers.join(","), example.join(",")];
+    const csvContent = "\uFEFF" + csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Asset_Import_Template.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+/**
+ * Handle CSV Parsing for Import
+ */
+export const parseAssetCSV = async (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            if (lines.length < 2) {
+                resolve([]);
+                return;
+            }
+
+            const assets = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line || line.startsWith('"---') || line.startsWith('""') || line.includes('รวมหมวด')) continue;
+
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                if (values.length < 10) continue;
+
+                assets.push({
+                    id: Date.now() + i,
+                    code: values[0],
+                    name: values[1],
+                    category: values[2],
+                    brand: values[3],
+                    serial: values[4],
+                    price: parseFloat(values[5]) || 0,
+                    purchaseDate: values[6],
+                    usefulLife: parseInt(values[7]) || 5,
+                    location: values[8],
+                    status: values[9] || 'Normal',
+                    isStickerPrinted: false,
+                    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=300'
+                });
+            }
+            resolve(assets);
+        };
+        reader.onerror = reject;
+        reader.readAsText(file);
+    });
+};
+
 
 /**
  * Export Assets that haven't had stickers printed (Excel Compatible)

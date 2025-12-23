@@ -22,7 +22,13 @@ import {
     Download
 } from 'lucide-react';
 
-const SettingsView = ({ categories, setCategories }) => {
+import {
+    exportAssetsToCSV,
+    downloadCSVTemplate,
+    parseAssetCSV
+} from '../utils/assetManager';
+
+const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
     const [activeSection, setActiveSection] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -364,7 +370,7 @@ const SettingsView = ({ categories, setCategories }) => {
                                                     </td>
                                                     <td className="px-6 py-4 text-sm">
                                                         <span className={`px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Admin' ? 'bg-indigo-50 text-indigo-600' :
-                                                                user.role === 'Staff' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
+                                                            user.role === 'Staff' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
                                                             }`}>
                                                             {user.role}
                                                         </span>
@@ -423,7 +429,10 @@ const SettingsView = ({ categories, setCategories }) => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-emerald-100 hover:bg-emerald-50/20 transition-all group">
+                                <button
+                                    onClick={() => exportAssetsToCSV(assets)}
+                                    className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-emerald-100 hover:bg-emerald-50/20 transition-all group"
+                                >
                                     <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                                         <FileText className="w-7 h-7" />
                                     </div>
@@ -431,7 +440,10 @@ const SettingsView = ({ categories, setCategories }) => {
                                     <span className="text-[11px] text-slate-400 mt-1 uppercase font-black tracking-widest">Master Export</span>
                                 </button>
 
-                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-amber-100 hover:bg-amber-50/20 transition-all group">
+                                <button
+                                    className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-amber-100 hover:bg-amber-50/20 transition-all group opacity-50 cursor-not-allowed"
+                                    title="ฟีเจอร์นี้ยังไม่เปิดใช้งาน"
+                                >
                                     <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                                         <Database className="w-7 h-7" />
                                     </div>
@@ -439,7 +451,14 @@ const SettingsView = ({ categories, setCategories }) => {
                                     <span className="text-[11px] text-slate-400 mt-1 uppercase font-black tracking-widest">Backup & Archive</span>
                                 </button>
 
-                                <button className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-rose-100 hover:bg-rose-50/20 transition-all group">
+                                <button
+                                    onClick={() => {
+                                        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+                                            setAssets([]);
+                                        }
+                                    }}
+                                    className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-rose-100 hover:bg-rose-50/20 transition-all group"
+                                >
                                     <div className="p-4 bg-rose-100 text-rose-600 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                                         <Trash2 className="w-7 h-7" />
                                     </div>
@@ -454,18 +473,45 @@ const SettingsView = ({ categories, setCategories }) => {
                                         <Upload className="w-6 h-6 mr-3 text-emerald-600" />
                                         นำเข้าข้อมูลทรัพย์สิน (Excel / CSV)
                                     </h4>
-                                    <button className="text-emerald-600 text-xs font-black uppercase tracking-widest flex items-center hover:underline">
+                                    <button
+                                        onClick={downloadCSVTemplate}
+                                        className="text-emerald-600 text-xs font-black uppercase tracking-widest flex items-center hover:underline"
+                                    >
                                         <Download className="w-4 h-4 mr-1.5" />
                                         ดาวน์โหลด Template
                                     </button>
                                 </div>
 
-                                <div className="border-4 border-dashed border-slate-200 rounded-[2rem] p-12 flex flex-col items-center text-center group cursor-pointer hover:border-emerald-300 hover:bg-white transition-all">
+                                <div className="relative border-4 border-dashed border-slate-200 rounded-[2rem] p-12 flex flex-col items-center text-center group cursor-pointer hover:border-emerald-300 hover:bg-white transition-all overflow-hidden">
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                try {
+                                                    const importedAssets = await parseAssetCSV(file);
+                                                    if (importedAssets.length > 0) {
+                                                        if (confirm(`พบข้อมูล ${importedAssets.length} รายการ ต้องการนำเข้าและรวมกับข้อมูลเดิมหรือไม่?`)) {
+                                                            setAssets([...assets, ...importedAssets]);
+                                                            alert('นำเข้าข้อมูลสำเร็จ!');
+                                                        }
+                                                    } else {
+                                                        alert('ไม่พบข้อมูลที่สามารถนำเข้าได้ หรือรูปแบบไฟล์ไม่ถูกต้อง');
+                                                    }
+                                                } catch (err) {
+                                                    alert('เกิดข้อผิดพลาดในการประมวลผลไฟล์');
+                                                }
+                                                e.target.value = ''; // Reset input
+                                            }
+                                        }}
+                                    />
                                     <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform">
                                         <Upload className="w-10 h-10" />
                                     </div>
                                     <h5 className="text-xl font-black text-slate-700 mb-2 whitespace-pre-wrap">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h5>
-                                    <p className="text-sm text-slate-400 font-medium">รองรับไฟล์ .csv, .xlsx เท่านั้น (ขนาดสูงสุด 10MB)</p>
+                                    <p className="text-sm text-slate-400 font-medium">รองรับไฟล์ .csv เท่านั้น (ขนาดสูงสุด 10MB)</p>
 
                                     <div className="mt-8 flex gap-3">
                                         <div className="flex items-center text-xs font-bold text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-100">

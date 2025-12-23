@@ -58,7 +58,7 @@ export default function App() {
             vendor: '',
             warrantyExpiry: '',
             notes: '',
-            image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400'
+            image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400'
         };
         setCurrentAsset(newAsset);
         setIsEditModalOpen(true);
@@ -250,6 +250,8 @@ export default function App() {
                     <SettingsView
                         categories={categories}
                         setCategories={setCategories}
+                        assets={assets}
+                        setAssets={setAssets}
                     />
                 )}
 

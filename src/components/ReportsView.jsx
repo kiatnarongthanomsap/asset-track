@@ -13,32 +13,51 @@ import {
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { exportAssetsToCSV } from '../utils/assetManager';
+import { calculateDepreciation } from '../utils/calculations';
 
 const ReportsView = ({ data }) => {
     const [reportMode, setReportMode] = useState('analytics'); // 'analytics' or 'detailed'
 
     // Grouping for Analytics
-    const summaryByCategory = useMemo(() => {
-        const groups = {};
-        let maxVal = 0;
-        data.forEach(item => {
-            const cat = item.category || 'ไม่ระบุ';
-            if (!groups[cat]) groups[cat] = { count: 0, value: 0 };
-            groups[cat].count += 1;
-            groups[cat].value += item.price;
-            if (groups[cat].value > maxVal) maxVal = groups[cat].value;
-        });
-        return { groups, maxVal };
-    }, [data]);
+    const analytics = useMemo(() => {
+        const byCategory = {};
+        const byLocation = {};
+        let totalCost = 0;
+        let totalBookValue = 0;
+        let stickerPrinted = 0;
+        let maxCategoryValue = 0;
 
-    const summaryByLocation = useMemo(() => {
-        const groups = {};
         data.forEach(item => {
+            const dep = calculateDepreciation(item.price, item.purchaseDate, item.usefulLife);
+
+            // By Category
+            const cat = item.category || 'ไม่ระบุ';
+            if (!byCategory[cat]) byCategory[cat] = { count: 0, cost: 0, bookValue: 0 };
+            byCategory[cat].count += 1;
+            byCategory[cat].cost += item.price;
+            byCategory[cat].bookValue += dep.bookValue;
+            if (byCategory[cat].cost > maxCategoryValue) maxCategoryValue = byCategory[cat].cost;
+
+            // By Location
             const loc = item.location || 'ไม่ระบุ';
-            if (!groups[loc]) groups[loc] = 0;
-            groups[loc] += 1;
+            if (!byLocation[loc]) byLocation[loc] = 0;
+            byLocation[loc] += 1;
+
+            // General Stats
+            totalCost += item.price;
+            totalBookValue += dep.bookValue;
+            if (item.isStickerPrinted) stickerPrinted += 1;
         });
-        return Object.entries(groups).sort((a, b) => b[1] - a[1]);
+
+        return {
+            byCategory: Object.entries(byCategory).sort((a, b) => b[1].cost - a[1].cost),
+            byLocation: Object.entries(byLocation).sort((a, b) => b[1] - a[1]),
+            totalCost,
+            totalBookValue,
+            stickerPrinted,
+            stickerPercent: data.length > 0 ? (stickerPrinted / data.length) * 100 : 0,
+            maxCategoryValue
+        };
     }, [data]);
 
     const maintenanceList = useMemo(() => {
@@ -103,28 +122,56 @@ const ReportsView = ({ data }) => {
 
             {reportMode === 'analytics' ? (
                 <div className="space-y-6 animate-in fade-in duration-500">
+                    {/* KPI Cards for Reports */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">ราคาทุนรวมทั้งหมด</p>
+                            <p className="text-2xl font-black text-slate-800">฿{analytics.totalCost.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">มูลค่าปัจจุบัน (Book Value)</p>
+                            <p className="text-2xl font-black text-emerald-600">฿{Math.round(analytics.totalBookValue).toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">พิมพ์สติ๊กเกอร์แล้ว</p>
+                            <div className="flex items-end gap-2">
+                                <p className="text-2xl font-black text-slate-800">{analytics.stickerPrinted} / {data.length}</p>
+                                <span className="text-xs font-bold text-emerald-500 mb-1">{analytics.stickerPercent.toFixed(0)}%</span>
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">รายการรอซ่อม/รอตรวจ</p>
+                            <p className="text-2xl font-black text-amber-600">{maintenanceList.length} <span className="text-sm">รายการ</span></p>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 1. Category Value Report */}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="font-bold text-slate-800 flex items-center">
                                     <PieChart className="w-5 h-5 mr-2 text-blue-500" />
-                                    มูลค่าสะสมตามหมวดหมู่
+                                    มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน)
                                 </h3>
                             </div>
-                            <div className="space-y-5">
-                                {Object.entries(summaryByCategory.groups).map(([cat, info]) => (
+                            <div className="space-y-6">
+                                {analytics.byCategory.map(([cat, info]) => (
                                     <div key={cat} className="group">
                                         <div className="flex justify-between text-sm mb-2">
-                                            <span className="font-bold text-slate-700">{cat}</span>
-                                            <span className="text-slate-500 font-mono text-xs">
-                                                ฿{info.value.toLocaleString()} ({info.count} ชิ้น)
-                                            </span>
+                                            <span className="font-bold text-slate-700">{cat} <span className="text-[10px] text-slate-400 font-normal">({info.count} ชิ้น)</span></span>
+                                            <div className="text-right">
+                                                <span className="text-slate-500 font-mono text-xs block">ทุน: ฿{info.cost.toLocaleString()}</span>
+                                                <span className="text-emerald-600 font-mono text-xs font-bold">ปัจจุบัน: ฿{Math.round(info.bookValue).toLocaleString()}</span>
+                                            </div>
                                         </div>
-                                        <div className="w-full bg-slate-50 rounded-full h-2.5 overflow-hidden">
+                                        <div className="w-full bg-slate-50 rounded-full h-3 overflow-hidden relative">
                                             <div
-                                                className="bg-emerald-500 h-2.5 rounded-full transition-all duration-700 ease-out group-hover:bg-emerald-600"
-                                                style={{ width: `${(info.value / summaryByCategory.maxVal) * 100}%` }}
+                                                className="bg-slate-200 h-full rounded-full absolute top-0 left-0 transition-all duration-700"
+                                                style={{ width: `${(info.cost / analytics.maxCategoryValue) * 100}%` }}
+                                            ></div>
+                                            <div
+                                                className="bg-emerald-500 h-full rounded-full absolute top-0 left-0 transition-all duration-700 delay-100"
+                                                style={{ width: `${(info.bookValue / analytics.maxCategoryValue) * 100}%` }}
                                             ></div>
                                         </div>
                                     </div>
@@ -141,7 +188,7 @@ const ReportsView = ({ data }) => {
                                 </h3>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {summaryByLocation.map(([loc, count], index) => (
+                                {analytics.byLocation.map(([loc, count], index) => (
                                     <div key={loc} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition-all hover:bg-emerald-50/30 group">
                                         <div className="flex items-center">
                                             <div className="w-8 h-8 rounded-xl bg-white shadow-sm text-slate-800 flex items-center justify-center text-xs font-bold mr-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -218,7 +265,7 @@ const ReportsView = ({ data }) => {
                 /* Detailed Categorized Report */
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500 print:shadow-none print:border-none">
                     <div className="p-8 border-b border-slate-50 print:pb-4">
-                        <h3 className="text-xl font-bold text-slate-800 print:text-2xl">รายงานสรุปทรัพย์สินแยกตามหมวดหมู่</h3>
+                        <h3 className="text-xl font-bold text-slate-800 print:text-2xl">รายงานสรุปทรัพย์สินและค่าเสื่อมราคาแยกตามหมวดหมู่</h3>
                         <p className="text-slate-500 text-sm mt-1">ข้อมูล ณ วันที่ {new Date().toLocaleDateString('th-TH')}</p>
                     </div>
 
@@ -236,36 +283,49 @@ const ReportsView = ({ data }) => {
                                             <tr className="border-b border-slate-100 text-[10px] uppercase font-black text-slate-400 tracking-widest">
                                                 <th className="px-4 py-3">รหัส</th>
                                                 <th className="px-4 py-3">ชื่อรายการ</th>
-                                                <th className="px-4 py-3">ยี่ห้อ/รุ่น</th>
                                                 <th className="px-4 py-3 text-right">ราคาทุน</th>
+                                                <th className="px-4 py-3 text-right">ค่าเสื่อมสะสม</th>
+                                                <th className="px-4 py-3 text-right">มูลค่าปัจจุบัน</th>
                                                 <th className="px-4 py-3">สถานที่</th>
                                                 <th className="px-4 py-3">สถานะ</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
-                                            {assets.map(asset => (
-                                                <tr key={asset.id} className="text-sm hover:bg-slate-50/50">
-                                                    <td className="px-4 py-3 font-mono font-bold text-slate-700">{asset.code}</td>
-                                                    <td className="px-4 py-3 font-bold text-slate-800">{asset.name}</td>
-                                                    <td className="px-4 py-3 text-slate-500">{asset.brand || '-'}</td>
-                                                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-700">
-                                                        {asset.price.toLocaleString()}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-slate-600 font-medium">{asset.location}</td>
-                                                    <td className="px-4 py-3">
-                                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase border ${asset.status === 'Normal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                            asset.status === 'Repair' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                                'bg-slate-50 text-slate-600 border-slate-100'
-                                                            }`}>
-                                                            {asset.status}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            <tr className="bg-slate-50/70 border-t-2 border-slate-100">
-                                                <td colSpan="3" className="px-4 py-3 font-black text-slate-800 text-right">รวมหมวด {category}:</td>
-                                                <td className="px-4 py-3 text-right font-mono font-black text-emerald-700">
+                                            {assets.map(asset => {
+                                                const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
+                                                return (
+                                                    <tr key={asset.id} className="text-sm hover:bg-slate-50/50">
+                                                        <td className="px-4 py-3 font-mono font-bold text-slate-700">{asset.code}</td>
+                                                        <td className="px-4 py-3 font-bold text-slate-800">
+                                                            {asset.name}
+                                                            <div className="text-[10px] text-slate-400 font-normal">{asset.brand} • S/N: {asset.serial}</div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right font-mono text-slate-500">{asset.price.toLocaleString()}</td>
+                                                        <td className="px-4 py-3 text-right font-mono text-slate-400">{Math.round(dep.accumulatedDepreciation).toLocaleString()}</td>
+                                                        <td className="px-4 py-3 text-right font-mono font-bold text-emerald-700">{Math.round(dep.bookValue).toLocaleString()}</td>
+                                                        <td className="px-4 py-3 text-slate-600 font-medium">{asset.location}</td>
+                                                        <td className="px-4 py-3">
+                                                            <StatusBadge status={asset.status} />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            <tr className="bg-slate-50/70 border-t-2 border-slate-100 font-black">
+                                                <td colSpan="2" className="px-4 py-3 text-slate-800 text-right uppercase text-xs">รวมหมวด {category}:</td>
+                                                <td className="px-4 py-3 text-right font-mono text-slate-600">
                                                     {assets.reduce((sum, a) => sum + a.price, 0).toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-3 text-right font-mono text-slate-400">
+                                                    {assets.reduce((sum, a) => {
+                                                        const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
+                                                        return sum + dep.accumulatedDepreciation;
+                                                    }, 0).toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-3 text-right font-mono text-emerald-700">
+                                                    {assets.reduce((sum, a) => {
+                                                        const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
+                                                        return sum + dep.bookValue;
+                                                    }, 0).toLocaleString()}
                                                 </td>
                                                 <td colSpan="2"></td>
                                             </tr>
@@ -275,13 +335,22 @@ const ReportsView = ({ data }) => {
                             </div>
                         ))}
 
-                        <div className="pt-8 mt-12 border-t-2 border-slate-100 bg-slate-900 text-white p-8 rounded-3xl flex justify-between items-center print:bg-white print:text-black print:border-t-4">
-                            <div>
-                                <p className="text-slate-400 text-xs uppercase font-black tracking-widest print:text-gray-500">มูลค่ารวมทรัพย์สินทั้งหมด</p>
-                                <p className="text-4xl font-black mt-1">฿{data.reduce((sum, a) => sum + a.price, 0).toLocaleString()}</p>
+                        <div className="pt-8 mt-12 border-t-2 border-slate-100 bg-slate-900 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 print:bg-white print:text-black print:border-t-4">
+                            <div className="flex gap-12">
+                                <div>
+                                    <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest print:text-gray-500">ราคาทุนรวม</p>
+                                    <p className="text-3xl font-black mt-1">฿{data.reduce((sum, a) => sum + a.price, 0).toLocaleString()}</p>
+                                </div>
+                                <div>
+                                    <p className="text-emerald-400 text-[10px] uppercase font-black tracking-widest print:text-gray-500">มูลค่าปัจจุบันรวม</p>
+                                    <p className="text-3xl font-black mt-1 text-emerald-400 print:text-black">฿{Math.round(data.reduce((sum, a) => {
+                                        const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
+                                        return sum + dep.bookValue;
+                                    }, 0)).toLocaleString()}</p>
+                                </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-slate-400 text-xs uppercase font-black tracking-widest print:text-gray-500">จำนวนรายการรวม</p>
+                                <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest print:text-gray-500">จำนวนรายการรวม</p>
                                 <p className="text-4xl font-black mt-1">{data.length} <span className="text-lg">ชุด</span></p>
                             </div>
                         </div>
