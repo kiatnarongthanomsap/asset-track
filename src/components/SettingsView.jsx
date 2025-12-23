@@ -10,15 +10,18 @@ import {
     Plus,
     Trash2,
     Settings as SettingsIcon,
-    ChevronRight
+    ChevronRight,
+    Edit3,
+    X,
+    Check,
+    FileText
 } from 'lucide-react';
 
-import { ASSET_CATEGORIES } from '../utils/assetManager';
-
-const SettingsView = () => {
+const SettingsView = ({ categories, setCategories }) => {
     const [activeSection, setActiveSection] = useState('categories');
-
-    const [categories, setCategories] = useState(ASSET_CATEGORIES);
+    const [editingCategory, setEditingCategory] = useState(null);
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
+    const [newCategory, setNewCategory] = useState({ name: '', prefix: '', usefulLife: 5 });
 
     const [numbering, setNumbering] = useState({
         pattern: '{PREFIX}-{YEAR}-{RUNNING}',
@@ -39,6 +42,22 @@ const SettingsView = () => {
         { id: 'depreciation', label: 'การคำนวณค่าเสื่อม', icon: Calculator },
         { id: 'database', label: 'ฐานข้อมูล', icon: Database },
     ];
+
+    const handleAddCategory = () => {
+        if (!newCategory.name || !newCategory.prefix) return;
+        setCategories([...categories, { ...newCategory, id: Date.now() }]);
+        setNewCategory({ name: '', prefix: '', usefulLife: 5 });
+        setIsAddingCategory(false);
+    };
+
+    const handleUpdateCategory = (cat) => {
+        setCategories(categories.map(c => c.id === cat.id ? cat : c));
+        setEditingCategory(null);
+    };
+
+    const handleDeleteCategory = (id) => {
+        setCategories(categories.filter(c => c.id !== id));
+    };
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
@@ -100,10 +119,55 @@ const SettingsView = () => {
                         <div className="space-y-6 animate-in fade-in duration-500">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold text-slate-800">หมวดหมู่ทรัพย์สิน</h3>
-                                <button className="flex items-center text-sm font-bold text-emerald-600 hover:text-emerald-700">
-                                    <Plus className="w-4 h-4 mr-1" /> เพิ่มหมวดใหม่
-                                </button>
+                                {!isAddingCategory && (
+                                    <button
+                                        onClick={() => setIsAddingCategory(true)}
+                                        className="flex items-center text-sm font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4 mr-1" /> เพิ่มหมวดใหม่
+                                    </button>
+                                )}
                             </div>
+
+                            {isAddingCategory && (
+                                <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 mb-6 animate-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">ชื่อหมวด</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น เครื่องใช้สำนักงาน"
+                                                className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                                                value={newCategory.name}
+                                                onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Prefix</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น OFF"
+                                                className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 font-mono uppercase"
+                                                value={newCategory.prefix}
+                                                onChange={(e) => setNewCategory({ ...newCategory, prefix: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">อายุใช้งาน (ปี)</label>
+                                            <input
+                                                type="number"
+                                                className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                                                value={newCategory.usefulLife}
+                                                onChange={(e) => setNewCategory({ ...newCategory, usefulLife: Number(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => setIsAddingCategory(false)} className="px-4 py-2 text-sm text-slate-500 font-medium hover:bg-slate-100 rounded-lg">ยกเลิก</button>
+                                        <button onClick={handleAddCategory} className="px-4 py-2 text-sm bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-md">เพิ่มหมวดหมู่</button>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="overflow-hidden border border-slate-100 rounded-2xl">
                                 <table className="w-full text-left">
@@ -117,16 +181,53 @@ const SettingsView = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
                                         {categories.map((cat) => (
-                                            <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 font-semibold text-slate-700">{cat.name}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-mono text-xs font-bold">{cat.prefix}</span>
+                                            <tr key={cat.id} className="hover:bg-slate-50 transition-colors group">
+                                                <td className="px-6 py-4 font-semibold text-slate-700">
+                                                    {editingCategory?.id === cat.id ? (
+                                                        <input
+                                                            className="w-full px-2 py-1 border rounded"
+                                                            value={editingCategory.name}
+                                                            onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                                                        />
+                                                    ) : cat.name}
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-600">{cat.usefulLife} ปี</td>
+                                                <td className="px-6 py-4">
+                                                    {editingCategory?.id === cat.id ? (
+                                                        <input
+                                                            className="w-20 px-2 py-1 border rounded font-mono uppercase"
+                                                            value={editingCategory.prefix}
+                                                            onChange={(e) => setEditingCategory({ ...editingCategory, prefix: e.target.value })}
+                                                        />
+                                                    ) : (
+                                                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-mono text-xs font-bold">{cat.prefix}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-600">
+                                                    {editingCategory?.id === cat.id ? (
+                                                        <input
+                                                            type="number"
+                                                            className="w-20 px-2 py-1 border rounded"
+                                                            value={editingCategory.usefulLife}
+                                                            onChange={(e) => setEditingCategory({ ...editingCategory, usefulLife: Number(e.target.value) })}
+                                                        />
+                                                    ) : `${cat.usefulLife} ปี`}
+                                                </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <button className="p-2 text-slate-400 hover:text-red-600 transition-colors">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    {editingCategory?.id === cat.id ? (
+                                                        <div className="flex justify-end gap-1">
+                                                            <button onClick={() => setEditingCategory(null)} className="p-1.5 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+                                                            <button onClick={() => handleUpdateCategory(editingCategory)} className="p-1.5 text-emerald-600 hover:text-emerald-700"><Check className="w-4 h-4" /></button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
+                                                            <button onClick={() => setEditingCategory({ ...cat })} className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors">
+                                                                <Edit3 className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteCategory(cat.id)} className="p-1.5 text-slate-400 hover:text-red-600 transition-colors">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

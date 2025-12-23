@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { INITIAL_DATA } from './data/mockData';
+import { ASSET_CATEGORIES } from './utils/assetManager';
 
 import CoopHeader from './components/CoopHeader';
 import KPICards from './components/KPICards';
@@ -27,6 +28,7 @@ export default function App() {
 
     // -- State Management --
     const [assets, setAssets] = useState(INITIAL_DATA);
+    const [categories, setCategories] = useState(ASSET_CATEGORIES);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
 
@@ -84,6 +86,7 @@ export default function App() {
                 onClose={() => setIsEditModalOpen(false)}
                 asset={currentAsset}
                 onSave={handleSaveAsset}
+                categories={categories}
             />
 
             {/* Mobile Menu Backdrop */}
@@ -185,7 +188,10 @@ export default function App() {
 
                 {/* Settings View */}
                 {activeTab === 'settings' && (
-                    <SettingsView />
+                    <SettingsView
+                        categories={categories}
+                        setCategories={setCategories}
+                    />
                 )}
 
             </main>

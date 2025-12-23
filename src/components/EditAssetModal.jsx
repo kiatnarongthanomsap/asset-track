@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Upload } from 'lucide-react';
 import { ASSET_CATEGORIES } from '../utils/assetManager';
 
-const EditAssetModal = ({ isOpen, onClose, asset, onSave }) => {
+const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
     const [formData, setFormData] = useState(asset || {});
 
     useEffect(() => {
@@ -79,7 +79,7 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave }) => {
                                 name="category"
                                 value={formData.category || ''}
                                 onChange={(e) => {
-                                    const cat = ASSET_CATEGORIES.find(c => c.name === e.target.value || c.id === e.target.value);
+                                    const cat = categories.find(c => c.name === e.target.value || c.id === e.target.value);
                                     setFormData(prev => ({
                                         ...prev,
                                         category: e.target.value,
@@ -89,7 +89,7 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave }) => {
                                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-white"
                             >
                                 <option value="">เลือกหมวดหมู่</option>
-                                {ASSET_CATEGORIES.map(cat => (
+                                {categories.map(cat => (
                                     <option key={cat.id} value={cat.name}>{cat.name} (อายุ {cat.usefulLife} ปี)</option>
                                 ))}
                             </select>
