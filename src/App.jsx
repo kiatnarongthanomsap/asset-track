@@ -54,6 +54,10 @@ export default function App() {
             usefulLife: 5,
             location: '',
             status: 'Normal',
+            custodian: '',
+            vendor: '',
+            warrantyExpiry: '',
+            notes: '',
             image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400'
         };
         setCurrentAsset(newAsset);

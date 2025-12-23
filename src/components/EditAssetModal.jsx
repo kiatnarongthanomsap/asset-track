@@ -141,9 +141,31 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                             </div>
                         </div>
 
+                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">ผู้รับผิดชอบ / ผู้ใช้งาน (Custodian)</label>
+                                <input type="text" name="custodian" value={formData.custodian || ''} onChange={handleChange} placeholder="เช่น นายสมชาย ใจดี" className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">ร้านค้า / ผู้จำหน่าย (Vendor)</label>
+                                <input type="text" name="vendor" value={formData.vendor || ''} onChange={handleChange} placeholder="เช่น บจก. เอบีซี คอมพิวเตอร์" className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">วันสิ้นสุดการรับประกัน</label>
+                                <input type="date" name="warrantyExpiry" value={formData.warrantyExpiry || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">URL รูปภาพ</label>
+                                <input type="text" name="image" value={formData.image || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs text-slate-500 font-mono" />
+                            </div>
+                        </div>
+
                         <div className="col-span-1 md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">URL รูปภาพ</label>
-                            <input type="text" name="image" value={formData.image || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs text-slate-500 font-mono" />
+                            <label className="block text-sm font-medium text-slate-700 mb-1">หมายเหตุ (Notes)</label>
+                            <textarea name="notes" value={formData.notes || ''} onChange={handleChange} rows="2" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none text-sm" placeholder="ระบุข้อมูลเพิ่มเติมอื่นๆ ของทรัพย์สิน..."></textarea>
                         </div>
 
                     </div>
