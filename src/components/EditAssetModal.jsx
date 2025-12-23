@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from 'react';
+import { X, Save, Upload } from 'lucide-react';
+import { ASSET_CATEGORIES } from '../utils/assetManager';
+
+const EditAssetModal = ({ isOpen, onClose, asset, onSave }) => {
+    const [formData, setFormData] = useState(asset || {});
+
+    useEffect(() => {
+        setFormData(asset || {});
+    }, [asset]);
+
+    if (!isOpen) return null;
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'price' || name === 'usefulLife' ? Number(value) : value
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all scale-100">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800">
+                            {asset?.code ? 'แก้ไขข้อมูลทรัพย์สิน' : 'เพิ่มทรัพย์สินใหม่'}
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            {asset?.code ? `รหัส: ${formData.code}` : 'กรุณากรอกข้อมูลเพื่อลงทะเบียน'}
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {/* Code Input (Only for new assets or generally editable) */}
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">รหัสทรัพย์สิน</label>
+                            <input
+                                type="text"
+                                name="code"
+                                value={formData.code || ''}
+                                onChange={handleChange}
+                                placeholder="เช่น COM-2567-001"
+                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-slate-50 font-mono text-emerald-700 font-bold"
+                            />
+                        </div>
+
+                        {/* Image Section */}
+                        <div className="col-span-1 md:col-span-2 flex justify-center mb-4">
+                            <div className="relative group cursor-pointer">
+                                <img src={formData.image} alt="Preview" className="w-32 h-32 rounded-2xl object-cover border-2 border-slate-100 shadow-sm group-hover:opacity-75 transition-opacity" />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                                        <Upload className="w-3 h-3 mr-1" /> เปลี่ยนรูป
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Category Section */}
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่ทรัพย์สิน</label>
+                            <select
+                                name="category"
+                                value={formData.category || ''}
+                                onChange={(e) => {
+                                    const cat = ASSET_CATEGORIES.find(c => c.name === e.target.value || c.id === e.target.value);
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        category: e.target.value,
+                                        usefulLife: cat ? cat.usefulLife : prev.usefulLife
+                                    }));
+                                }}
+                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-white"
+                            >
+                                <option value="">เลือกหมวดหมู่</option>
+                                {ASSET_CATEGORIES.map(cat => (
+                                    <option key={cat.id} value={cat.name}>{cat.name} (อายุ {cat.usefulLife} ปี)</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อทรัพย์สิน</label>
+                                <input type="text" name="name" value={formData.name || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">ยี่ห้อ (Brand)</label>
+                                <input type="text" name="brand" value={formData.brand || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Serial Number</label>
+                                <input type="text" name="serial" value={formData.serial || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">ราคาทุน (บาท)</label>
+                                <input type="number" name="price" value={formData.price || 0} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">วันที่ซื้อ</label>
+                                <input type="date" name="purchaseDate" value={formData.purchaseDate || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" required />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">อายุใช้งาน (ปี)</label>
+                                <input type="number" name="usefulLife" value={formData.usefulLife || 5} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">สถานที่ตั้ง</label>
+                                <input type="text" name="location" value={formData.location || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">สถานะปัจจุบัน</label>
+                                <select name="status" value={formData.status || 'Normal'} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-white">
+                                    <option value="Normal">ปกติ (Normal)</option>
+                                    <option value="Repair">รอซ่อม (Repair)</option>
+                                    <option value="Check">รอตรวจสอบ (Check)</option>
+                                    <option value="Disposed">จำหน่ายออก (Disposed)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-1">URL รูปภาพ</label>
+                            <input type="text" name="image" value={formData.image || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow text-xs text-slate-500 font-mono" />
+                        </div>
+
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="px-6 py-2 rounded-xl text-slate-600 font-medium hover:bg-slate-100 transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button type="submit" className="px-6 py-2 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 flex items-center">
+                            <Save className="w-4 h-4 mr-2" />
+                            บันทึกข้อมูล
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default EditAssetModal;

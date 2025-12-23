@@ -30,15 +30,40 @@ export default function App() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
 
+    const handleAddAsset = () => {
+        // Create an empty asset template
+        const newAsset = {
+            id: Date.now(), // temporary ID
+            code: '',
+            name: '',
+            brand: '',
+            category: '',
+            serial: '',
+            price: 0,
+            purchaseDate: new Date().toISOString().split('T')[0],
+            usefulLife: 5,
+            location: '',
+            status: 'Normal',
+            image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400'
+        };
+        setCurrentAsset(newAsset);
+        setIsEditModalOpen(true);
+    };
+
     const handleEditAsset = (asset) => {
         setCurrentAsset(asset);
         setIsEditModalOpen(true);
     };
 
-    const handleUpdateAsset = (updatedAsset) => {
-        setAssets(prevAssets =>
-            prevAssets.map(a => a.id === updatedAsset.id ? updatedAsset : a)
-        );
+    const handleSaveAsset = (savedAsset) => {
+        setAssets(prevAssets => {
+            const exists = prevAssets.find(a => a.id === savedAsset.id);
+            if (exists) {
+                return prevAssets.map(a => a.id === savedAsset.id ? savedAsset : a);
+            } else {
+                return [...prevAssets, savedAsset];
+            }
+        });
         setIsEditModalOpen(false);
     };
 
@@ -58,7 +83,7 @@ export default function App() {
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 asset={currentAsset}
-                onSave={handleUpdateAsset}
+                onSave={handleSaveAsset}
             />
 
             {/* Mobile Menu Backdrop */}
@@ -92,8 +117,8 @@ export default function App() {
                             key={item.id}
                             onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
                             className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${activeTab === item.id
-                                    ? 'bg-white/10 text-white shadow-lg border border-white/10'
-                                    : 'text-emerald-100/70 hover:bg-white/5 hover:text-white'
+                                ? 'bg-white/10 text-white shadow-lg border border-white/10'
+                                : 'text-emerald-100/70 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             {activeTab === item.id && (
@@ -146,7 +171,11 @@ export default function App() {
 
                 {/* Asset Registry View */}
                 {activeTab === 'assets' && (
-                    <AssetRegistry data={assets} onEditAsset={handleEditAsset} />
+                    <AssetRegistry
+                        data={assets}
+                        onEditAsset={handleEditAsset}
+                        onAddAsset={handleAddAsset}
+                    />
                 )}
 
                 {/* Reports View */}
