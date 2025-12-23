@@ -6,7 +6,8 @@ import {
     Settings,
     Menu,
     X,
-    CreditCard
+    CreditCard,
+    LogOut
 } from 'lucide-react';
 
 import { INITIAL_DATA } from './data/mockData';
@@ -163,10 +164,17 @@ export default function App() {
                                     SM
                                 </div>
                             </div>
-                            <div className="ml-3 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">Staff Member</p>
-                                <p className="text-xs text-emerald-300 truncate">Asset Officer</p>
+                            <div className="ml-3 overflow-hidden flex-1">
+                                <p className="text-sm font-bold text-white truncate">{user?.name || 'Staff Member'}</p>
+                                <p className="text-xs text-emerald-300 truncate">{user?.role || 'Asset Officer'}</p>
                             </div>
+                            <button
+                                onClick={() => setUser(null)}
+                                className="ml-2 p-2 rounded-xl text-emerald-300 hover:bg-white/10 hover:text-white transition-all group"
+                                title="ออกจากระบบ"
+                            >
+                                <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            </button>
                         </div>
                     </div>
                 </div>
