@@ -22,12 +22,14 @@ import SettingsView from './components/SettingsView';
 import AssetRegistry from './components/AssetRegistry';
 import EditAssetModal from './components/EditAssetModal';
 import RepairRequestModal from './components/RepairRequestModal';
+import LoginPage from './components/LoginPage';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // -- State Management --
+    const [user, setUser] = useState(null);
     const [assets, setAssets] = useState(INITIAL_DATA);
     const [categories, setCategories] = useState(ASSET_CATEGORIES);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,6 +93,10 @@ export default function App() {
         { id: 'reports', label: 'รายงานธุรกรรม', icon: BarChart3 },
         { id: 'settings', label: 'ตั้งค่าระบบ', icon: Settings },
     ];
+
+    if (!user) {
+        return <LoginPage onLogin={setUser} />;
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col md:flex-row">
