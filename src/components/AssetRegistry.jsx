@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2 } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 
-const AssetRegistry = ({ data, onEditAsset, onAddAsset, initialFilter = 'All', onFilterChange }) => {
+const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState(initialFilter);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
@@ -106,9 +106,18 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, initialFilter = 'All', o
                                     <div className="absolute top-3 right-3 backdrop-blur-md bg-white/80 p-1 rounded-lg shadow-sm">
                                         <StatusBadge status={asset.status} />
                                     </div>
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <div className="bg-white/90 p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 gap-2">
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); onEditAsset(asset); }}
+                                            className="bg-white/90 p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform hover:bg-white"
+                                        >
                                             <Edit2 className="w-6 h-6 text-slate-700" />
+                                        </div>
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); onRepairRequest(asset); }}
+                                            className="bg-white/90 p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform hover:bg-blue-50"
+                                        >
+                                            <Wrench className="w-6 h-6 text-blue-600" />
                                         </div>
                                     </div>
                                 </div>
@@ -187,9 +196,14 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, initialFilter = 'All', o
                                                 <StatusBadge status={asset.status} />
                                             </td>
                                             <td className="p-4 rounded-r-2xl border-y border-r border-slate-50 group-hover:border-slate-100 text-center">
-                                                <button onClick={() => onEditAsset(asset)} className="p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
+                                                <div className="flex justify-center gap-1">
+                                                    <button onClick={() => onRepairRequest(asset)} className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors" title="ขออนุมัติซ่อม">
+                                                        <Wrench className="w-5 h-5" />
+                                                    </button>
+                                                    <button onClick={() => onEditAsset(asset)} className="p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors" title="แก้ไข">
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

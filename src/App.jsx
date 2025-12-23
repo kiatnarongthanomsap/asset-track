@@ -21,6 +21,7 @@ import ReportsView from './components/ReportsView';
 import SettingsView from './components/SettingsView';
 import AssetRegistry from './components/AssetRegistry';
 import EditAssetModal from './components/EditAssetModal';
+import RepairRequestModal from './components/RepairRequestModal';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -32,6 +33,7 @@ export default function App() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
     const [assetFilter, setAssetFilter] = useState('All');
+    const [repairAsset, setRepairAsset] = useState(null);
 
     const handleDashboardStatClick = (status) => {
         setAssetFilter(status);
@@ -61,6 +63,10 @@ export default function App() {
     const handleEditAsset = (asset) => {
         setCurrentAsset(asset);
         setIsEditModalOpen(true);
+    };
+
+    const handleRepairRequest = (asset) => {
+        setRepairAsset(asset);
     };
 
     const handleSaveAsset = (savedAsset) => {
@@ -224,6 +230,7 @@ export default function App() {
                         data={assets}
                         onEditAsset={handleEditAsset}
                         onAddAsset={handleAddAsset}
+                        onRepairRequest={handleRepairRequest}
                         initialFilter={assetFilter}
                         onFilterChange={setAssetFilter}
                     />
@@ -239,6 +246,13 @@ export default function App() {
                     <SettingsView
                         categories={categories}
                         setCategories={setCategories}
+                    />
+                )}
+
+                {repairAsset && (
+                    <RepairRequestModal
+                        asset={repairAsset}
+                        onClose={() => setRepairAsset(null)}
                     />
                 )}
 
