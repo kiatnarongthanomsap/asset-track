@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetTrack API Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f4f7f6;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        pre {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>1. Test Database Connection</h2>
+        <button onclick="testAction('categories')">Get Categories</button>
+        <pre id="categories-output">Click button to test...</pre>
+    </div>
+
+    <div class="card">
+        <h2>2. Test Login</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Username" value="admin">
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password" value="123456">
+        </div>
+        <button onclick="testLogin()">Login</button>
+        <pre id="login-output">Click Login to test...</pre>
+    </div>
+
+    <div class="card">
+        <h2>3. Fetch Assets</h2>
+        <button onclick="testAction('assets')">Fetch Assets</button>
+        <pre id="assets-output">Click button to fetch...</pre>
+    </div>
+
+    <script>
+        async function testAction(action) {
+            const output = document.getElementById(action + '-output');
+            output.innerText = 'Loading...';
+            try {
+                const response = await fetch(`api.php?action=${action}`);
+                const data = await response.json();
+                output.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                output.innerText = 'Error: ' + err.message;
+            }
+        }
+
+        async function testLogin() {
+            const output = document.getElementById('login-output');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            output.innerText = 'Authenticating...';
+            try {
+                const response = await fetch(`api.php?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                output.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                output.innerText = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+
+</html>
