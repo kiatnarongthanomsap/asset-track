@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { calculateDepreciation } from '../utils/calculations';
 
-const ValueStatusSection = ({ data }) => {
+const ValueStatusSection = ({ data, onStatClick }) => {
     // Calculate real financial totals
     const financials = useMemo(() => {
         let totalCapital = 0;
@@ -36,14 +36,16 @@ const ValueStatusSection = ({ data }) => {
         return { totalCapital, totalBookValue, totalAccumulatedDepreciation, totalDisposalValue };
     }, [data]);
 
-    const statusCounts = useMemo(() => {
-        const counts = { Normal: 0, Repair: 0, Check: 0, Disposed: 0 };
-        if (data) {
-            data.forEach(asset => {
-                if (counts[asset.status] !== undefined) counts[asset.status]++;
-            });
-        }
-        return counts;
+    const categoryStats = useMemo(() => {
+        const stats = {};
+        let maxVal = 0;
+        data.forEach(asset => {
+            const cat = asset.category || 'ไม่ระบุ';
+            if (!stats[cat]) stats[cat] = 0;
+            stats[cat] += asset.price;
+            if (stats[cat] > maxVal) maxVal = stats[cat];
+        });
+        return { stats: Object.entries(stats).sort((a, b) => b[1] - a[1]), maxVal };
     }, [data]);
 
     const depRatio = financials.totalCapital ? (financials.totalAccumulatedDepreciation / financials.totalCapital) * 100 : 0;
@@ -102,7 +104,7 @@ const ValueStatusSection = ({ data }) => {
                 </div>
             </div>
 
-            {/* Right: Operational Status */}
+            {/* Right: Category Breakdown */}
             <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 h-full flex flex-col overflow-hidden relative">
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-50/30 rounded-full blur-3xl -ml-16 -mb-16"></div>
 
@@ -110,28 +112,25 @@ const ValueStatusSection = ({ data }) => {
                     <div>
                         <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center">
                             <PieChart className="w-6 h-6 mr-3 text-emerald-600" />
-                            สถานภาพเชิงปฏิบัติการ
+                            มูลค่าแยกตามหมวดหมู่
                         </h3>
-                        <p className="text-sm text-slate-400 font-medium">ประสิทธิภาพการใช้เครื่องมือสำนักงาน</p>
+                        <p className="text-sm text-slate-400 font-medium">สัดส่วนงบประมาณลงทุนจำแนกตามประเภท</p>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10 h-full">
-                    {[
-                        { label: 'ใช้งานปกติ', count: statusCounts.Normal, icon: CheckSquare, color: 'emerald', desc: 'สถานะเครื่องปกติ' },
-                        { label: 'กำลังส่งซ่อม', count: statusCounts.Repair, icon: AlertCircle, color: 'amber', desc: 'รอดำเนินการซ่อม' },
-                        { label: 'รอตรวจสอบ', count: statusCounts.Check, icon: Calendar, color: 'indigo', desc: 'รอบันทึกข้อมูล' },
-                        { label: 'ตัดจำหน่าย', count: statusCounts.Disposed, icon: AlertTriangle, color: 'rose', desc: 'ออกจากบัญชี' },
-                    ].map((st, i) => (
-                        <div key={i} className={`group p-6 rounded-3xl border border-slate-50 hover:border-${st.color}-200 bg-white hover:bg-${st.color}-50/30 transition-all duration-300 flex flex-col shadow-sm hover:shadow-lg`}>
-                            <div className="flex justify-between items-start mb-6">
-                                <div className={`w-12 h-12 rounded-2xl bg-${st.color}-100 flex items-center justify-center text-${st.color}-600 group-hover:scale-110 transition-transform`}>
-                                    <st.icon className="w-6 h-6" />
-                                </div>
-                                <span className={`text-3xl font-black text-${st.color}-700`}>{st.count}</span>
+                <div className="space-y-6 relative z-10 flex-1 overflow-y-auto pr-2">
+                    {categoryStats.stats.map(([category, value], i) => (
+                        <div key={i} className="group">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className="font-black text-slate-700 text-sm">{category}</span>
+                                <span className="text-xs font-bold text-slate-400 font-mono">฿{value.toLocaleString()}</span>
                             </div>
-                            <h4 className="font-black text-slate-800 text-sm mb-1">{st.label}</h4>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{st.desc}</p>
+                            <div className="w-full bg-slate-50 h-3 rounded-full overflow-hidden border border-slate-100 p-0.5">
+                                <div
+                                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 group-hover:bg-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                                    style={{ width: `${(value / categoryStats.maxVal) * 100}%` }}
+                                ></div>
+                            </div>
                         </div>
                     ))}
                 </div>

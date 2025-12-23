@@ -202,7 +202,10 @@ export default function App() {
                             data={assets}
                             onStatClick={handleDashboardStatClick}
                         />
-                        <ValueStatusSection data={assets} />
+                        <ValueStatusSection
+                            data={assets}
+                            onStatClick={handleDashboardStatClick}
+                        />
 
                         <div className="grid grid-cols-1 gap-8">
                             <AuditTrailTable />
