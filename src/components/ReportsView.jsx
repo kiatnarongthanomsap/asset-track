@@ -12,6 +12,7 @@ import {
     ChevronUp
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import { exportAssetsToCSV } from '../utils/assetManager';
 
 const ReportsView = ({ data }) => {
     const [reportMode, setReportMode] = useState('analytics'); // 'analytics' or 'detailed'
@@ -83,6 +84,13 @@ const ReportsView = ({ data }) => {
                             <FileText className="w-4 h-4 mr-2" /> รายงานสรุปตามหมวด
                         </button>
                     </div>
+
+                    <button
+                        onClick={() => exportAssetsToCSV(data)}
+                        className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
+                    >
+                        <Download className="w-4 h-4 mr-2 text-blue-600" /> Excel
+                    </button>
 
                     <button
                         onClick={handlePrint}
@@ -246,8 +254,8 @@ const ReportsView = ({ data }) => {
                                                     <td className="px-4 py-3 text-slate-600 font-medium">{asset.location}</td>
                                                     <td className="px-4 py-3">
                                                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase border ${asset.status === 'Normal' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                                asset.status === 'Repair' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                                    'bg-slate-50 text-slate-600 border-slate-100'
+                                                            asset.status === 'Repair' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                                                'bg-slate-50 text-slate-600 border-slate-100'
                                                             }`}>
                                                             {asset.status}
                                                         </span>

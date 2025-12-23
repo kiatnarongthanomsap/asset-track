@@ -41,6 +41,72 @@ export const calculateStraightLineDepreciation = (cost, purchaseDate, usefulLife
     };
 };
 
+export const exportAssetsToCSV = (assets) => {
+    // 1. Group assets by category
+    const grouped = {};
+    assets.forEach(asset => {
+        const cat = asset.category || 'ไม่ระบุ';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(asset);
+    });
+
+    // 2. Define Headers
+    const headers = ['รหัสทรัพย์สิน', 'ชื่อทรัพย์สิน', 'หมวดหมู่', 'ยี่ห้อ', 'Serial Number', 'ราคาทุน', 'วันที่ซื้อ', 'อายุการใช้งาน', 'สถานที่', 'สถานะ'];
+
+    let csvRows = [];
+    csvRows.push(headers.join(","));
+
+    let grandTotal = 0;
+
+    // 3. Process each group
+    Object.entries(grouped).forEach(([category, items]) => {
+        // Category Header Row
+        csvRows.push(`""`); // Empty row for spacing
+        csvRows.push(`"--- หมวดหมู่: ${category} ---",,,,,,,,,,`);
+
+        let categoryTotal = 0;
+
+        // Data Rows
+        items.forEach(asset => {
+            const row = [
+                `"${asset.code}"`,
+                `"${asset.name}"`,
+                `"${asset.category}"`,
+                `"${asset.brand || ''}"`,
+                `"${asset.serial || ''}"`,
+                asset.price,
+                `"${asset.purchaseDate}"`,
+                asset.usefulLife,
+                `"${asset.location}"`,
+                `"${asset.status}"`
+            ];
+            csvRows.push(row.join(","));
+            categoryTotal += asset.price;
+        });
+
+        // Category Subtotal Row
+        csvRows.push(`"รวมหมวด ${category}",,,,,"${categoryTotal}",,,,`);
+        grandTotal += categoryTotal;
+    });
+
+    // 4. Grand Total Row
+    csvRows.push(`""`);
+    csvRows.push(`"มูลค่ารวมทรัพย์สินทั้งหมด",,,,,"${grandTotal}",,,,`);
+
+    // 5. Combine with BOM for Thai Excel support
+    const csvContent = "\uFEFF" + csvRows.join("\n");
+
+    // 6. Create Download Link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Asset_Categorized_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 /**
  * Default Categories Configuration
  */
