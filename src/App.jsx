@@ -163,12 +163,42 @@ export default function App() {
 
                 {/* --- Content Area --- */}
                 {activeTab === 'dashboard' && (
-                    <div className="p-4 md:p-8 w-full max-w-[1600px] mx-auto space-y-6 md:space-y-8">
+                    <div className="p-4 md:p-10 w-full max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        {/* Welcome Header Section */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <h2 className="text-4xl font-black text-slate-800 tracking-tighter mb-1">
+                                    ยินดีต้อนรับกลับมา, <span className="text-emerald-600">Staff Member</span> 👋
+                                </h2>
+                                <p className="text-slate-400 font-bold text-sm flex items-center">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
+                                    วันนี้วันที่ {new Date().toLocaleDateString('th-TH', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </p>
+                            </div>
+                            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
+                                    <p className="text-emerald-600 font-black text-sm">พร้อมใช้งาน (Live)</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                    <BarChart3 className="w-5 h-5 text-emerald-600" />
+                                </div>
+                            </div>
+                        </div>
+
                         <CoopHeader />
                         <KPICards data={assets} />
                         <ValueStatusSection data={assets} />
-                        <AuditTrailTable />
-                        <ActionZone />
+
+                        <div className="grid grid-cols-1 gap-8">
+                            <AuditTrailTable />
+                            <ActionZone />
+                        </div>
                     </div>
                 )}
 
