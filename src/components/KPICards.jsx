@@ -95,8 +95,8 @@ const KPICards = ({ data, onStatClick }) => {
                             <p className="text-[10px] text-slate-300 mb-4 line-clamp-1">{kpi.subtitle}</p>
 
                             <div className="flex items-end gap-2 mb-4">
-                                <span className={`text-4xl font-black tracking-tighter ${kpi.color}`}>{kpi.value}</span>
-                                <span className="text-slate-400 text-xs font-bold mb-1.5 leading-none">ชุด</span>
+                                <span className={`text-5xl font-black tracking-tighter ${kpi.color}`}>{kpi.value}</span>
+                                <span className="text-slate-400 text-sm font-bold mb-2 leading-none">รายการ</span>
                             </div>
                         </div>
 
