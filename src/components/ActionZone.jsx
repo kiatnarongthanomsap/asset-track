@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
-const ActionZone = ({ assets, onAddAsset, onTabChange }) => {
+const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers }) => {
     const actions = [
         {
             title: 'เพิ่มครุภัณฑ์ใหม่',
@@ -21,13 +21,13 @@ const ActionZone = ({ assets, onAddAsset, onTabChange }) => {
             onClick: onAddAsset
         },
         {
-            title: 'สติ๊กเกอร์ค้างพิมพ์',
-            desc: 'ส่งออกรายการที่ยังไม่ได้พิมพ์',
+            title: 'พิมพ์สติ๊กเกอร์',
+            desc: 'พิมพ์ QR Code และรหัสทรัพย์สิน',
             icon: Tag,
             color: 'bg-amber-500',
             shadow: 'shadow-amber-200',
             hover: 'hover:bg-amber-600',
-            onClick: () => exportPendingStickersCSV(assets)
+            onClick: onPrintStickers
         },
         {
             title: 'รายงาน Excel',

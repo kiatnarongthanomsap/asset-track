@@ -24,6 +24,9 @@ import AssetRegistry from './components/AssetRegistry';
 import EditAssetModal from './components/EditAssetModal';
 import RepairRequestModal from './components/RepairRequestModal';
 import LoginPage from './components/LoginPage';
+import StickerPrintModal from './components/StickerPrintModal';
+import AlertSection from './components/AlertSection';
+import { AUDIT_LOGS } from './data/mockData';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -32,8 +35,10 @@ export default function App() {
     // -- State Management --
     const [user, setUser] = useState(null);
     const [assets, setAssets] = useState(INITIAL_DATA);
+    const [auditLogs, setAuditLogs] = useState(AUDIT_LOGS);
     const [categories, setCategories] = useState(ASSET_CATEGORIES);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
     const [assetFilter, setAssetFilter] = useState('All');
     const [repairAsset, setRepairAsset] = useState(null);
@@ -80,12 +85,51 @@ export default function App() {
         setAssets(prevAssets => {
             const exists = prevAssets.find(a => a.id === savedAsset.id);
             if (exists) {
+                // Log the update if status changed
+                if (exists.status !== savedAsset.status) {
+                    const newLog = {
+                        id: Date.now(),
+                        date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
+                        action: savedAsset.status === 'Repair' ? 'ซ่อม' : savedAsset.status === 'Disposed' ? 'จำหน่าย' : 'แก้ไข',
+                        code: savedAsset.code,
+                        operator: user?.name || 'Staff',
+                        doc: 'AUTO-' + (Math.random() * 1000).toFixed(0)
+                    };
+                    setAuditLogs(prev => [newLog, ...prev]);
+                }
                 return prevAssets.map(a => a.id === savedAsset.id ? savedAsset : a);
             } else {
+                const newLog = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
+                    action: 'เพิ่มใหม่',
+                    code: savedAsset.code,
+                    operator: user?.name || 'Staff',
+                    doc: 'REG-' + (Math.random() * 1000).toFixed(0)
+                };
+                setAuditLogs(prev => [newLog, ...prev]);
                 return [...prevAssets, savedAsset];
             }
         });
         setIsEditModalOpen(false);
+    };
+
+    const handleUpdateStatus = (assetId, newStatus) => {
+        setAssets(prev => prev.map(a => {
+            if (a.id === assetId) {
+                const newLog = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
+                    action: newStatus === 'Normal' ? 'คืนสภาพ' : newStatus === 'Repair' ? 'ซ่อม' : 'เปลี่ยนสถานะ',
+                    code: a.code,
+                    operator: user?.name || 'Staff',
+                    doc: 'STAT-' + (Math.random() * 1000).toFixed(0)
+                };
+                setAuditLogs(prevLogs => [newLog, ...prevLogs]);
+                return { ...a, status: newStatus };
+            }
+            return a;
+        }));
     };
 
     const navItems = [
@@ -110,6 +154,13 @@ export default function App() {
                 asset={currentAsset}
                 onSave={handleSaveAsset}
                 categories={categories}
+            />
+
+            {/* Sticker Modal */}
+            <StickerPrintModal
+                isOpen={isStickerModalOpen}
+                onClose={() => setIsStickerModalOpen(false)}
+                assets={assets}
             />
 
             {/* Mobile Menu Backdrop */}
@@ -222,6 +273,9 @@ export default function App() {
                         </div>
 
                         <CoopHeader />
+
+                        <AlertSection assets={assets} />
+
                         <KPICards
                             data={assets}
                             onStatClick={handleDashboardStatClick}
@@ -232,11 +286,12 @@ export default function App() {
                         />
 
                         <div className="grid grid-cols-1 gap-8">
-                            <AuditTrailTable />
+                            <AuditTrailTable logs={auditLogs} />
                             <ActionZone
                                 assets={assets}
                                 onAddAsset={handleAddAsset}
                                 onTabChange={setActiveTab}
+                                onPrintStickers={() => setIsStickerModalOpen(true)}
                             />
                         </div>
                     </div>
@@ -256,7 +311,10 @@ export default function App() {
 
                 {/* Reports View */}
                 {activeTab === 'reports' && (
-                    <ReportsView data={assets} />
+                    <ReportsView
+                        data={assets}
+                        onUpdateStatus={handleUpdateStatus}
+                    />
                 )}
 
                 {/* Settings View */}

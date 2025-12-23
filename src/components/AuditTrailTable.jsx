@@ -2,7 +2,7 @@ import React from 'react';
 import { Database, File as FileIcon, FileSpreadsheet } from 'lucide-react';
 import { AUDIT_LOGS } from '../data/mockData';
 
-const AuditTrailTable = () => (
+const AuditTrailTable = ({ logs = [] }) => (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center">
@@ -31,7 +31,7 @@ const AuditTrailTable = () => (
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                    {AUDIT_LOGS.map((log) => (
+                    {(logs.length > 0 ? logs : AUDIT_LOGS).slice(0, 10).map((log) => (
                         <tr key={log.id} className="hover:bg-blue-50/50">
                             <td className="px-6 py-3 font-mono text-gray-600">{log.date}</td>
                             <td className="px-6 py-3">

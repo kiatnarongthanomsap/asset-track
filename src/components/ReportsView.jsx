@@ -15,7 +15,7 @@ import StatusBadge from './StatusBadge';
 import { exportAssetsToCSV } from '../utils/assetManager';
 import { calculateDepreciation } from '../utils/calculations';
 
-const ReportsView = ({ data }) => {
+const ReportsView = ({ data, onUpdateStatus }) => {
     const [reportMode, setReportMode] = useState('analytics'); // 'analytics' or 'detailed'
 
     // Grouping for Analytics
@@ -242,8 +242,16 @@ const ReportsView = ({ data }) => {
                                                 <StatusBadge status={item.status} />
                                             </td>
                                             <td className="px-8 py-5 text-right">
-                                                <button className="text-xs font-black text-emerald-600 hover:text-emerald-800 px-4 py-2 bg-emerald-50 rounded-xl transition-all hover:shadow-sm">
-                                                    จัดการสถานะ
+                                                <button
+                                                    onClick={() => {
+                                                        const nextStatus = item.status === 'Repair' ? 'Normal' : 'Repair';
+                                                        if (confirm(`คุณต้องการเปลี่ยนสถานะรายการนี้เป็น ${nextStatus === 'Normal' ? 'ปกติ' : 'ส่งซ่อม'} หรือไม่?`)) {
+                                                            onUpdateStatus?.(item.id, nextStatus);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-black text-emerald-600 hover:text-emerald-800 px-4 py-2 bg-emerald-50 rounded-xl transition-all hover:shadow-sm"
+                                                >
+                                                    {item.status === 'Repair' ? 'ซ่อมเสร็จแล้ว' : 'ส่งซ่อม'}
                                                 </button>
                                             </td>
                                         </tr>
