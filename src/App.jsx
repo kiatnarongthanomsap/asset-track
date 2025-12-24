@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
     Package,
@@ -26,7 +26,10 @@ import RepairRequestModal from './components/RepairRequestModal';
 import LoginPage from './components/LoginPage';
 import StickerPrintModal from './components/StickerPrintModal';
 import AlertSection from './components/AlertSection';
+import ExcelImportModal from './components/ExcelImportModal';
 import { AUDIT_LOGS } from './data/mockData';
+
+const API_URL = '/api-remote/api.php';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -39,9 +42,43 @@ export default function App() {
     const [categories, setCategories] = useState(ASSET_CATEGORIES);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
     const [assetFilter, setAssetFilter] = useState('All');
     const [repairAsset, setRepairAsset] = useState(null);
+
+    // -- API Interaction --
+    useEffect(() => {
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
+
+    const fetchData = async () => {
+        try {
+            const [assetsRes, logsRes, catsRes] = await Promise.all([
+                fetch(`${API_URL}?action=assets`),
+                fetch(`${API_URL}?action=audit_logs`),
+                fetch(`${API_URL}?action=categories`)
+            ]);
+
+            const assetsData = await assetsRes.json();
+            const logsData = await logsRes.json();
+            const catsData = await catsRes.json();
+
+            setAssets(assetsData.map(a => ({
+                ...a,
+                price: parseFloat(a.price),
+                usefulLife: parseInt(a.useful_life),
+                isStickerPrinted: !!parseInt(a.is_sticker_printed),
+                purchaseDate: a.purchase_date
+            })));
+            setAuditLogs(logsData);
+            setCategories(catsData.map(c => c.name));
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+        }
+    };
 
     const handleDashboardStatClick = (status) => {
         setAssetFilter(status);
@@ -81,55 +118,49 @@ export default function App() {
         setRepairAsset(asset);
     };
 
-    const handleSaveAsset = (savedAsset) => {
-        setAssets(prevAssets => {
-            const exists = prevAssets.find(a => a.id === savedAsset.id);
-            if (exists) {
-                // Log the update if status changed
-                if (exists.status !== savedAsset.status) {
-                    const newLog = {
-                        id: Date.now(),
-                        date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
-                        action: savedAsset.status === 'Repair' ? 'ซ่อม' : savedAsset.status === 'Disposed' ? 'จำหน่าย' : 'แก้ไข',
-                        code: savedAsset.code,
-                        operator: user?.name || 'Staff',
-                        doc: 'AUTO-' + (Math.random() * 1000).toFixed(0)
-                    };
-                    setAuditLogs(prev => [newLog, ...prev]);
-                }
-                return prevAssets.map(a => a.id === savedAsset.id ? savedAsset : a);
-            } else {
-                const newLog = {
-                    id: Date.now(),
-                    date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
-                    action: 'เพิ่มใหม่',
-                    code: savedAsset.code,
-                    operator: user?.name || 'Staff',
-                    doc: 'REG-' + (Math.random() * 1000).toFixed(0)
-                };
-                setAuditLogs(prev => [newLog, ...prev]);
-                return [...prevAssets, savedAsset];
+    const handleSaveAsset = async (savedAsset) => {
+        try {
+            const response = await fetch(`${API_URL}?action=assets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...savedAsset,
+                    purchaseDate: savedAsset.purchaseDate,
+                    usefulLife: savedAsset.usefulLife,
+                    isStickerPrinted: savedAsset.isStickerPrinted ? 1 : 0
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                fetchData(); // Refresh all data
+                setIsEditModalOpen(false);
             }
-        });
-        setIsEditModalOpen(false);
+        } catch (error) {
+            console.error('Failed to save asset:', error);
+        }
     };
 
-    const handleUpdateStatus = (assetId, newStatus) => {
-        setAssets(prev => prev.map(a => {
-            if (a.id === assetId) {
-                const newLog = {
-                    id: Date.now(),
-                    date: new Date().toLocaleDateString('th-TH', { year: '2-digit', month: '2-digit', day: '2-digit' }),
-                    action: newStatus === 'Normal' ? 'คืนสภาพ' : newStatus === 'Repair' ? 'ซ่อม' : 'เปลี่ยนสถานะ',
-                    code: a.code,
-                    operator: user?.name || 'Staff',
-                    doc: 'STAT-' + (Math.random() * 1000).toFixed(0)
-                };
-                setAuditLogs(prevLogs => [newLog, ...prevLogs]);
-                return { ...a, status: newStatus };
+    const handleUpdateStatus = async (assetId, newStatus) => {
+        const asset = assets.find(a => a.id === assetId);
+        if (!asset) return;
+
+        try {
+            const response = await fetch(`${API_URL}?action=assets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...asset,
+                    id: assetId,
+                    status: newStatus
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                fetchData();
             }
-            return a;
-        }));
+        } catch (error) {
+            console.error('Failed to update status:', error);
+        }
     };
 
     const navItems = [
@@ -161,6 +192,13 @@ export default function App() {
                 isOpen={isStickerModalOpen}
                 onClose={() => setIsStickerModalOpen(false)}
                 assets={assets}
+            />
+
+            {/* Excel Import Modal */}
+            <ExcelImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onImportComplete={fetchData}
             />
 
             {/* Mobile Menu Backdrop */}
@@ -292,6 +330,7 @@ export default function App() {
                                 onAddAsset={handleAddAsset}
                                 onTabChange={setActiveTab}
                                 onPrintStickers={() => setIsStickerModalOpen(true)}
+                                onImportExcel={() => setIsImportModalOpen(true)}
                             />
                         </div>
                     </div>

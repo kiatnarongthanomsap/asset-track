@@ -5,11 +5,12 @@ import {
     History,
     Settings,
     ArrowRight,
-    Tag
+    Tag,
+    Upload
 } from 'lucide-react';
 import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
-const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers }) => {
+const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImportExcel }) => {
     const actions = [
         {
             title: 'เพิ่มครุภัณฑ์ใหม่',
@@ -19,6 +20,15 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers }) => {
             shadow: 'shadow-emerald-200',
             hover: 'hover:bg-emerald-700',
             onClick: onAddAsset
+        },
+        {
+            title: 'นำเข้า Excel',
+            desc: 'อัพโหลดไฟล์ Excel เพื่อนำเข้าข้อมูล',
+            icon: Upload,
+            color: 'bg-violet-600',
+            shadow: 'shadow-violet-200',
+            hover: 'hover:bg-violet-700',
+            onClick: onImportExcel
         },
         {
             title: 'พิมพ์สติ๊กเกอร์',

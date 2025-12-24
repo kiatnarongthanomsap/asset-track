@@ -1,17 +1,33 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Content-Type: application/json; charset=UTF-8");
+ob_start(); // Buffer output to prevent accidental whitespace/errors from breaking JSON headers
 
-// --- Database Configuration ---
+if (isset($_GET['debug'])) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
+
+// Ensure CORS is handled for both local and production environments
+header('Content-Type: application/json; charset=utf-8');
+
+// Handle OPTIONS request for CORS
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    ob_end_clean();
+    exit(0);
+}
+
+
+// 3. ตั้งค่า Database (ตรวจสอบรหัสผ่านให้ถูกต้อง)
 $host = 'localhost';
 $db   = 'asset_track_db';
 $user = 'root';
-$pass = ''; // Adjust to your local mysql password
+$pass = 'kt%8156982'; 
 $charset = 'utf8mb4';
+$socket = '/Applications/MAMP/tmp/mysql/mysql.sock'; // MAMP socket path
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset;unix_socket=$socket";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -21,11 +37,12 @@ $options = [
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-     echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+     http_response_code(500);
+     echo json_encode(['status' => 'error', 'message' => 'DB Connection Failed: ' . $e->getMessage()]);
      exit;
 }
 
-// --- Simple Routing ---
+// 4. ระบบ Routing
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
@@ -36,6 +53,7 @@ switch ($action) {
     case 'assets':
         if ($method == 'GET') fetchAssets($pdo);
         if ($method == 'POST') saveAsset($pdo);
+        if ($method == 'DELETE') deleteAsset($pdo);
         break;
     case 'audit_logs':
         fetchAuditLogs($pdo);
@@ -48,13 +66,12 @@ switch ($action) {
         break;
 }
 
-// --- Handlers ---
-
+// 5. Functions
 function handleLogin($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     $username = $data['username'] ?? '';
-    $password = $data['password'] ?? '';
-
+    $password = $data['password'] ?? ''; 
+    
     $stmt = $pdo->prepare("SELECT id, username, name, role FROM users WHERE username = ? AND password = ?");
     $stmt->execute([$username, $password]);
     $user = $stmt->fetch();
@@ -63,7 +80,7 @@ function handleLogin($pdo) {
         echo json_encode(['status' => 'success', 'user' => $user]);
     } else {
         http_response_code(401);
-        echo json_encode(['status' => 'error', 'message' => 'Login failed']);
+        echo json_encode(['status' => 'error', 'message' => 'Login failed: Invalid credentials']);
     }
 }
 
@@ -75,27 +92,37 @@ function fetchAssets($pdo) {
 function saveAsset($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
     
+    $uLife = $data['usefulLife'] ?? 5;
+    $isSticker = (isset($data['isStickerPrinted']) && $data['isStickerPrinted']) ? 1 : 0;
+    $pDate = $data['purchaseDate'] ?? date('Y-m-d');
+
     if (isset($data['id']) && $data['id'] > 0) {
-        // UPDATE
         $sql = "UPDATE assets SET code=?, name=?, brand=?, serial=?, price=?, location=?, status=?, purchase_date=?, category=?, useful_life=?, image=?, is_sticker_printed=? WHERE id=?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $data['code'], $data['name'], $data['brand'], $data['serial'], 
-            $data['price'], $data['location'], $data['status'], $data['purchaseDate'],
-            $data['category'], $data['usefulLife'], $data['image'], $data['isStickerPrinted'] ? 1 : 0,
+            $data['price'], $data['location'], $data['status'], $pDate,
+            $data['category'], $uLife, $data['image'], $isSticker,
             $data['id']
         ]);
         echo json_encode(['status' => 'success', 'message' => 'Asset updated']);
     } else {
-        // INSERT
-        $sql = "INSERT INTO assets (code, name, brand, serial, price, location, status, purchase_date, category, useful_life, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO assets (code, name, brand, serial, price, location, status, purchase_date, category, useful_life, image, is_sticker_printed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $data['code'], $data['name'], $data['brand'], $data['serial'], 
-            $data['price'], $data['location'], $data['status'], $data['purchaseDate'],
-            $data['category'], $data['usefulLife'], $data['image']
+            $data['price'], $data['location'], $data['status'], $pDate,
+            $data['category'], $uLife, $data['image'], $isSticker
         ]);
         echo json_encode(['status' => 'success', 'id' => $pdo->lastInsertId()]);
+    }
+}
+
+function deleteAsset($pdo) {
+    if (isset($_GET['id'])) {
+        $stmt = $pdo->prepare("DELETE FROM assets WHERE id = ?");
+        $stmt->execute([$_GET['id']]);
+        echo json_encode(['status' => 'success']);
     }
 }
 

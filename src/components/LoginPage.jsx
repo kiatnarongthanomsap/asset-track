@@ -7,14 +7,27 @@ const LoginPage = ({ onLogin }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate login delay
-        setTimeout(() => {
-            onLogin({ name: 'Staff Member', role: 'Asset Officer' });
+        try {
+            const response = await fetch('/api-remote/api.php?action=login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                onLogin(result.user);
+            } else {
+                alert('Login failed: ' + (result.message || 'Invalid credentials'));
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Connection failed. Please check your API.');
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
