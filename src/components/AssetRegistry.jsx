@@ -3,9 +3,10 @@ import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X,
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import * as supabaseService from '../services/supabaseService';
 import { hasRealImage } from '../utils/assetManager';
 
-const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [] }) => {
+const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState(initialFilter);
     const [categoryFilter, setCategoryFilter] = useState(initialCategoryFilter);

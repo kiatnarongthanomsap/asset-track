@@ -7,7 +7,8 @@ import {
     Menu,
     X,
     CreditCard,
-    LogOut
+    LogOut,
+    ClipboardCheck
 } from 'lucide-react';
 
 import { INITIAL_DATA } from './data/mockData';
@@ -28,8 +29,14 @@ import StickerPrintModal from './components/StickerPrintModal';
 import AlertSection from './components/AlertSection';
 import ExcelImportModal from './components/ExcelImportModal';
 import PendingTasksSection from './components/PendingTasksSection';
+import InventoryAlertSection from './components/InventoryAlertSection';
+import InventoryCycleManager from './components/InventoryCycleManager';
+import InventoryCountingView from './components/InventoryCountingView';
+import InventoryReconciliation from './components/InventoryReconciliation';
+import InventoryReport from './components/InventoryReport';
 import { AUDIT_LOGS } from './data/mockData';
 import * as supabaseService from './services/supabaseService';
+const { canManageAssets, canDeleteAssets, canImportAssets, canAccessSettings } = supabaseService;
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -47,6 +54,8 @@ export default function App() {
     const [assetFilter, setAssetFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState(null);
     const [repairAsset, setRepairAsset] = useState(null);
+    const [selectedCycle, setSelectedCycle] = useState(null);
+    const [inventoryView, setInventoryView] = useState('manager'); // manager, counting, reconciliation, report
 
     // -- API Interaction --
     useEffect(() => {
@@ -202,6 +211,7 @@ export default function App() {
     const navItems = [
         { id: 'dashboard', label: 'ภาพรวม (Dashboard)', icon: LayoutDashboard },
         { id: 'assets', label: 'ทะเบียนทรัพย์สิน', icon: Package },
+        { id: 'inventory', label: 'ตรวจนับครุภัณฑ์', icon: ClipboardCheck },
         { id: 'reports', label: 'รายงานธุรกรรม', icon: BarChart3 },
         { id: 'settings', label: 'ตั้งค่าระบบ', icon: Settings },
     ];
@@ -348,6 +358,14 @@ export default function App() {
 
                         <CoopHeader />
 
+                        <InventoryAlertSection
+                            onViewInventory={(cycle) => {
+                                setSelectedCycle(cycle);
+                                setActiveTab('inventory');
+                                setInventoryView('counting');
+                            }}
+                        />
+
                         <AlertSection 
                             assets={assets}
                             onAlertClick={handleEditAsset}
@@ -385,7 +403,7 @@ export default function App() {
 
                 {/* Asset Registry View */}
                 {activeTab === 'assets' && (
-                    <AssetRegistry
+                    <AssetRegistry user={user}
                         data={assets}
                         onEditAsset={handleEditAsset}
                         onAddAsset={handleAddAsset}
@@ -398,6 +416,53 @@ export default function App() {
                     />
                 )}
 
+                {/* Inventory View */}
+                {activeTab === 'inventory' && (
+                    <>
+                        {inventoryView === 'manager' && (
+                            <InventoryCycleManager
+                                user={user}
+                                onCycleSelect={(cycle) => {
+                                    setSelectedCycle(cycle);
+                                    setInventoryView('counting');
+                                }}
+                                onViewChange={(view) => {
+                                    setInventoryView(view);
+                                }}
+                            />
+                        )}
+                        {inventoryView === 'counting' && selectedCycle && (
+                            <InventoryCountingView
+                                cycle={selectedCycle}
+                                user={user}
+                                onBack={() => {
+                                    setSelectedCycle(null);
+                                    setInventoryView('manager');
+                                }}
+                            />
+                        )}
+                        {inventoryView === 'reconciliation' && selectedCycle && (
+                            <InventoryReconciliation
+                                cycle={selectedCycle}
+                                user={user}
+                                onBack={() => {
+                                    setSelectedCycle(null);
+                                    setInventoryView('manager');
+                                }}
+                            />
+                        )}
+                        {inventoryView === 'report' && selectedCycle && (
+                            <InventoryReport
+                                cycle={selectedCycle}
+                                onBack={() => {
+                                    setSelectedCycle(null);
+                                    setInventoryView('manager');
+                                }}
+                            />
+                        )}
+                    </>
+                )}
+
                 {/* Reports View */}
                 {activeTab === 'reports' && (
                     <ReportsView
@@ -408,7 +473,7 @@ export default function App() {
 
                 {/* Settings View */}
                 {activeTab === 'settings' && (
-                    <SettingsView
+                    <SettingsView user={user}
                         categories={categories}
                         setCategories={setCategories}
                         assets={assets}

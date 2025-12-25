@@ -28,6 +28,7 @@ import {
     parseAssetCSV
 } from '../utils/assetManager';
 import { getCategoryIcon, getIconNameFromCategories, getIconByName } from '../utils/categoryIcons';
+import UserManagementSection from './UserManagementSection';
 
 // List of available icons
 const AVAILABLE_ICONS = [
@@ -38,7 +39,7 @@ const AVAILABLE_ICONS = [
     'Clock', 'Lightbulb', 'Fan', 'AirVent', 'Lamp', 'Book', 'Archive', 'Calculator', 'Thermometer'
 ];
 
-const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
+const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, user }) => {
     const [activeSection, setActiveSection] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -67,17 +68,6 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
         { id: 'database', label: 'ฐานข้อมูลและนำเข้า', icon: Database },
     ];
 
-    const [users, setUsers] = useState([
-        { id: 1, name: 'นิรุตติ์ มั่งมี', email: 'nirutti.m@coop.ku.ac.th', role: 'Admin', status: 'Active' },
-        { id: 2, name: 'วิลาสินี รักงาน', email: 'wilasinee.r@coop.ku.ac.th', role: 'Staff', status: 'Active' },
-        { id: 3, name: 'สมปอง สายฮา', email: 'sompong.s@coop.ku.ac.th', role: 'Viewer', status: 'Inactive' },
-    ]);
-
-    const roles = [
-        { name: 'Admin', desc: 'เข้าถึงได้ทุกส่วนของระบบ', permissions: ['manage_assets', 'manage_users', 'view_reports', 'settings'] },
-        { name: 'Staff', desc: 'จัดการทรัพย์สินและดูรายงาน', permissions: ['manage_assets', 'view_reports'] },
-        { name: 'Viewer', desc: 'ดูข้อมูลได้อย่างเดียว', permissions: ['view_reports'] },
-    ];
 
     const handleAddCategory = () => {
         if (!newCategory.name || !newCategory.prefix) return;
@@ -87,25 +77,12 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
     };
 
     const handleUpdateCategory = (cat) => {
-        // Ensure all required fields are present
-        const updatedCategory = {
-            ...cat,
-            useful_life: cat.usefulLife ?? cat.useful_life ?? 5,
-            usefulLife: cat.usefulLife ?? cat.useful_life ?? 5
-        };
-        setCategories(categories.map(c => {
-            const cId = c.id || c.name;
-            const catId = cat.id || cat.name;
-            return cId === catId ? updatedCategory : c;
-        }));
+        setCategories(categories.map(c => c.id === cat.id ? cat : c));
         setEditingCategory(null);
     };
 
     const handleDeleteCategory = (id) => {
-        setCategories(categories.filter(c => {
-            const cId = c.id || c.name;
-            return cId !== id;
-        }));
+        setCategories(categories.filter(c => c.id !== id));
     };
 
     return (
@@ -220,19 +197,27 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                                 }}
                                                 className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-emerald-50 transition-colors flex items-center justify-between"
                                             >
-                                                <div className="flex items-center gap-2">
-                                                    {newCategory.icon_name ? (
-                                                        <>
-                                                            {(() => {
-                                                                const IconComponent = getIconByName(newCategory.icon_name);
-                                                                return <IconComponent className="w-4 h-4 text-emerald-600" strokeWidth={2} />;
-                                                            })()}
-                                                            <span className="text-xs font-medium text-slate-700">{newCategory.icon_name}</span>
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-xs text-slate-400">เลือก Icon</span>
-                                                    )}
-                                                </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {newCategory.icon_name ? (
+                                                                    <>
+                                                                        {(() => {
+                                                                            try {
+                                                                                const IconComponent = getIconByName(newCategory.icon_name);
+                                                                                if (IconComponent) {
+                                                                                    return <IconComponent className="w-4 h-4 text-emerald-600" strokeWidth={2} />;
+                                                                                }
+                                                                                return null;
+                                                                            } catch (error) {
+                                                                                console.error('Error rendering icon:', error);
+                                                                                return null;
+                                                                            }
+                                                                        })()}
+                                                                        <span className="text-xs font-medium text-slate-700">{newCategory.icon_name}</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-xs text-slate-400">เลือก Icon</span>
+                                                                )}
+                                                            </div>
                                                 <ChevronDown className="w-4 h-4 text-slate-400" />
                                             </button>
                                         </div>
@@ -256,52 +241,48 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {categories.map((cat, index) => {
-                                            const catId = cat.id || cat.name || index;
-                                            const isEditing = editingCategory && (editingCategory.id === cat.id || editingCategory.id === catId || (editingCategory.name === cat.name && !cat.id));
-                                            
-                                            return (
-                                            <tr key={catId} className="hover:bg-slate-50 transition-colors group">
+                                        {categories.map((cat) => (
+                                            <tr key={cat.id || cat.name} className="hover:bg-slate-50 transition-colors group">
                                                 <td className="px-6 py-4 font-semibold text-slate-700">
-                                                    {isEditing ? (
+                                                    {editingCategory?.id === cat.id ? (
                                                         <input
                                                             className="w-full px-2 py-1 border rounded"
                                                             value={editingCategory.name || ''}
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                                                         />
                                                     ) : (
-                                                        <span>{cat.name || ''}</span>
+                                                        <span>{cat.name}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {isEditing ? (
+                                                    {editingCategory?.id === cat.id ? (
                                                         <input
                                                             className="w-20 px-2 py-1 border rounded font-mono uppercase"
                                                             value={editingCategory.prefix || ''}
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, prefix: e.target.value })}
                                                         />
                                                     ) : (
-                                                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-mono text-xs font-bold">{cat.prefix || ''}</span>
+                                                        <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-mono text-xs font-bold">{cat.prefix}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-600">
-                                                    {isEditing ? (
+                                                    {editingCategory?.id === cat.id ? (
                                                         <input
                                                             type="number"
                                                             className="w-20 px-2 py-1 border rounded"
-                                                            value={editingCategory.usefulLife ?? editingCategory.useful_life ?? 5}
+                                                            value={editingCategory.usefulLife || editingCategory.useful_life || 5}
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, usefulLife: Number(e.target.value) || 5 })}
                                                         />
-                                                    ) : `${cat.usefulLife ?? cat.useful_life ?? 5} ปี`}
+                                                    ) : (
+                                                        `${cat.usefulLife || cat.useful_life || 5} ปี`
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {isEditing ? (
+                                                    {editingCategory?.id === cat.id ? (
                                                         <button
                                                             type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                const catId = cat.id || cat.name || index;
-                                                                setIconPickerTarget(catId);
+                                                            onClick={() => {
+                                                                setIconPickerTarget(cat.id);
                                                                 setShowIconPicker(true);
                                                             }}
                                                             className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50 transition-colors flex items-center justify-between gap-2"
@@ -334,58 +315,32 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    {isEditing ? (
+                                                    {editingCategory?.id === cat.id ? (
                                                         <div className="flex justify-end gap-1">
                                                             <button 
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setEditingCategory(null);
-                                                                }} 
-                                                                className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                                                                onClick={() => setEditingCategory(null)} 
+                                                                className="p-1.5 text-slate-400 hover:text-slate-600"
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </button>
                                                             <button 
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleUpdateCategory(editingCategory);
-                                                                }} 
-                                                                className="p-1.5 text-emerald-600 hover:text-emerald-700 transition-colors"
+                                                                onClick={() => handleUpdateCategory(editingCategory)} 
+                                                                className="p-1.5 text-emerald-600 hover:text-emerald-700"
                                                             >
                                                                 <Check className="w-4 h-4" />
                                                             </button>
                                                         </div>
                                                     ) : (
-                                                        <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
                                                             <button 
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setEditingCategory({ 
-                                                                        ...cat, 
-                                                                        id: catId,
-                                                                        usefulLife: cat.usefulLife ?? cat.useful_life ?? 5,
-                                                                        useful_life: cat.useful_life ?? cat.usefulLife ?? 5,
-                                                                        icon_name: cat.icon_name ?? null
-                                                                    });
-                                                                }} 
-                                                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                                title="แก้ไข"
+                                                                onClick={() => setEditingCategory({ ...cat })} 
+                                                                className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors"
                                                             >
                                                                 <Edit3 className="w-4 h-4" />
                                                             </button>
                                                             <button 
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่ "${cat.name}"?`)) {
-                                                                        handleDeleteCategory(catId);
-                                                                    }
-                                                                }} 
-                                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                                title="ลบ"
+                                                                onClick={() => handleDeleteCategory(cat.id)} 
+                                                                className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -393,8 +348,7 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                                     )}
                                                 </td>
                                             </tr>
-                                            );
-                                        })}
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -480,92 +434,7 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                     )}
 
                     {activeSection === 'users' && (
-                        <div className="space-y-8 animate-in fade-in duration-500">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-slate-800">ผู้ใช้งานและสิทธิ์การเข้าถึง</h3>
-                                <button className="flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md">
-                                    <UserPlus className="w-4 h-4 mr-2" />
-                                    เพิ่มผู้ใช้ใหม่
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-6">
-                                {/* Users Table */}
-                                <div className="overflow-hidden border border-slate-100 rounded-2xl">
-                                    <table className="w-full text-left">
-                                        <thead className="bg-slate-50 text-slate-400 text-xs uppercase font-bold">
-                                            <tr>
-                                                <th className="px-6 py-3">ผู้ใช้งาน</th>
-                                                <th className="px-6 py-3">สิทธิ์การใช้งาน</th>
-                                                <th className="px-6 py-3">สถานะ</th>
-                                                <th className="px-6 py-3 text-right">จัดการ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-50">
-                                            {users.map((user) => (
-                                                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center">
-                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mr-3">
-                                                                {user.name.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-bold text-slate-700 text-sm">{user.name}</p>
-                                                                <p className="text-xs text-slate-400">{user.email}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm">
-                                                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${user.role === 'Admin' ? 'bg-indigo-50 text-indigo-600' :
-                                                            user.role === 'Staff' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
-                                                            }`}>
-                                                            {user.role}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm">
-                                                        <span className={`flex items-center gap-1.5 ${user.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                                                            {user.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <button className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors">
-                                                            <Edit3 className="w-4 h-4" />
-                                                        </button>
-                                                        <button className="p-1.5 text-slate-400 hover:text-red-600 transition-colors">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Roles and Permissions */}
-                                <div className="mt-4">
-                                    <h4 className="font-bold text-slate-800 mb-4 flex items-center">
-                                        <Lock className="w-5 h-5 mr-4 text-emerald-600" />
-                                        ระดับสิทธิ์และรายละเอียด
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {roles.map((role) => (
-                                            <div key={role.name} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                <h5 className="font-bold text-slate-700 mb-1">{role.name}</h5>
-                                                <p className="text-xs text-slate-500 mb-4">{role.desc}</p>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {role.permissions.map(p => (
-                                                        <span key={p} className="text-[10px] bg-white border border-slate-200 text-slate-500 px-1.5 py-0.5 rounded uppercase font-bold">
-                                                            {p.replace('_', ' ')}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <UserManagementSection currentUser={user} />
                     )}
 
                     {activeSection === 'database' && (
@@ -697,33 +566,42 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                         <div className="flex-1 overflow-y-auto p-6">
                             <div className="grid grid-cols-6 sm:grid-cols-8 gap-4">
                                 {AVAILABLE_ICONS.map((iconName) => {
-                                    const IconComponent = getIconByName(iconName);
-                                    const isSelected = iconPickerTarget === 'new' 
-                                        ? newCategory.icon_name === iconName
-                                        : editingCategory?.icon_name === iconName;
-                                    
-                                    return (
-                                        <button
-                                            key={iconName}
-                                            onClick={() => {
-                                                if (iconPickerTarget === 'new') {
-                                                    setNewCategory({ ...newCategory, icon_name: iconName });
-                                                } else {
-                                                    setEditingCategory({ ...editingCategory, icon_name: iconName });
-                                                }
-                                                setShowIconPicker(false);
-                                                setIconPickerTarget(null);
-                                            }}
-                                            className={`p-4 rounded-xl border-2 transition-all hover:scale-110 ${
-                                                isSelected
-                                                    ? 'border-emerald-500 bg-emerald-50'
-                                                    : 'border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50'
-                                            }`}
-                                        >
-                                            <IconComponent className={`w-6 h-6 mx-auto ${isSelected ? 'text-emerald-600' : 'text-slate-600'}`} strokeWidth={2} />
-                                            <p className="text-[10px] text-slate-500 mt-2 text-center truncate">{iconName}</p>
-                                        </button>
-                                    );
+                                    try {
+                                        const IconComponent = getIconByName(iconName);
+                                        if (!IconComponent) {
+                                            return null;
+                                        }
+                                        
+                                        const isSelected = iconPickerTarget === 'new' 
+                                            ? newCategory.icon_name === iconName
+                                            : editingCategory?.icon_name === iconName;
+                                        
+                                        return (
+                                            <button
+                                                key={iconName}
+                                                onClick={() => {
+                                                    if (iconPickerTarget === 'new') {
+                                                        setNewCategory({ ...newCategory, icon_name: iconName });
+                                                    } else if (editingCategory) {
+                                                        setEditingCategory({ ...editingCategory, icon_name: iconName });
+                                                    }
+                                                    setShowIconPicker(false);
+                                                    setIconPickerTarget(null);
+                                                }}
+                                                className={`p-4 rounded-xl border-2 transition-all hover:scale-110 ${
+                                                    isSelected
+                                                        ? 'border-emerald-500 bg-emerald-50'
+                                                        : 'border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+                                                }`}
+                                            >
+                                                <IconComponent className={`w-6 h-6 mx-auto ${isSelected ? 'text-emerald-600' : 'text-slate-600'}`} strokeWidth={2} />
+                                                <p className="text-[10px] text-slate-500 mt-2 text-center truncate">{iconName}</p>
+                                            </button>
+                                        );
+                                    } catch (error) {
+                                        console.error(`Error rendering icon ${iconName}:`, error);
+                                        return null;
+                                    }
                                 })}
                             </div>
                         </div>
