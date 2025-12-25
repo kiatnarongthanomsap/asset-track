@@ -35,8 +35,7 @@ import InventoryCountingView from './components/InventoryCountingView';
 import InventoryReconciliation from './components/InventoryReconciliation';
 import InventoryReport from './components/InventoryReport';
 import { AUDIT_LOGS } from './data/mockData';
-
-const API_URL = '/api-remote/api.php';
+import * as supabaseService from './services/supabaseService';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -66,27 +65,67 @@ export default function App() {
 
     const fetchData = async () => {
         try {
-            const [assetsRes, logsRes, catsRes] = await Promise.all([
-                fetch(`${API_URL}?action=assets`),
-                fetch(`${API_URL}?action=audit_logs`),
-                fetch(`${API_URL}?action=categories`)
+            const [assetsData, logsData, catsData] = await Promise.all([
+                supabaseService.fetchAssets(),
+                supabaseService.fetchAuditLogs(),
+                supabaseService.fetchCategories()
             ]);
 
-            const assetsData = await assetsRes.json();
-            const logsData = await logsRes.json();
-            const catsData = await catsRes.json();
+            // ใช้ข้อมูลจาก Supabase ถ้ามี (และไม่ว่าง)
+            if (assetsData && assetsData.length > 0) {
+                // ไม่ตั้งค่า default image - ให้แสดง icon แทนเมื่อไม่มีรูป
+                setAssets(assetsData);
+            } else {
+                console.warn('No assets from Supabase, using mock data');
+            }
 
-            setAssets(assetsData.map(a => ({
-                ...a,
-                price: parseFloat(a.price),
-                usefulLife: parseInt(a.useful_life),
-                isStickerPrinted: !!parseInt(a.is_sticker_printed),
-                purchaseDate: a.purchase_date
-            })));
-            setAuditLogs(logsData);
-            setCategories(catsData.map(c => c.name));
+            if (logsData && logsData.length > 0) {
+                setAuditLogs(logsData);
+            } else {
+                console.warn('No audit logs from Supabase, using mock data');
+            }
+
+            // เก็บ categories เป็น objects (มี name, icon_name, และ useful_life)
+            if (catsData && catsData.length > 0) {
+                // แปลง useful_life เป็น usefulLife และ icon_name เป็น iconName
+                const formattedCategories = catsData.map(cat => ({
+                    ...cat,
+                    usefulLife: cat.useful_life || cat.usefulLife || 5,
+                    iconName: cat.icon_name || cat.iconName || null
+                }));
+                setCategories(formattedCategories);
+            } else {
+                // ใช้ mock categories (แปลงเป็น objects)
+                const mockCategories = ASSET_CATEGORIES.map(c => {
+                    if (typeof c === 'string') {
+                        return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
+                    }
+                    return { 
+                        name: c.name || c, 
+                        icon_name: null, 
+                        useful_life: c.usefulLife || 5,
+                        usefulLife: c.usefulLife || 5
+                    };
+                });
+                setCategories(mockCategories);
+                console.warn('No categories from Supabase, using mock data');
+            }
         } catch (error) {
-            console.error('Failed to fetch data:', error);
+            console.error('Failed to fetch data from Supabase:', error);
+            console.log('Falling back to mock data');
+            // ใช้ mock data เป็น fallback (แปลงเป็น objects)
+            const mockCategories = ASSET_CATEGORIES.map(c => {
+                if (typeof c === 'string') {
+                    return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
+                }
+                return { 
+                    name: c.name || c, 
+                    icon_name: null, 
+                    useful_life: c.usefulLife || 5,
+                    usefulLife: c.usefulLife || 5
+                };
+            });
+            setCategories(mockCategories);
         }
     };
 
@@ -103,6 +142,10 @@ export default function App() {
     };
 
     const handleAddAsset = () => {
+        if (!supabaseService.canManageAssets(user)) {
+            alert('คุณไม่มีสิทธิ์เพิ่มทรัพย์สิน');
+            return;
+        }
         // Create an empty asset template
         const newAsset = {
             id: Date.now(), // temporary ID
@@ -138,23 +181,17 @@ export default function App() {
 
     const handleSaveAsset = async (savedAsset) => {
         try {
-            const response = await fetch(`${API_URL}?action=assets`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...savedAsset,
-                    purchaseDate: savedAsset.purchaseDate,
-                    usefulLife: savedAsset.usefulLife,
-                    isStickerPrinted: savedAsset.isStickerPrinted ? 1 : 0
-                })
-            });
-            const result = await response.json();
+            const result = await supabaseService.saveAsset(savedAsset);
             if (result.status === 'success') {
                 fetchData(); // Refresh all data
                 setIsEditModalOpen(false);
+            } else {
+                console.error('Failed to save asset:', result.message);
+                alert('ไม่สามารถบันทึกข้อมูลได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
             }
         } catch (error) {
             console.error('Failed to save asset:', error);
+            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
     };
 
@@ -163,18 +200,11 @@ export default function App() {
         if (!asset) return;
 
         try {
-            const response = await fetch(`${API_URL}?action=assets`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...asset,
-                    id: assetId,
-                    status: newStatus
-                })
-            });
-            const result = await response.json();
+            const result = await supabaseService.updateAssetStatus(assetId, newStatus);
             if (result.status === 'success') {
                 fetchData();
+            } else {
+                console.error('Failed to update status:', result.message);
             }
         } catch (error) {
             console.error('Failed to update status:', error);
@@ -368,7 +398,14 @@ export default function App() {
                                 onAddAsset={handleAddAsset}
                                 onTabChange={setActiveTab}
                                 onPrintStickers={() => setIsStickerModalOpen(true)}
-                                onImportExcel={() => setIsImportModalOpen(true)}
+                                onImportExcel={() => {
+                                    if (!supabaseService.canImportAssets(user)) {
+                                        alert('คุณไม่มีสิทธิ์นำเข้าข้อมูล');
+                                        return;
+                                    }
+                                    setIsImportModalOpen(true);
+                                }}
+                                user={user}
                             />
                         </div>
                     </div>
@@ -451,6 +488,7 @@ export default function App() {
                         setCategories={setCategories}
                         assets={assets}
                         setAssets={setAssets}
+                        onDataChange={fetchData}
                     />
                 )}
 

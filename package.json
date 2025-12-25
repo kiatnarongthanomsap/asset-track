@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/kiatnarongthanomsap/asset-track#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

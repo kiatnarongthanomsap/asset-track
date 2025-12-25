@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
-const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImportExcel }) => {
+const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImportExcel, user }) => {
     const actions = [
         {
             title: 'เพิ่มครุภัณฑ์ใหม่',
@@ -19,7 +19,13 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
             color: 'bg-emerald-600',
             shadow: 'shadow-emerald-200',
             hover: 'hover:bg-emerald-700',
-            onClick: onAddAsset
+            onClick: () => {
+                if (user && !supabaseService.canManageAssets(user)) {
+                    alert('คุณไม่มีสิทธิ์เพิ่มทรัพย์สิน');
+                    return;
+                }
+                onAddAsset();
+            }
         },
         {
             title: 'นำเข้า Excel',
@@ -28,7 +34,13 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
             color: 'bg-violet-600',
             shadow: 'shadow-violet-200',
             hover: 'hover:bg-violet-700',
-            onClick: onImportExcel
+            onClick: () => {
+                if (user && !supabaseService.canImportAssets(user)) {
+                    alert('คุณไม่มีสิทธิ์นำเข้าข้อมูล');
+                    return;
+                }
+                onImportExcel();
+            }
         },
         {
             title: 'พิมพ์สติ๊กเกอร์',
@@ -64,7 +76,13 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
             color: 'bg-slate-700',
             shadow: 'shadow-slate-300',
             hover: 'hover:bg-slate-800',
-            onClick: () => onTabChange('settings')
+            onClick: () => {
+                if (user && !supabaseService.canAccessSettings(user)) {
+                    alert('คุณไม่มีสิทธิ์เข้าถึงการตั้งค่า');
+                    return;
+                }
+                onTabChange('settings');
+            }
         },
     ];
 

@@ -138,4 +138,3 @@ export const validateImageFile = (file) => {
 
   return { valid: true }
 }
-

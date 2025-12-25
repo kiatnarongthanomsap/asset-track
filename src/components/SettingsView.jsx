@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Save,
     Globe,
@@ -11,6 +11,7 @@ import {
     Trash2,
     Settings as SettingsIcon,
     ChevronRight,
+    ChevronDown,
     Edit3,
     X,
     Check,
@@ -29,6 +30,7 @@ import {
 } from '../utils/assetManager';
 import { getCategoryIcon, getIconNameFromCategories, getIconByName } from '../utils/categoryIcons';
 import UserManagementSection from './UserManagementSection';
+import * as supabaseService from '../services/supabaseService';
 
 // List of available icons
 const AVAILABLE_ICONS = [
@@ -69,20 +71,80 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
     ];
 
 
-    const handleAddCategory = () => {
-        if (!newCategory.name || !newCategory.prefix) return;
-        setCategories([...categories, { ...newCategory, id: Date.now(), useful_life: newCategory.usefulLife }]);
-        setNewCategory({ name: '', prefix: '', usefulLife: 5, icon_name: null });
+    const handleAddCategory = async () => {
+        if (!newCategory.name || !newCategory.prefix) {
+            alert('กรุณากรอกชื่อหมวดและ Prefix');
+            return;
+        }
+
+        try {
+            const result = await supabaseService.saveCategory(newCategory);
+            if (result.status === 'success') {
+                // Refresh categories
+                if (onDataChange) {
+                    await onDataChange();
+                } else {
+                    // Fallback: reload from service
+                    const updatedCategories = await supabaseService.fetchCategories();
+                    setCategories(updatedCategories);
+                }
+                setNewCategory({ name: '', prefix: '', usefulLife: 5, icon_name: null });
         setIsAddingCategory(false);
+                alert('เพิ่มหมวดหมู่สำเร็จ');
+            } else {
+                alert('ไม่สามารถเพิ่มหมวดหมู่ได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
+            }
+        } catch (error) {
+            console.error('Error adding category:', error);
+            alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+        }
     };
 
-    const handleUpdateCategory = (cat) => {
-        setCategories(categories.map(c => c.id === cat.id ? cat : c));
+    const handleUpdateCategory = async (cat) => {
+        try {
+            const result = await supabaseService.saveCategory(cat);
+            if (result.status === 'success') {
+                // Refresh categories
+                if (onDataChange) {
+                    await onDataChange();
+                } else {
+                    const updatedCategories = await supabaseService.fetchCategories();
+                    setCategories(updatedCategories);
+                }
         setEditingCategory(null);
+                alert('อัพเดทหมวดหมู่สำเร็จ');
+            } else {
+                alert('ไม่สามารถอัพเดทหมวดหมู่ได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
+            }
+        } catch (error) {
+            console.error('Error updating category:', error);
+            alert('เกิดข้อผิดพลาดในการอัพเดทหมวดหมู่');
+        }
     };
 
-    const handleDeleteCategory = (id) => {
-        setCategories(categories.filter(c => c.id !== id));
+    const handleDeleteCategory = async (id) => {
+        if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?')) {
+            return;
+        }
+
+        try {
+            const result = await supabaseService.deleteCategory(id);
+            if (result.status === 'success') {
+                // Refresh categories
+                if (onDataChange) {
+                    await onDataChange();
+                } else {
+                    const updatedCategories = await supabaseService.fetchCategories();
+                    setCategories(updatedCategories);
+                }
+                alert('ลบหมวดหมู่สำเร็จ');
+            } else {
+                alert('ไม่สามารถลบหมวดหมู่ได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
+            }
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            alert('เกิดข้อผิดพลาดในการลบหมวดหมู่');
+        }
     };
 
     return (
@@ -92,9 +154,22 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                     <h2 className="text-3xl font-bold text-slate-800 tracking-tight">ตั้งค่าระบบ</h2>
                     <p className="text-slate-500 mt-1">กำหนดค่าการรันเลข หมวดหมู่ และนโยบายบัญชี</p>
                 </div>
-                <button className="flex items-center px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">
-                    <Save className="w-4 h-4 mr-2" />
-                    บันทึกการตั้งค่า
+                <button 
+                    onClick={handleSaveAllSettings}
+                    disabled={isSaving}
+                    className={`flex items-center px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isSaving ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
+                            กำลังบันทึก...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-4 h-4 mr-2" />
+                            บันทึกการตั้งค่า
+                        </>
+                    )}
                 </button>
             </div>
 
@@ -121,6 +196,16 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
 
                 {/* Section Content */}
                 <div className="flex-1 bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+                    {/* Save Message */}
+                    {saveMessage && (
+                        <div className={`mb-4 p-4 rounded-xl ${
+                            saveMessage.type === 'success' 
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                            <p className="font-medium">{saveMessage.text}</p>
+                        </div>
+                    )}
 
                     {activeSection === 'general' && (
                         <div className="space-y-6 animate-in fade-in duration-500">
@@ -128,13 +213,25 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">ชื่อสหกรณ์ / หน่วยงาน</label>
-                                    <input type="text" defaultValue="สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด" className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all" />
+                                    <input 
+                                        type="text" 
+                                        value={generalSettings.organizationName}
+                                        onChange={(e) => setGeneralSettings({ ...generalSettings, organizationName: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all" 
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">ปีระบบ (ปัจจุบัน)</label>
-                                    <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all">
-                                        <option>2567</option>
-                                        <option>2568</option>
+                                    <select 
+                                        value={generalSettings.currentYear}
+                                        onChange={(e) => setGeneralSettings({ ...generalSettings, currentYear: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                                    >
+                                        <option value="2565">2565</option>
+                                        <option value="2566">2566</option>
+                                        <option value="2567">2567</option>
+                                        <option value="2568">2568</option>
+                                        <option value="2569">2569</option>
                                     </select>
                                 </div>
                             </div>
@@ -251,7 +348,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                                                         />
                                                     ) : (
-                                                        <span>{cat.name}</span>
+                                                            <span>{cat.name}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -413,9 +510,13 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2 p-6 bg-slate-50 rounded-2xl">
                                     <label className="block text-sm font-bold text-slate-700">วิธีคำนวณ (Method)</label>
-                                    <select className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none bg-white">
-                                        <option>เส้นตรง (Straight-Line)</option>
-                                        <option>ยอดลดลง (Declining Balance)</option>
+                                    <select 
+                                        value={depreciation.method}
+                                        onChange={(e) => setDepreciation({ ...depreciation, method: e.target.value })}
+                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none bg-white focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                        <option value="Straight-Line">เส้นตรง (Straight-Line)</option>
+                                        <option value="Declining Balance">ยอดลดลง (Declining Balance)</option>
                                     </select>
                                     <p className="text-xs text-slate-500 mt-2">คำนวณแบบกระจายมูลค่าเท่ากันทุกปี ตามมาตรฐานบัญชีสหกรณ์</p>
                                 </div>
@@ -424,8 +525,8 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                     <input
                                         type="number"
                                         value={depreciation.scrapValue}
-                                        onChange={(e) => setDepreciation({ ...depreciation, scrapValue: e.target.value })}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none"
+                                        onChange={(e) => setDepreciation({ ...depreciation, scrapValue: Number(e.target.value) || 1 })}
+                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
                                     />
                                     <p className="text-xs text-slate-500 mt-2">ระบุเป็น 1 บาท เพื่อให้ทรัพย์สินยังคงมีสถานะในระบบเมื่อค่าเสื่อมครบแล้ว</p>
                                 </div>
@@ -468,9 +569,29 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                 </button>
 
                                 <button
-                                    onClick={() => {
-                                        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
-                                            setAssets([]);
+                                    onClick={async () => {
+                                        if (!supabaseService.canManageAssets(user)) {
+                                            alert('คุณไม่มีสิทธิ์ล้างข้อมูล');
+                                            return;
+                                        }
+                                        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลทรัพย์สินทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+                                            try {
+                                                // Delete all assets from database
+                                                const { supabase: supabaseClient } = await import('../config/supabase');
+                                                const { error } = await supabaseClient
+                                                    .from('assets')
+                                                    .delete()
+                                                    .gte('id', 0); // Delete all
+                                                
+                                                if (error) throw error;
+                                                
+                                                setAssets([]);
+                                                if (onDataChange) await onDataChange();
+                                                alert('ล้างข้อมูลสำเร็จ');
+                                            } catch (error) {
+                                                console.error('Error clearing assets:', error);
+                                                alert('เกิดข้อผิดพลาดในการล้างข้อมูล: ' + error.message);
+                                            }
                                         }
                                     }}
                                     className="p-6 border-2 border-slate-50 rounded-3xl flex flex-col items-center hover:border-rose-100 hover:bg-rose-50/20 transition-all group"
