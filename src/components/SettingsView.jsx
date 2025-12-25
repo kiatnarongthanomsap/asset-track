@@ -27,6 +27,7 @@ import {
     downloadCSVTemplate,
     parseAssetCSV
 } from '../utils/assetManager';
+import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 
 const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
     const [activeSection, setActiveSection] = useState('categories');
@@ -35,9 +36,9 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
     const [newCategory, setNewCategory] = useState({ name: '', prefix: '', usefulLife: 5 });
 
     const [numbering, setNumbering] = useState({
-        pattern: '{PREFIX}-{YEAR}-{RUNNING}',
+        pattern: '{PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}',
         startNumber: 1,
-        padding: 4,
+        padding: 3,
     });
 
     const [depreciation, setDepreciation] = useState({
@@ -213,7 +214,18 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                                             value={editingCategory.name}
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                                                         />
-                                                    ) : cat.name}
+                                                    ) : (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-colors">
+                                                                {(() => {
+                                                                    const iconName = getIconNameFromCategories(cat.name, categories);
+                                                                    const IconComponent = getCategoryIcon(cat.name, iconName);
+                                                                    return <IconComponent className="w-4 h-4 text-slate-600 group-hover:text-emerald-600 transition-colors" strokeWidth={2} />;
+                                                                })()}
+                                                            </div>
+                                                            <span>{cat.name}</span>
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {editingCategory?.id === cat.id ? (
@@ -267,7 +279,13 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                             <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                                 <label className="block text-sm font-semibold text-slate-600 mb-3">รูปแบบตัวอย่าง (Preview)</label>
                                 <div className="text-2xl font-mono font-bold text-emerald-700 tracking-wider">
-                                    {numbering.pattern.replace('{PREFIX}', 'COM').replace('{YEAR}', '2567').replace('{RUNNING}', '0001')}
+                                    {numbering.pattern
+                                        .replace('{PREFIX}', 'A')
+                                        .replace('{RUNNING}', String(numbering.startNumber).padStart(numbering.padding, '0'))
+                                        .replace('{DD}', '09')
+                                        .replace('{MM}', '04')
+                                        .replace('{YYYY}', '2557')
+                                        .replace('{YEAR}', '2557')}
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -280,7 +298,8 @@ const SettingsView = ({ categories, setCategories, assets, setAssets }) => {
                                             onChange={(e) => setNumbering({ ...numbering, pattern: e.target.value })}
                                             className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
                                         />
-                                        <p className="text-[10px] text-slate-400 mt-2 italic">ตัวเลือก: {"{PREFIX}, {YEAR}, {MONTH}, {RUNNING}"}</p>
+                                        <p className="text-[10px] text-slate-400 mt-2 italic">ตัวเลือก: {"{PREFIX}, {RUNNING}, {DD}, {MM}, {YYYY} หรือ {YEAR}"}</p>
+                                        <p className="text-xs text-slate-500 mt-1">รูปแบบมาตรฐาน: {"{PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}"} (เช่น A004-09-04-2557)</p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 mb-2">จำนวนหลักเลขรัน (Padding)</label>

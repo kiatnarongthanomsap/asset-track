@@ -88,11 +88,14 @@ if len(sys.argv) > 1:
 
 wb = openpyxl.load_workbook('ครุภัณฑ์ 2568_kt.xlsx', data_only=True)
 
-# หา sheet ที่ขึ้นต้นด้วยอักษรอังกฤษ
+# หา sheet ที่ขึ้นต้นด้วยอักษรอังกฤษเท่านั้น (กรอง sheet ที่ไม่เกี่ยวข้อง)
 english_prefix_sheets = []
 for sheet_name in wb.sheetnames:
     if re.match(r'^[A-Za-z]', sheet_name):
         english_prefix_sheets.append(sheet_name)
+
+print(f"📋 พบ sheet ที่ขึ้นต้นด้วยอักษรอังกฤษ: {len(english_prefix_sheets)} แผ่น")
+print(f"   {', '.join(english_prefix_sheets[:5])}{'...' if len(english_prefix_sheets) > 5 else ''}")
 
 # เก็บหมวดหมู่
 categories = {}
@@ -125,7 +128,25 @@ for sheet_name in english_prefix_sheets:
         if not asset_code:
             continue
         
+        # ดึงวันที่ซื้อจากคอลัมน์ D ก่อน
         purchase_date = parse_date(row[3]) if len(row) > 3 else None  # วันที่ซื้อ (D)
+        
+        # ถ้าไม่มีวันที่ซื้อ ให้ลองดึงจากรหัสทรัพย์สิน (รูปแบบ: A004-09-04-2557)
+        if not purchase_date and asset_code:
+            date_match = re.match(r'.*-(\d{1,2})-(\d{1,2})-(\d{4})$', str(asset_code))
+            if date_match:
+                try:
+                    day = int(date_match.group(1))
+                    month = int(date_match.group(2))
+                    year = int(date_match.group(3))
+                    # แปลง พ.ศ. เป็น ค.ศ. (ถ้า > 2500)
+                    if year > 2500:
+                        year = year - 543
+                    # ตรวจสอบความถูกต้อง
+                    if 1900 <= year <= 2100 and 1 <= month <= 12 and 1 <= day <= 31:
+                        purchase_date = f"{year}-{month:02d}-{day:02d}"
+                except:
+                    pass
         brand = clean_value(row[4]) if len(row) > 4 else None  # ยี่ห้อ (E)
         color = clean_value(row[5]) if len(row) > 5 else None  # สี (F)
         model = clean_value(row[6]) if len(row) > 6 else None  # รุ่น (G)
@@ -156,21 +177,33 @@ for sheet_name in english_prefix_sheets:
         # อายุการใช้งาน (default 5)
         useful_life = 5
         
-        assets.append({
-            'code': asset_code,
-            'name': asset_name,
-            'brand': brand,
-            'serial': serial,
-            'price': price,
-            'location': location,
-            'status': status,
-            'purchase_date': purchase_date,
-            'category': category_name,
-            'useful_life': useful_life,
-            'prefix': prefix
-        })
+        # ตรวจสอบว่ารหัสเป็นรูปแบบที่ถูกต้อง (ไม่ใช่แค่วันที่)
+        # รูปแบบที่ถูกต้อง: มี prefix (A-Z) + ตัวเลข + - + วันที่ หรือรูปแบบอื่นๆ
+        is_valid_code = True
+        if asset_code:
+            # ตรวจสอบว่าไม่ใช่แค่วันที่ (รูปแบบ DD/MM/YYYY หรือ YYYY-MM-DD)
+            if re.match(r'^\d{1,2}/\d{1,2}/\d{4}$', str(asset_code)) or \
+               re.match(r'^\d{4}-\d{2}-\d{2}', str(asset_code)):
+                is_valid_code = False
+                print(f"⚠️  ข้าม: รหัส '{asset_code}' เป็นวันที่ ไม่ใช่รหัสทรัพย์สิน (แถว {row_idx})")
         
-        row_count += 1
+        if is_valid_code:
+            assets.append({
+                'code': asset_code,
+                'name': asset_name,
+                'brand': brand,
+                'color': color,
+                'serial': serial,
+                'price': price,
+                'location': location,
+                'status': status,
+                'purchase_date': purchase_date,
+                'category': category_name,
+                'useful_life': useful_life,
+                'prefix': prefix
+            })
+            
+            row_count += 1
 
 # สร้างคำสั่ง INSERT สำหรับหมวดหมู่
 output_lines = []
@@ -198,19 +231,33 @@ output_lines.append("-- ========================================================
 output_lines.append("")
 
 asset_inserts = []
+seen_codes = {}  # เก็บรหัสที่เห็นแล้วเพื่อตรวจสอบซ้ำ
+
 for asset in assets:
-    code = escape_sql_string(asset['code'])
+    code = asset['code']
+    
+    # ตรวจสอบรหัสซ้ำ
+    if code in seen_codes:
+        seen_codes[code] += 1
+        print(f"⚠️  ข้าม: รหัส '{code}' ซ้ำ (ครั้งที่ {seen_codes[code]})")
+        continue
+    else:
+        seen_codes[code] = 1
+    
+    code_escaped = escape_sql_string(code)
     name = escape_sql_string(asset['name'])
     brand = escape_sql_string(asset['brand'])
-    serial = escape_sql_string(asset['serial'])
+    color = escape_sql_string(asset['color']) if asset.get('color') else 'NULL'
+    serial = escape_sql_string(asset['serial']) if asset.get('serial') else 'NULL'
     price = f"{asset['price']:.2f}"
-    location = escape_sql_string(asset['location'])
+    location = escape_sql_string(asset['location']) if asset.get('location') else 'NULL'
     status = escape_sql_string(asset['status'])
-    purchase_date = escape_sql_string(asset['purchase_date']) if asset['purchase_date'] else 'NULL'
-    category = escape_sql_string(asset['category'])
+    purchase_date = escape_sql_string(asset['purchase_date']) if asset.get('purchase_date') else 'NULL'
+    category = escape_sql_string(asset['category']) if asset.get('category') else 'NULL'
     useful_life = asset['useful_life']
     
-    stmt = f"INSERT INTO assets (code, name, brand, serial, price, location, status, purchase_date, category, useful_life) VALUES ({code}, {name}, {brand}, {serial}, {price}, {location}, {status}, {purchase_date}, {category}, {useful_life});"
+    # ใช้ ON CONFLICT DO UPDATE เพื่อจัดการกรณีรหัสซ้ำ
+    stmt = f"INSERT INTO assets (code, name, brand, color, serial, price, location, status, purchase_date, category, useful_life) VALUES ({code_escaped}, {name}, {brand}, {color}, {serial}, {price}, {location}, {status}, {purchase_date}, {category}, {useful_life}) ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, brand = EXCLUDED.brand, color = EXCLUDED.color, serial = EXCLUDED.serial, price = EXCLUDED.price, location = EXCLUDED.location, status = EXCLUDED.status, purchase_date = EXCLUDED.purchase_date, category = EXCLUDED.category, useful_life = EXCLUDED.useful_life;"
     asset_inserts.append(stmt)
 
 for stmt in asset_inserts:

@@ -1,6 +1,26 @@
 export const calculateDepreciation = (price, purchaseDateStr, usefulLifeYears) => {
+    // ถ้าไม่มีวันที่ซื้อ ให้ใช้ค่า default
+    if (!purchaseDateStr || purchaseDateStr === '') {
+        return {
+            ageYears: '0.0',
+            annualDepreciation: 0,
+            accumulatedDepreciation: 0,
+            bookValue: price || 0
+        };
+    }
+
     const purchaseDate = new Date(purchaseDateStr);
     const today = new Date();
+
+    // ตรวจสอบว่า purchaseDate ถูกต้องหรือไม่
+    if (isNaN(purchaseDate.getTime())) {
+        return {
+            ageYears: '0.0',
+            annualDepreciation: 0,
+            accumulatedDepreciation: 0,
+            bookValue: price || 0
+        };
+    }
 
     // วันที่ใช้งาน (Age in days)
     const diffTime = Math.abs(today - purchaseDate);

@@ -1,0 +1,141 @@
+import { supabase } from '../config/supabase'
+
+/**
+ * Image Service for Supabase Storage
+ * จัดการการอัพโหลดและลบรูปภาพ
+ */
+
+const BUCKET_NAME = 'asset-images'
+
+/**
+ * Upload image to Supabase Storage
+ * @param {File} file - ไฟล์รูปภาพ
+ * @param {string} assetCode - รหัสครุภัณฑ์ (ใช้เป็นชื่อไฟล์)
+ * @returns {Promise<{success: boolean, url?: string, error?: string}>}
+ */
+export const uploadImage = async (file, assetCode) => {
+  try {
+    // สร้างชื่อไฟล์จาก asset code และ timestamp
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${assetCode}-${Date.now()}.${fileExt}`
+    const filePath = `${fileName}`
+
+    // ลองอัพโหลดโดยตรง (ไม่ต้องตรวจสอบ bucket ก่อน เพราะอาจมีปัญหา permissions)
+    // ถ้า bucket มีอยู่แล้ว การอัพโหลดจะสำเร็จ
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      console.error('Upload error:', error)
+      
+      // ถ้าเป็น error เกี่ยวกับ bucket ไม่มี
+      if (error.message?.includes('Bucket not found') || 
+          error.message?.includes('not found') ||
+          error.statusCode === '404' ||
+          error.message?.includes('does not exist')) {
+        return { 
+          success: false, 
+          error: `Bucket '${BUCKET_NAME}' not found. Please create it in Supabase Storage.\n\nวิธีสร้าง:\n1. เปิด Supabase Dashboard → Storage\n2. คลิก "New bucket"\n3. ตั้งชื่อ: "asset-images"\n4. เลือก "Public bucket"\n5. คลิก "Create bucket"` 
+        }
+      }
+      
+      // ถ้าเป็น error เกี่ยวกับ permissions
+      if (error.message?.includes('permission') || 
+          error.message?.includes('policy') ||
+          error.message?.includes('denied') ||
+          error.statusCode === '403' ||
+          error.message?.includes('new row violates row-level security')) {
+        return { 
+          success: false, 
+          error: `Permission denied. Please set up Storage policies.\n\nวิธีแก้:\n1. เปิด Supabase Dashboard → SQL Editor\n2. รันไฟล์: storage_policies_public.sql\n3. หรือสร้าง policies ผ่าน Dashboard → Storage → Policies\n\nดูคู่มือ: FIX_STORAGE_PERMISSIONS.md` 
+        }
+      }
+      
+      return { success: false, error: error.message || 'ไม่สามารถอัพโหลดรูปภาพได้' }
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filePath)
+
+    return {
+      success: true,
+      url: urlData.publicUrl
+    }
+  } catch (error) {
+    console.error('Upload error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Delete image from Supabase Storage
+ * @param {string} imageUrl - URL ของรูปภาพ
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const deleteImage = async (imageUrl) => {
+  try {
+    // Extract file path from URL
+    // URL format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[path]
+    const urlParts = imageUrl.split('/')
+    const fileName = urlParts[urlParts.length - 1]
+
+    if (!fileName) {
+      return { success: false, error: 'Invalid image URL' }
+    }
+
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .remove([fileName])
+
+    if (error) {
+      console.error('Delete error:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Delete error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Get public URL for an image
+ * @param {string} filePath - Path ของไฟล์ใน storage
+ * @returns {string} Public URL
+ */
+export const getImageUrl = (filePath) => {
+  const { data } = supabase.storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(filePath)
+  
+  return data.publicUrl
+}
+
+/**
+ * Validate image file
+ * @param {File} file - ไฟล์ที่ต้องการตรวจสอบ
+ * @returns {Promise<{valid: boolean, error?: string}>}
+ */
+export const validateImageFile = (file) => {
+  // ตรวจสอบประเภทไฟล์
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+  if (!validTypes.includes(file.type)) {
+    return { valid: false, error: 'กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, WEBP, GIF)' }
+  }
+
+  // ตรวจสอบขนาดไฟล์ (max 10MB)
+  const maxSize = 10 * 1024 * 1024 // 10MB
+  if (file.size > maxSize) {
+    return { valid: false, error: 'ขนาดไฟล์ต้องไม่เกิน 10MB' }
+  }
+
+  return { valid: true }
+}
+

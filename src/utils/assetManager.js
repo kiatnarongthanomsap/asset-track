@@ -1,11 +1,73 @@
 /**
  * Logic for generating Asset Numbers
- * Pattern: {PREFIX}-{YEAR}-{RUNNING}
- * E.g. COM-2567-0001
+ * 
+ * รูปแบบมาตรฐาน: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}
+ * ตัวอย่าง: A004-09-04-2557
+ * 
+ * รูปแบบเก่า (ยังรองรับ): {PREFIX}-{YEAR}-{RUNNING}
+ * ตัวอย่าง: COM-2567-0001
  */
 export const generateAssetCode = (prefix, year, runningNumber, padding = 4) => {
     const paddedRunning = String(runningNumber).padStart(padding, '0');
     return `${prefix}-${year}-${paddedRunning}`;
+};
+
+/**
+ * Generate Asset Code in standard format: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}
+ * @param {string} prefix - Category prefix (e.g., 'A', 'B', 'C')
+ * @param {number} runningNumber - Running number for the asset
+ * @param {Date|string} purchaseDate - Purchase date (Date object or date string)
+ * @param {number} padding - Number of digits for running number (default: 3)
+ * @returns {string} Asset code in format: A004-09-04-2557
+ * 
+ * @example
+ * generateAssetCodeStandard('A', 4, new Date('2014-04-09'), 3)
+ * // Returns: 'A004-09-04-2557'
+ */
+export const generateAssetCodeStandard = (prefix, runningNumber, purchaseDate, padding = 3) => {
+    // Convert purchaseDate to Date object if it's a string
+    const date = purchaseDate instanceof Date ? purchaseDate : new Date(purchaseDate);
+    
+    // Get day, month, year (Buddhist Era)
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const yearBE = date.getFullYear() + 543; // Convert AD to BE
+    
+    // Pad running number
+    const paddedRunning = String(runningNumber).padStart(padding, '0');
+    
+    // Format: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}
+    return `${prefix}${paddedRunning}-${day}-${month}-${yearBE}`;
+};
+
+/**
+ * Parse Asset Code in standard format: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}
+ * @param {string} code - Asset code (e.g., 'A004-09-04-2557')
+ * @returns {object|null} Parsed code object or null if invalid
+ * 
+ * @example
+ * parseAssetCode('A004-09-04-2557')
+ * // Returns: { prefix: 'A', running: 4, day: 9, month: 4, yearBE: 2557, yearAD: 2014 }
+ */
+export const parseAssetCode = (code) => {
+    if (!code || typeof code !== 'string') return null;
+    
+    // Pattern: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}
+    const match = code.match(/^([A-Z])(\d+)-(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (!match) return null;
+    
+    const [, prefix, running, day, month, yearBE] = match;
+    const yearAD = parseInt(yearBE) - 543;
+    
+    return {
+        prefix,
+        running: parseInt(running),
+        day: parseInt(day),
+        month: parseInt(month),
+        yearBE: parseInt(yearBE),
+        yearAD,
+        purchaseDate: new Date(yearAD, parseInt(month) - 1, parseInt(day))
+    };
 };
 
 /**

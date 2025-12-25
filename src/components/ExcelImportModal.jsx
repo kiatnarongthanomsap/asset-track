@@ -58,6 +58,42 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                     return;
                 }
 
+                // Function: ดึงวันที่ซื้อจากรหัสทรัพย์สิน
+                const extractDateFromCode = (code) => {
+                    if (!code || typeof code !== 'string') return null;
+                    
+                    // รูปแบบ: A004-09-04-2557 -> ดึง 09-04-2557
+                    const match = code.match(/-(\d{1,2})-(\d{1,2})-(\d{4})$/);
+                    if (!match) return null;
+                    
+                    try {
+                        const day = parseInt(match[1], 10);
+                        const month = parseInt(match[2], 10);
+                        let year = parseInt(match[3], 10);
+                        
+                        // แปลง พ.ศ. เป็น ค.ศ. (ถ้า > 2500)
+                        if (year > 2500) {
+                            year = year - 543;
+                        }
+                        
+                        // ตรวจสอบความถูกต้อง
+                        if (year < 1900 || year > 2100) return null;
+                        if (month < 1 || month > 12) return null;
+                        if (day < 1 || day > 31) return null;
+                        
+                        // สร้างวันที่ (format: YYYY-MM-DD)
+                        const date = new Date(year, month - 1, day);
+                        if (date.getFullYear() === year && 
+                            date.getMonth() === month - 1 && 
+                            date.getDate() === day) {
+                            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        }
+                    } catch (e) {
+                        return null;
+                    }
+                    return null;
+                };
+
                 // แปลงข้อมูลและตรวจสอบ
                 const mappedData = jsonData.map((row, index) => {
                     const mappedRow = {};
@@ -65,6 +101,15 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                         const engCol = REQUIRED_COLUMNS[thaiCol];
                         mappedRow[engCol] = row[thaiCol] || '';
                     });
+                    
+                    // ถ้าไม่มีวันที่ซื้อ แต่มีรหัสทรัพย์สิน ให้ดึงจากรหัส
+                    if (!mappedRow.purchase_date && mappedRow.code) {
+                        const extractedDate = extractDateFromCode(mappedRow.code);
+                        if (extractedDate) {
+                            mappedRow.purchase_date = extractedDate;
+                        }
+                    }
+                    
                     mappedRow._rowNumber = index + 2; // +2 เพราะมี header และเริ่มที่ 1
                     return mappedRow;
                 });
@@ -144,7 +189,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                 price: parseFloat(result.data.price) || 0,
                 location: result.data.location || null,
                 status: result.data.status || 'Normal',
-                purchase_date: result.data.purchase_date || new Date().toISOString().split('T')[0],
+                purchase_date: result.data.purchase_date || null,
                 category: result.data.category || null,
                 useful_life: parseInt(result.data.useful_life) || 5,
                 image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',

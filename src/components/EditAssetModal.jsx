@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Upload } from 'lucide-react';
-import { ASSET_CATEGORIES } from '../utils/assetManager';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ASSET_CATEGORIES, generateAssetCodeStandard } from '../utils/assetManager';
+import * as imageService from '../services/imageService';
+import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 
 const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
     const [formData, setFormData] = useState(asset || {});
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         setFormData(asset || {});
+        setUploadError('');
     }, [asset]);
 
     if (!isOpen) return null;
@@ -17,6 +23,50 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
             ...prev,
             [name]: name === 'price' || name === 'usefulLife' ? Number(value) : value
         }));
+    };
+
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file
+        const validation = imageService.validateImageFile(file);
+        if (!validation.valid) {
+            setUploadError(validation.error);
+            return;
+        }
+
+        setUploading(true);
+        setUploadError('');
+
+        try {
+            // ใช้ asset code หรือ generate temporary code
+            const assetCode = formData.code || `TEMP-${Date.now()}`;
+            const result = await imageService.uploadImage(file, assetCode);
+
+            if (result.success) {
+                setFormData(prev => ({
+                    ...prev,
+                    image: result.url
+                }));
+                setUploadError('');
+            } else {
+                setUploadError(result.error || 'ไม่สามารถอัพโหลดรูปภาพได้');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            setUploadError('เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ');
+        } finally {
+            setUploading(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
 
     const handleSubmit = (e) => {
@@ -55,21 +105,64 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                                 name="code"
                                 value={formData.code || ''}
                                 onChange={handleChange}
-                                placeholder="เช่น COM-2567-001"
+                                placeholder="เช่น A004-09-04-2557"
                                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-slate-50 font-mono text-emerald-700 font-bold"
                             />
                         </div>
 
                         {/* Image Section */}
-                        <div className="col-span-1 md:col-span-2 flex justify-center mb-4">
-                            <div className="relative group cursor-pointer">
-                                <img src={formData.image} alt="Preview" className="w-32 h-32 rounded-2xl object-cover border-2 border-slate-100 shadow-sm group-hover:opacity-75 transition-opacity" />
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span className="bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center">
-                                        <Upload className="w-3 h-3 mr-1" /> เปลี่ยนรูป
-                                    </span>
+                        <div className="col-span-1 md:col-span-2 flex flex-col items-center mb-4">
+                            <div className="relative group cursor-pointer" onClick={handleImageClick}>
+                                {formData.image ? (
+                                    <img 
+                                        src={formData.image} 
+                                        alt="Preview" 
+                                        className="w-32 h-32 rounded-2xl object-cover border-2 border-slate-100 shadow-sm group-hover:opacity-75 transition-opacity" 
+                                        onError={(e) => {
+                                            // ซ่อนรูปภาพและแสดง icon แทน
+                                            e.target.style.display = 'none';
+                                            const iconContainer = e.target.nextElementSibling;
+                                            if (iconContainer) {
+                                                iconContainer.style.display = 'flex';
+                                            }
+                                        }}
+                                    />
+                                ) : null}
+                                <div className={`w-32 h-32 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 group-hover:bg-slate-100 transition-colors ${formData.image ? 'hidden' : 'flex'}`}>
+                                    {(() => {
+                                        const iconName = getIconNameFromCategories(formData.category, categories);
+                                        const IconComponent = getCategoryIcon(formData.category, iconName);
+                                        return <IconComponent className="w-8 h-8 text-slate-400" strokeWidth={2} />;
+                                    })()}
                                 </div>
+                                {!uploading && (
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-2xl">
+                                        <span className="bg-white text-slate-700 text-xs px-3 py-2 rounded-full flex items-center font-medium shadow-lg">
+                                            <Upload className="w-3 h-3 mr-1" /> {formData.image ? 'เปลี่ยนรูป' : 'อัพโหลดรูป'}
+                                        </span>
+                                    </div>
+                                )}
+                                {uploading && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl">
+                                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                    </div>
+                                )}
                             </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                                onChange={handleImageUpload}
+                                className="hidden"
+                            />
+                            {uploadError && (
+                                <p className="text-xs text-red-500 mt-2 text-center">{uploadError}</p>
+                            )}
+                            {formData.image && (
+                                <p className="text-xs text-slate-400 mt-2 text-center max-w-xs truncate">
+                                    {formData.image}
+                                </p>
+                            )}
                         </div>
 
                         {/* Category Section */}
@@ -83,14 +176,14 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                                     setFormData(prev => ({
                                         ...prev,
                                         category: e.target.value,
-                                        usefulLife: cat ? cat.usefulLife : prev.usefulLife
+                                        usefulLife: cat ? (cat.usefulLife || cat.useful_life || 5) : prev.usefulLife
                                     }));
                                 }}
                                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow bg-white"
                             >
                                 <option value="">เลือกหมวดหมู่</option>
                                 {categories.map(cat => (
-                                    <option key={cat.id} value={cat.name}>{cat.name} (อายุ {cat.usefulLife} ปี)</option>
+                                    <option key={cat.id} value={cat.name}>{cat.name} (อายุ {cat.usefulLife || cat.useful_life || 5} ปี)</option>
                                 ))}
                             </select>
                         </div>
@@ -105,6 +198,10 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                                 <input type="text" name="brand" value={formData.brand || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">สี (Color)</label>
+                                <input type="text" name="color" value={formData.color || ''} onChange={handleChange} placeholder="เช่น ดำ, ขาว, เงิน" className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Serial Number</label>
                                 <input type="text" name="serial" value={formData.serial || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
                             </div>
@@ -117,7 +214,7 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">วันที่ซื้อ</label>
-                                <input type="date" name="purchaseDate" value={formData.purchaseDate || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" required />
+                                <input type="date" name="purchaseDate" value={formData.purchaseDate || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">อายุใช้งาน (ปี)</label>

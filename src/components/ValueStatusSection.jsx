@@ -12,8 +12,9 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { calculateDepreciation } from '../utils/calculations';
+import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 
-const ValueStatusSection = ({ data, onStatClick }) => {
+const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories = [] }) => {
     // Calculate real financial totals
     const financials = useMemo(() => {
         let totalCapital = 0;
@@ -105,10 +106,10 @@ const ValueStatusSection = ({ data, onStatClick }) => {
             </div>
 
             {/* Right: Category Breakdown */}
-            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 h-full flex flex-col overflow-hidden relative">
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 p-8 flex flex-col overflow-hidden relative">
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-50/30 rounded-full blur-3xl -ml-16 -mb-16"></div>
 
-                <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center justify-between mb-8 relative z-10 shrink-0">
                     <div>
                         <h3 className="text-xl font-black text-slate-800 tracking-tight flex items-center">
                             <PieChart className="w-6 h-6 mr-3 text-emerald-600" />
@@ -118,21 +119,47 @@ const ValueStatusSection = ({ data, onStatClick }) => {
                     </div>
                 </div>
 
-                <div className="space-y-6 relative z-10 flex-1 overflow-y-auto pr-2">
-                    {categoryStats.stats.map(([category, value], i) => (
-                        <div key={i} className="group">
-                            <div className="flex justify-between items-end mb-2">
-                                <span className="font-black text-slate-700 text-sm">{category}</span>
-                                <span className="text-xs font-bold text-slate-400 font-mono">฿{value.toLocaleString()}</span>
+                <div className="space-y-6 relative z-10 flex-1 overflow-y-auto pr-2 max-h-[500px] min-h-[300px]">
+                    {categoryStats.stats.map(([category, value], i) => {
+                        // นับจำนวน asset ในหมวดหมู่นี้
+                        const categoryCount = data.filter(a => (a.category || 'ไม่ระบุ') === category).length;
+                        
+                        return (
+                            <div 
+                                key={i} 
+                                onClick={() => onCategoryClick?.(category)}
+                                className="group cursor-pointer p-4 rounded-2xl bg-slate-50/50 hover:bg-emerald-50/50 border border-transparent hover:border-emerald-200 transition-all duration-300"
+                            >
+                                <div className="flex justify-between items-end mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all">
+                                            {(() => {
+                                                const iconName = getIconNameFromCategories(category, categories);
+                                                const IconComponent = getCategoryIcon(category, iconName);
+                                                return <IconComponent className="w-5 h-5 text-slate-600 group-hover:text-emerald-600 transition-colors" strokeWidth={2} />;
+                                            })()}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-black text-slate-700 text-sm group-hover:text-emerald-700 transition-colors">{category}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-full">
+                                                {categoryCount} รายการ
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-slate-400 font-mono group-hover:text-emerald-600 transition-colors">฿{value.toLocaleString()}</span>
+                                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                </div>
+                                <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200 p-0.5 group-hover:border-emerald-300 transition-colors">
+                                    <div
+                                        className="h-full bg-emerald-500 rounded-full transition-all duration-1000 group-hover:bg-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                                        style={{ width: `${(value / categoryStats.maxVal) * 100}%` }}
+                                    ></div>
+                                </div>
                             </div>
-                            <div className="w-full bg-slate-50 h-3 rounded-full overflow-hidden border border-slate-100 p-0.5">
-                                <div
-                                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000 group-hover:bg-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
-                                    style={{ width: `${(value / categoryStats.maxVal) * 100}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

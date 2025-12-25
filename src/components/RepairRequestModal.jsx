@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, Wrench, Download, FileText, User, CreditCard } from 'lucide-react';
+import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 
-const RepairRequestModal = ({ asset, onClose }) => {
+const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
     const [formData, setFormData] = useState({
         reason: '',
         serviceProvider: '',
@@ -40,7 +41,28 @@ const RepairRequestModal = ({ asset, onClose }) => {
 
                 <form onSubmit={handleSubmit} className="p-8">
                     <div className="bg-slate-50 p-4 rounded-2xl mb-8 border border-slate-100 flex gap-4 items-center">
-                        <img src={asset.image} alt="" className="w-16 h-16 rounded-xl object-cover shadow-sm" />
+                        {asset.image ? (
+                            <img 
+                                src={asset.image} 
+                                alt="" 
+                                className="w-16 h-16 rounded-xl object-cover shadow-sm"
+                                onError={(e) => {
+                                    // ซ่อนรูปภาพและแสดง icon แทน
+                                    e.target.style.display = 'none';
+                                    const iconContainer = e.target.nextElementSibling;
+                                    if (iconContainer) {
+                                        iconContainer.style.display = 'flex';
+                                    }
+                                }}
+                            />
+                        ) : null}
+                        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${asset.image ? 'hidden' : 'flex'}`}>
+                            {(() => {
+                                const iconName = getIconNameFromCategories(asset.category, categories);
+                                const IconComponent = getCategoryIcon(asset.category, iconName);
+                                return <IconComponent className="w-8 h-8 text-slate-600" strokeWidth={2} />;
+                            })()}
+                        </div>
                         <div>
                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{asset.code}</p>
                             <h4 className="font-bold text-slate-800">{asset.name}</h4>

@@ -27,6 +27,7 @@ import LoginPage from './components/LoginPage';
 import StickerPrintModal from './components/StickerPrintModal';
 import AlertSection from './components/AlertSection';
 import ExcelImportModal from './components/ExcelImportModal';
+import PendingTasksSection from './components/PendingTasksSection';
 import { AUDIT_LOGS } from './data/mockData';
 import * as supabaseService from './services/supabaseService';
 
@@ -44,6 +45,7 @@ export default function App() {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
     const [assetFilter, setAssetFilter] = useState('All');
+    const [categoryFilter, setCategoryFilter] = useState(null);
     const [repairAsset, setRepairAsset] = useState(null);
 
     // -- API Interaction --
@@ -63,7 +65,12 @@ export default function App() {
 
             // ใช้ข้อมูลจาก Supabase ถ้ามี (และไม่ว่าง)
             if (assetsData && assetsData.length > 0) {
-                setAssets(assetsData);
+                // เพิ่ม default image ถ้าไม่มี
+                const assetsWithImages = assetsData.map(asset => ({
+                    ...asset,
+                    image: asset.image || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400'
+                }));
+                setAssets(assetsWithImages);
             } else {
                 console.warn('No assets from Supabase, using mock data');
             }
@@ -74,27 +81,59 @@ export default function App() {
                 console.warn('No audit logs from Supabase, using mock data');
             }
 
-            // แปลง categories ให้เป็น array of strings
+            // เก็บ categories เป็น objects (มี name, icon_name, และ useful_life)
             if (catsData && catsData.length > 0) {
-                const categoryNames = catsData.map(c => typeof c === 'string' ? c : (c.name || c));
-                setCategories(categoryNames);
+                // แปลง useful_life เป็น usefulLife และ icon_name เป็น iconName
+                const formattedCategories = catsData.map(cat => ({
+                    ...cat,
+                    usefulLife: cat.useful_life || cat.usefulLife || 5,
+                    iconName: cat.icon_name || cat.iconName || null
+                }));
+                setCategories(formattedCategories);
             } else {
-                // ใช้ mock categories
-                const mockCategories = ASSET_CATEGORIES.map(c => typeof c === 'string' ? c : (c.name || c));
+                // ใช้ mock categories (แปลงเป็น objects)
+                const mockCategories = ASSET_CATEGORIES.map(c => {
+                    if (typeof c === 'string') {
+                        return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
+                    }
+                    return { 
+                        name: c.name || c, 
+                        icon_name: null, 
+                        useful_life: c.usefulLife || 5,
+                        usefulLife: c.usefulLife || 5
+                    };
+                });
                 setCategories(mockCategories);
                 console.warn('No categories from Supabase, using mock data');
             }
         } catch (error) {
             console.error('Failed to fetch data from Supabase:', error);
             console.log('Falling back to mock data');
-            // ใช้ mock data เป็น fallback
-            const mockCategories = ASSET_CATEGORIES.map(c => typeof c === 'string' ? c : (c.name || c));
+            // ใช้ mock data เป็น fallback (แปลงเป็น objects)
+            const mockCategories = ASSET_CATEGORIES.map(c => {
+                if (typeof c === 'string') {
+                    return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
+                }
+                return { 
+                    name: c.name || c, 
+                    icon_name: null, 
+                    useful_life: c.usefulLife || 5,
+                    usefulLife: c.usefulLife || 5
+                };
+            });
             setCategories(mockCategories);
         }
     };
 
     const handleDashboardStatClick = (status) => {
         setAssetFilter(status);
+        setCategoryFilter(null);
+        setActiveTab('assets');
+    };
+
+    const handleCategoryClick = (category) => {
+        setCategoryFilter(category);
+        setAssetFilter('All');
         setActiveTab('assets');
     };
 
@@ -105,10 +144,11 @@ export default function App() {
             code: '',
             name: '',
             brand: '',
+            color: '',
             category: '',
             serial: '',
             price: 0,
-            purchaseDate: new Date().toISOString().split('T')[0],
+            purchaseDate: '',
             usefulLife: 5,
             location: '',
             status: 'Normal',
@@ -312,7 +352,16 @@ export default function App() {
 
                         <CoopHeader />
 
-                        <AlertSection assets={assets} />
+                        <AlertSection 
+                            assets={assets}
+                            onAlertClick={handleEditAsset}
+                        />
+
+                        <PendingTasksSection
+                            assets={assets}
+                            onStatClick={handleDashboardStatClick}
+                            categories={categories}
+                        />
 
                         <KPICards
                             data={assets}
@@ -321,6 +370,8 @@ export default function App() {
                         <ValueStatusSection
                             data={assets}
                             onStatClick={handleDashboardStatClick}
+                            onCategoryClick={handleCategoryClick}
+                            categories={categories}
                         />
 
                         <div className="grid grid-cols-1 gap-8">
@@ -345,6 +396,9 @@ export default function App() {
                         onRepairRequest={handleRepairRequest}
                         initialFilter={assetFilter}
                         onFilterChange={setAssetFilter}
+                        initialCategoryFilter={categoryFilter}
+                        onCategoryFilterChange={setCategoryFilter}
+                        categories={categories}
                     />
                 )}
 
@@ -370,6 +424,7 @@ export default function App() {
                     <RepairRequestModal
                         asset={repairAsset}
                         onClose={() => setRepairAsset(null)}
+                        categories={categories}
                     />
                 )}
 

@@ -1,29 +1,32 @@
 import React, { useMemo } from 'react';
 import { AlertTriangle, Clock, ShieldAlert, ArrowRight } from 'lucide-react';
 
-const AlertSection = ({ assets }) => {
+const AlertSection = ({ assets, onAlertClick }) => {
     const alerts = useMemo(() => {
         const now = new Date();
         const results = [];
 
         assets.forEach(asset => {
             // 1. Useful Life Alert (e.g., if > 90% of useful life has passed)
-            const purchaseDate = new Date(asset.purchaseDate);
-            const yearsPassed = (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25);
+            if (asset.purchaseDate) {
+                const purchaseDate = new Date(asset.purchaseDate);
+                const yearsPassed = (now - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25);
 
-            if (yearsPassed >= asset.usefulLife - 1) { // 1 year before or already passed
-                results.push({
-                    id: `life-${asset.id}`,
-                    type: 'life',
-                    level: yearsPassed >= asset.usefulLife ? 'critical' : 'warning',
-                    title: yearsPassed >= asset.usefulLife ? 'ครบอายุการใช้งาน' : 'ใกล้ครบอายุการใช้งาน',
-                    assetName: asset.name,
-                    code: asset.code,
-                    desc: yearsPassed >= asset.usefulLife
-                        ? `ใช้งานมาแล้ว ${yearsPassed.toFixed(1)} ปี (กำหนด ${asset.usefulLife} ปี)`
-                        : `จะครบกำหนดในอีก ${(asset.usefulLife - yearsPassed).toFixed(1)} ปี`,
-                    icon: Clock
-                });
+                if (yearsPassed >= asset.usefulLife - 1) { // 1 year before or already passed
+                    results.push({
+                        id: `life-${asset.id}`,
+                        type: 'life',
+                        level: yearsPassed >= asset.usefulLife ? 'critical' : 'warning',
+                        title: yearsPassed >= asset.usefulLife ? 'ครบอายุการใช้งาน' : 'ใกล้ครบอายุการใช้งาน',
+                        assetName: asset.name,
+                        code: asset.code,
+                        desc: yearsPassed >= asset.usefulLife
+                            ? `ใช้งานมาแล้ว ${yearsPassed.toFixed(1)} ปี (กำหนด ${asset.usefulLife} ปี)`
+                            : `จะครบกำหนดในอีก ${(asset.usefulLife - yearsPassed).toFixed(1)} ปี`,
+                        icon: Clock,
+                        asset: asset // เก็บ asset object เพื่อใช้เมื่อคลิก
+                    });
+                }
             }
 
             // 2. High Value Repair Alert
@@ -36,9 +39,17 @@ const AlertSection = ({ assets }) => {
                     assetName: asset.name,
                     code: asset.code,
                     desc: 'ครุภัณฑ์มูลค่าสูงกำลังรอการซ่อมแซม โปรดติดตามความคืบหน้า',
-                    icon: AlertTriangle
+                    icon: AlertTriangle,
+                    asset: asset // เก็บ asset object เพื่อใช้เมื่อคลิก
                 });
             }
+        });
+
+        // เรียงตาม level (critical ก่อน) แล้วค่อยตาม type
+        results.sort((a, b) => {
+            if (a.level === 'critical' && b.level !== 'critical') return -1;
+            if (a.level !== 'critical' && b.level === 'critical') return 1;
+            return 0;
         });
 
         return results.slice(0, 3); // Show top 3 alerts
@@ -62,17 +73,18 @@ const AlertSection = ({ assets }) => {
                 {alerts.map(alert => (
                     <div
                         key={alert.id}
-                        className={`p-5 rounded-[2rem] border-2 transition-all hover:scale-[1.02] cursor-pointer group flex flex-col ${alert.level === 'critical'
-                                ? 'bg-rose-50/50 border-rose-100 hover:border-rose-200'
-                                : 'bg-amber-50/50 border-amber-100 hover:border-amber-200'
+                        onClick={() => onAlertClick?.(alert.asset)}
+                        className={`p-5 rounded-[2rem] border-2 transition-all hover:scale-[1.02] hover:shadow-lg cursor-pointer group flex flex-col ${alert.level === 'critical'
+                                ? 'bg-rose-50/50 border-rose-100 hover:border-rose-300'
+                                : 'bg-amber-50/50 border-amber-100 hover:border-amber-300'
                             }`}
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-2xl ${alert.level === 'critical' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                            <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${alert.level === 'critical' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
                                 }`}>
                                 <alert.icon className="w-5 h-5" />
                             </div>
-                            <div className="text-[10px] font-black text-slate-400 group-hover:text-slate-600 transition-colors">
+                            <div className="text-[10px] font-black text-slate-400 group-hover:text-slate-700 transition-colors">
                                 {alert.code}
                             </div>
                         </div>
@@ -85,8 +97,10 @@ const AlertSection = ({ assets }) => {
                         </div>
 
                         <div className="mt-4 pt-4 border-t border-black/5 flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">View Details</span>
-                            <ArrowRight className={`w-4 h-4 ${alert.level === 'critical' ? 'text-rose-400' : 'text-amber-400'}`} />
+                            <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${alert.level === 'critical' ? 'text-rose-500 group-hover:text-rose-600' : 'text-amber-500 group-hover:text-amber-600'}`}>
+                                ดูรายละเอียด
+                            </span>
+                            <ArrowRight className={`w-4 h-4 transition-all group-hover:translate-x-1 ${alert.level === 'critical' ? 'text-rose-400' : 'text-amber-400'}`} />
                         </div>
                     </div>
                 ))}

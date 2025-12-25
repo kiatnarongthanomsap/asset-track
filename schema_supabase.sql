@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    prefix VARCHAR(10) NOT NULL UNIQUE
+    prefix VARCHAR(10) NOT NULL UNIQUE,
+    icon_name VARCHAR(50),
+    useful_life INTEGER DEFAULT 5
 );
 
 -- ================================================================================
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS assets (
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     brand VARCHAR(100),
+    color VARCHAR(50),
     serial VARCHAR(100),
     price NUMERIC(12, 2) DEFAULT 0.00,
     location VARCHAR(200),
@@ -44,6 +47,10 @@ CREATE TABLE IF NOT EXISTS assets (
     useful_life INTEGER DEFAULT 5,
     image TEXT,
     is_sticker_printed BOOLEAN DEFAULT FALSE,
+    notes TEXT,
+    custodian VARCHAR(200),
+    vendor VARCHAR(200),
+    warranty_expiry DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -110,10 +117,13 @@ ON CONFLICT (name) DO NOTHING;
 COMMENT ON TABLE users IS 'ตารางผู้ใช้งานระบบ';
 COMMENT ON TABLE categories IS 'ตารางหมวดหมู่ครุภัณฑ์';
 COMMENT ON COLUMN categories.prefix IS 'อักษรนำหน้ารหัสครุภัณฑ์ (เช่น A, B, C)';
+COMMENT ON COLUMN categories.icon_name IS 'ชื่อ icon component จาก lucide-react สำหรับแสดงกรณีที่ไม่มีรูปภาพ (เช่น Monitor, Printer, Package)';
+COMMENT ON COLUMN categories.useful_life IS 'ระยะเวลาคิดค่าเสื่อมตามหลักราชการ (หน่วย: ปี) - คอมพิวเตอร์/อุปกรณ์อิเล็กทรอนิกส์: 5 ปี, เฟอร์นิเจอร์: 8 ปี';
 COMMENT ON TABLE assets IS 'ตารางข้อมูลครุภัณฑ์';
 COMMENT ON TABLE audit_logs IS 'ตารางบันทึกการทำงาน (Audit Trail)';
 
 COMMENT ON COLUMN assets.code IS 'รหัสครุภัณฑ์ (ต้องไม่ซ้ำ)';
 COMMENT ON COLUMN assets.status IS 'สถานะ: Normal, Repair, Check, Disposed';
 COMMENT ON COLUMN assets.is_sticker_printed IS 'สถานะการพิมพ์สติกเกอร์';
+COMMENT ON COLUMN assets.color IS 'สีของทรัพย์สิน';
 

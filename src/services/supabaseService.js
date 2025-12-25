@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase'
+import { getImageUrl } from './imageService'
 
 /**
  * Supabase Service Layer
@@ -83,21 +84,38 @@ export const fetchAssets = async () => {
     }
 
     // แปลงข้อมูลให้ตรงกับรูปแบบที่แอปใช้
-    return (data || []).map(asset => ({
-      id: asset.id,
-      code: asset.code,
-      name: asset.name,
-      brand: asset.brand,
-      serial: asset.serial,
-      price: parseFloat(asset.price) || 0,
-      location: asset.location,
-      status: asset.status,
-      purchaseDate: asset.purchase_date,
-      category: asset.category,
-      usefulLife: asset.useful_life || 5,
-      image: asset.image,
-      isStickerPrinted: asset.is_sticker_printed || false
-    }))
+    return (data || []).map(asset => {
+      // แปลง image path เป็น public URL จาก Supabase Storage
+      // - ถ้า image เป็น full URL (http/https) จะใช้ตามเดิม
+      // - ถ้า image เป็น filename/path (เช่น "A001-1234567890.jpg") จะแปลงเป็น public URL
+      let imageUrl = asset.image || null
+      
+      if (imageUrl && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+        // image เป็น filename/path ใน Supabase Storage -> แปลงเป็น public URL
+        imageUrl = getImageUrl(imageUrl)
+      }
+      
+      return {
+        id: asset.id,
+        code: asset.code,
+        name: asset.name,
+        brand: asset.brand,
+        color: asset.color,
+        serial: asset.serial,
+        price: parseFloat(asset.price) || 0,
+        location: asset.location,
+        status: asset.status,
+        purchaseDate: asset.purchase_date,
+        category: asset.category,
+        usefulLife: asset.useful_life || 5,
+        image: imageUrl,
+        isStickerPrinted: asset.is_sticker_printed || false,
+        notes: asset.notes || '',
+        custodian: asset.custodian || '',
+        vendor: asset.vendor || '',
+        warrantyExpiry: asset.warranty_expiry || ''
+      }
+    })
   } catch (error) {
     console.error('Error fetching assets:', error)
     // Return empty array instead of throwing to allow fallback
@@ -111,6 +129,7 @@ export const saveAsset = async (asset) => {
       code: asset.code,
       name: asset.name,
       brand: asset.brand || null,
+      color: asset.color || null,
       serial: asset.serial || null,
       price: asset.price || 0,
       location: asset.location || null,
@@ -119,7 +138,11 @@ export const saveAsset = async (asset) => {
       category: asset.category || null,
       useful_life: asset.usefulLife || 5,
       image: asset.image || null,
-      is_sticker_printed: asset.isStickerPrinted || false
+      is_sticker_printed: asset.isStickerPrinted || false,
+      notes: asset.notes || null,
+      custodian: asset.custodian || null,
+      vendor: asset.vendor || null,
+      warranty_expiry: asset.warrantyExpiry || null
     }
 
     let result
@@ -240,6 +263,7 @@ export const bulkImportAssets = async (assets) => {
       code: asset.code,
       name: asset.name,
       brand: asset.brand || null,
+      color: asset.color || null,
       serial: asset.serial || null,
       price: parseFloat(asset.price) || 0,
       location: asset.location || null,
@@ -248,7 +272,11 @@ export const bulkImportAssets = async (assets) => {
       category: asset.category || null,
       useful_life: asset.useful_life || asset.usefulLife || 5,
       image: asset.image || null,
-      is_sticker_printed: asset.is_sticker_printed || asset.isStickerPrinted || false
+      is_sticker_printed: asset.is_sticker_printed || asset.isStickerPrinted || false,
+      notes: asset.notes || null,
+      custodian: asset.custodian || null,
+      vendor: asset.vendor || null,
+      warranty_expiry: asset.warranty_expiry || asset.warrantyExpiry || null
     }))
 
     let inserted = 0
