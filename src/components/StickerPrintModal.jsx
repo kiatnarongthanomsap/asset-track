@@ -183,24 +183,24 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
 
-            <div className="relative bg-white w-full max-w-6xl h-full max-h-[90vh] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative bg-white w-full max-w-6xl h-full max-h-[90vh] rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
-                    <div>
-                        <h2 className="text-2xl font-black text-slate-800 flex items-center">
-                            <QrCode className="w-7 h-7 mr-3 text-emerald-600" />
-                            ระบบจัดพิมพ์สติ๊กเกอร์รหัสทรัพย์สิน
+                <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-lg sm:text-2xl font-black text-slate-800 flex items-center">
+                            <QrCode className="w-5 h-5 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-emerald-600 shrink-0" />
+                            <span className="truncate">ระบบจัดพิมพ์สติ๊กเกอร์รหัสทรัพย์สิน</span>
                         </h2>
-                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">Sticker & QR Label Generator</p>
+                        <p className="text-xs sm:text-sm text-slate-400 font-bold uppercase tracking-widest mt-1 hidden sm:block">Sticker & QR Label Generator</p>
                     </div>
-                    <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-2xl transition-colors">
-                        <X className="w-6 h-6 text-slate-400" />
+                    <button onClick={onClose} className="p-2 sm:p-3 hover:bg-slate-100 rounded-xl sm:rounded-2xl transition-colors shrink-0 ml-2">
+                        <X className="w-5 h-5 sm:w-6 sm:h-6 text-slate-400" />
                     </button>
                 </div>
 
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                     {/* Left: Asset Selection */}
-                    <div className="w-1/3 border-r border-slate-100 flex flex-col p-6 overflow-y-auto">
+                    <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col p-4 sm:p-6 overflow-y-auto max-h-[40vh] lg:max-h-none">
                         <div className="mb-4">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest">เลือกรายการ ({selectedIds.length})</h3>
@@ -264,40 +264,46 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
                     </div>
 
                     {/* Right: Preview Panel */}
-                    <div className="flex-1 bg-slate-50/50 p-8 overflow-y-auto print:p-0 print:bg-white">
-                        <div className="flex items-center justify-between mb-8 print:hidden">
-                            <div className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+                    <div className="flex-1 bg-slate-50/50 p-4 sm:p-6 lg:p-8 overflow-y-auto print:p-0 print:bg-white">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-8 print:hidden">
+                            <div className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-full sm:w-auto">
                                 <button
                                     onClick={() => setLayout('grid')}
-                                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${layout === 'grid' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${layout === 'grid' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
                                 >
-                                    <Grid className="w-4 h-4" /> ตาราง 2 คอลัมน์
+                                    <Grid className="w-3 h-3 sm:w-4 sm:h-4" /> 
+                                    <span className="hidden sm:inline">ตาราง 2 คอลัมน์</span>
+                                    <span className="sm:hidden">ตาราง</span>
                                 </button>
                                 <button
                                     onClick={() => setLayout('list')}
-                                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${layout === 'list' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+                                    className={`flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${layout === 'list' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
                                 >
-                                    <List className="w-4 h-4" /> แถวเดี่ยว
+                                    <List className="w-3 h-3 sm:w-4 sm:h-4" /> 
+                                    <span className="hidden sm:inline">แถวเดี่ยว</span>
+                                    <span className="sm:hidden">แถว</span>
                                 </button>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                                 {printableAssets.length > 0 && (
                                     <button
                                         onClick={handleMarkAsPrinted}
                                         disabled={isMarkingPrinted}
-                                        className={`bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md ${
+                                        className={`bg-emerald-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-md ${
                                             isMarkingPrinted ? 'opacity-50 cursor-not-allowed' : ''
                                         }`}
                                     >
                                         {isMarkingPrinted ? (
                                             <>
                                                 <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                                กำลังบันทึก...
+                                                <span className="hidden sm:inline">กำลังบันทึก...</span>
+                                                <span className="sm:hidden">บันทึก...</span>
                                             </>
                                         ) : (
                                             <>
                                                 <CheckCircle className="w-3 h-3" />
-                                                บันทึกสถานะพิมพ์แล้ว
+                                                <span className="hidden sm:inline">บันทึกสถานะพิมพ์แล้ว</span>
+                                                <span className="sm:hidden">บันทึก</span>
                                             </>
                                         )}
                                     </button>
@@ -305,11 +311,13 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
                                 <button
                                     onClick={handlePrint}
                                     disabled={printableAssets.length === 0}
-                                    className={`bg-slate-900 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-slate-800 transition-all shadow-lg ${
+                                    className={`bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-lg ${
                                         printableAssets.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
                                     }`}
                                 >
-                                    <Printer className="w-4 h-4" /> สั่งพิมพ์สติ๊กเกอร์ ({printableAssets.length})
+                                    <Printer className="w-3 h-3 sm:w-4 sm:h-4" /> 
+                                    <span className="hidden sm:inline">สั่งพิมพ์สติ๊กเกอร์ ({printableAssets.length})</span>
+                                    <span className="sm:hidden">พิมพ์ ({printableAssets.length})</span>
                                 </button>
                             </div>
                         </div>

@@ -65,55 +65,58 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
     }, [data, searchQuery, filterStatus, categoryFilter]);
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto w-full h-full flex flex-col">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full h-full flex flex-col">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-slate-800 tracking-tight">ทะเบียนทรัพย์สิน</h2>
-                    <p className="text-slate-500 mt-1">จัดการข้อมูลทรัพย์สินและอุปกรณ์สำนักงาน</p>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">ทะเบียนทรัพย์สิน</h2>
+                    <p className="text-sm sm:text-base text-slate-500 mt-1">จัดการข้อมูลทรัพย์สินและอุปกรณ์สำนักงาน</p>
                 </div>
                 <button
                     onClick={onAddAsset}
-                    className="flex items-center justify-center px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transform hover:-translate-y-0.5"
+                    className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
                 >
-                    <Plus className="w-5 h-5 mr-2" />
-                    เพิ่มทรัพย์สินใหม่
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <span className="hidden sm:inline">เพิ่มทรัพย์สินใหม่</span>
+                    <span className="sm:hidden">เพิ่มใหม่</span>
                 </button>
             </div>
 
             {/* Active Filters Display */}
             {(categoryFilter || filterStatus !== 'All') && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-sm font-bold text-emerald-800">แสดงรายการที่มี:</span>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 sm:p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <span className="text-xs sm:text-sm font-bold text-emerald-800">แสดงรายการที่มี:</span>
                         {categoryFilter && (
-                            <span className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold">
-                                <div className="w-5 h-5 flex items-center justify-center">
+                            <span className="inline-flex items-center gap-1.5 sm:gap-2 bg-emerald-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold">
+                                <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                                     {(() => {
                                         const iconName = getIconNameFromCategories(categoryFilter, categories);
                                         const IconComponent = getCategoryIcon(categoryFilter, iconName);
-                                        return <IconComponent className="w-4 h-4" strokeWidth={2} />;
+                                        return <IconComponent className="w-3 h-3 sm:w-4 sm:h-4" strokeWidth={2} />;
                                     })()}
                                 </div>
-                                หมวดหมู่: {categoryFilter}
+                                <span className="hidden sm:inline">หมวดหมู่: </span>
+                                <span className="truncate max-w-[120px] sm:max-w-none">{categoryFilter}</span>
                                 <button
                                     onClick={() => {
                                         setCategoryFilter(null);
                                         onCategoryFilterChange?.(null);
                                     }}
-                                    className="hover:bg-emerald-700 rounded-full p-0.5 transition-colors"
+                                    className="hover:bg-emerald-700 rounded-full p-0.5 transition-colors shrink-0"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                             </span>
                         )}
                         {filterStatus !== 'All' && (
-                            <span className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">
-                                สถานะ: {filterStatus === 'Normal' ? 'ปกติ' : filterStatus === 'Repair' ? 'ชำรุด' : filterStatus === 'Check' ? 'รอตรวจสอบ' : 'จำหน่ายออก'}
+                            <span className="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold">
+                                <span className="hidden sm:inline">สถานะ: </span>
+                                <span>{filterStatus === 'Normal' ? 'ปกติ' : filterStatus === 'Repair' ? 'ชำรุด' : filterStatus === 'Check' ? 'รอตรวจสอบ' : 'จำหน่ายออก'}</span>
                                 <button
                                     onClick={() => handleFilterChange('All')}
-                                    className="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                                    className="hover:bg-blue-700 rounded-full p-0.5 transition-colors shrink-0"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                             </span>
                         )}
@@ -124,7 +127,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                             onCategoryFilterChange?.(null);
                             handleFilterChange('All');
                         }}
-                        className="text-sm font-bold text-emerald-700 hover:text-emerald-900 underline"
+                        className="text-xs sm:text-sm font-bold text-emerald-700 hover:text-emerald-900 underline shrink-0"
                     >
                         ล้างทั้งหมด
                     </button>
@@ -139,8 +142,8 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="ค้นหาตาม รหัส, ชื่อ, ยี่ห้อ, สี, Serial, สถานที่, หมวดหมู่..."
-                            className="w-full pl-12 pr-4 py-3 bg-transparent rounded-xl focus:outline-none focus:bg-slate-50 text-slate-700 placeholder:text-slate-400 font-medium"
+                            placeholder="ค้นหา..."
+                            className="w-full pl-12 pr-4 py-2.5 sm:py-3 bg-transparent rounded-xl focus:outline-none focus:bg-slate-50 text-slate-700 placeholder:text-slate-400 text-sm sm:text-base font-medium"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -213,7 +216,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
 
             {/* Grid View */}
             {viewMode === 'grid' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                     {filteredAssets.map(asset => {
                         const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
                         return (
@@ -299,31 +302,32 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
             {/* List View */}
             {viewMode === 'list' && (
                 <div className="flex-1 overflow-visible">
-                    <table className="w-full text-left border-separate border-spacing-y-3">
-                        <thead>
-                            <tr className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                                <th className="px-6 py-2">รูปภาพ</th>
-                                <th className="px-6 py-2">รหัสทรัพย์สิน</th>
-                                <th className="px-6 py-2">รายละเอียด</th>
-                                <th className="px-6 py-2">สถานที่ตั้ง</th>
-                                <th className="px-6 py-2 text-right">ราคาทุน</th>
-                                <th className="px-6 py-2 text-right">มูลค่าปัจจุบัน</th>
-                                <th className="px-6 py-2">สถานะ</th>
-                                <th className="px-6 py-2"></th>
-                            </tr>
-                        </thead>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-separate border-spacing-y-3 min-w-[900px]">
+                            <thead>
+                                <tr className="text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                    <th className="px-3 sm:px-6 py-2">รูปภาพ</th>
+                                    <th className="px-3 sm:px-6 py-2">รหัสทรัพย์สิน</th>
+                                    <th className="px-3 sm:px-6 py-2">รายละเอียด</th>
+                                    <th className="px-3 sm:px-6 py-2 hidden lg:table-cell">สถานที่ตั้ง</th>
+                                    <th className="px-3 sm:px-6 py-2 text-right">ราคาทุน</th>
+                                    <th className="px-3 sm:px-6 py-2 text-right hidden md:table-cell">มูลค่าปัจจุบัน</th>
+                                    <th className="px-3 sm:px-6 py-2">สถานะ</th>
+                                    <th className="px-3 sm:px-6 py-2"></th>
+                                </tr>
+                            </thead>
                         <tbody>
                             {filteredAssets.length > 0 ? (
                                 filteredAssets.map((asset) => {
                                     const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
                                     return (
                                         <tr key={asset.id} className="bg-white shadow-sm hover:shadow-lg transition-all duration-300 group rounded-2xl">
-                                            <td className="p-4 rounded-l-2xl border-y border-l border-slate-50 group-hover:border-slate-100">
+                                            <td className="p-3 sm:p-4 rounded-l-2xl border-y border-l border-slate-50 group-hover:border-slate-100">
                                                 {hasRealImage(asset.image) ? (
                                                     <img 
                                                         src={asset.image} 
                                                         alt="" 
-                                                        className="w-14 h-14 rounded-xl object-cover shadow-sm"
+                                                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shadow-sm"
                                                         onError={(e) => {
                                                             // ซ่อนรูปภาพและแสดง icon แทน
                                                             e.target.style.display = 'none';
@@ -334,25 +338,27 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                                         }}
                                                     />
                                                 ) : null}
-                                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
+                                                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                                                     {(() => {
                                                         const iconName = getIconNameFromCategories(asset.category, categories);
                                                         const IconComponent = getCategoryIcon(asset.category, iconName);
-                                                        return <IconComponent className="w-6 h-6 text-slate-600" strokeWidth={2} />;
+                                                        return <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" strokeWidth={2} />;
                                                     })()}
                                                 </div>
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100">
-                                                <span className="font-mono text-sm font-semibold text-emerald-700 bg-emerald-50/50 px-2 py-1 rounded-md">{asset.code}</span>
-                                                <div className="text-xs text-slate-400 mt-1">S/N: {asset.serial}</div>
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                                <span className="font-mono text-xs sm:text-sm font-semibold text-emerald-700 bg-emerald-50/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">{asset.code}</span>
+                                                {asset.serial && (
+                                                    <div className="text-xs text-slate-400 mt-1">S/N: {asset.serial}</div>
+                                                )}
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100">
-                                                <div className="font-bold text-slate-700">{asset.name}</div>
-                                                <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                                                    <span>{asset.brand}</span>
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                                <div className="font-bold text-sm sm:text-base text-slate-700">{asset.name}</div>
+                                                <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
+                                                    {asset.brand && <span>{asset.brand}</span>}
                                                     {asset.category && (
                                                         <>
-                                                            <span>•</span>
+                                                            {asset.brand && <span>•</span>}
                                                             <div className="flex items-center gap-1.5">
                                                                 <div className="w-3.5 h-3.5 flex items-center justify-center">
                                                                     {(() => {
@@ -366,29 +372,35 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                                         </>
                                                     )}
                                                 </div>
+                                                {asset.location && (
+                                                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1 lg:hidden">
+                                                        <MapPin className="w-3 h-3" />
+                                                        <span>{asset.location}</span>
+                                                    </div>
+                                                )}
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 hidden lg:table-cell">
                                                 <div className="text-sm text-slate-600 font-medium">
                                                     {asset.location}
                                                 </div>
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100 font-mono text-sm text-slate-500 text-right">
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 font-mono text-xs sm:text-sm text-slate-500 text-right">
                                                 {asset.price.toLocaleString()}
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100 text-right">
-                                                <div className="font-mono text-sm font-bold text-slate-800">{Math.round(dep.bookValue).toLocaleString()}</div>
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 text-right hidden md:table-cell">
+                                                <div className="font-mono text-xs sm:text-sm font-bold text-slate-800">{Math.round(dep.bookValue).toLocaleString()}</div>
                                                 <div className="text-[10px] text-slate-400">เสื่อม: {Math.round(dep.accumulatedDepreciation).toLocaleString()}</div>
                                             </td>
-                                            <td className="p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
                                                 <StatusBadge status={asset.status} />
                                             </td>
-                                            <td className="p-4 rounded-r-2xl border-y border-r border-slate-50 group-hover:border-slate-100 text-center">
+                                            <td className="p-3 sm:p-4 rounded-r-2xl border-y border-r border-slate-50 group-hover:border-slate-100 text-center">
                                                 <div className="flex justify-center gap-1">
-                                                    <button onClick={() => onRepairRequest(asset)} className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors" title="ขออนุมัติซ่อม">
-                                                        <Wrench className="w-5 h-5" />
+                                                    <button onClick={() => onRepairRequest(asset)} className="p-1.5 sm:p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors" title="ขออนุมัติซ่อม">
+                                                        <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
                                                     </button>
-                                                    <button onClick={() => onEditAsset(asset)} className="p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors" title="แก้ไข">
-                                                        <Edit2 className="w-5 h-5" />
+                                                    <button onClick={() => onEditAsset(asset)} className="p-1.5 sm:p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors" title="แก้ไข">
+                                                        <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -407,6 +419,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
             )}
         </div>

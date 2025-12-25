@@ -347,7 +347,7 @@ export default function App() {
 
                 {/* --- Content Area --- */}
                 {activeTab === 'dashboard' && (
-                    <div className="p-4 md:p-10 w-full max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-6 sm:space-y-8 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {/* Welcome Header Section */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>

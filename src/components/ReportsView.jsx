@@ -101,40 +101,49 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
         <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6 print:p-0">
             {/* Header - Hidden on Print */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
-                <div className="mb-6">
-                    <h2 className="text-3xl font-bold text-slate-800 tracking-tight">รายงานธุรกรรมและวิเคราะห์</h2>
-                    <p className="text-slate-500 mt-1">สรุปภาพรวมและรายละเอียดทรัพย์สินในระบบ</p>
+                <div className="mb-4 md:mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">รายงานธุรกรรมและวิเคราะห์</h2>
+                    <p className="text-sm sm:text-base text-slate-500 mt-1">สรุปภาพรวมและรายละเอียดทรัพย์สินในระบบ</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                     <div className="bg-slate-100 p-1 rounded-xl flex">
                         <button
                             onClick={() => setReportMode('analytics')}
-                            className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${reportMode === 'analytics' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${reportMode === 'analytics' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
                         >
-                            <BarChart className="w-4 h-4 mr-2" /> สถิติภาพรวม
+                            <BarChart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> 
+                            <span className="hidden sm:inline">สถิติภาพรวม</span>
+                            <span className="sm:hidden">สถิติ</span>
                         </button>
                         <button
                             onClick={() => setReportMode('detailed')}
-                            className={`flex items-center px-4 py-2 rounded-lg text-sm font-bold transition-all ${reportMode === 'detailed' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${reportMode === 'detailed' ? 'bg-white shadow-sm text-emerald-700' : 'text-slate-500 hover:text-slate-700'}`}
                         >
-                            <FileText className="w-4 h-4 mr-2" /> รายงานสรุปตามหมวด
+                            <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> 
+                            <span className="hidden sm:inline">รายงานสรุปตามหมวด</span>
+                            <span className="sm:hidden">รายงาน</span>
                         </button>
                     </div>
 
-                    <button
-                        onClick={() => exportAssetsToCSV(data)}
-                        className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all"
-                    >
-                        <Download className="w-4 h-4 mr-2 text-blue-600" /> Excel
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => exportAssetsToCSV(data)}
+                            className="flex items-center justify-center px-3 sm:px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold hover:bg-slate-50 transition-all flex-1 sm:flex-initial"
+                        >
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2 text-blue-600" /> 
+                            <span className="hidden sm:inline">Excel</span>
+                        </button>
 
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200"
-                    >
-                        <Printer className="w-4 h-4 mr-2" /> พิมพ์รายงาน
-                    </button>
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center justify-center px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 flex-1 sm:flex-initial"
+                        >
+                            <Printer className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" /> 
+                            <span className="hidden sm:inline">พิมพ์รายงาน</span>
+                            <span className="sm:hidden">พิมพ์</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -169,14 +178,15 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
 
 
                     {/* 1. Location Distribution - แสดง 4 คอลัมน์ */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-bold text-slate-800 flex items-center">
-                                <MapPin className="w-5 h-5 mr-2 text-rose-500" />
-                                จำนวนทรัพยากรตามสถานที่
+                    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
+                            <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
+                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-rose-500" />
+                                <span className="hidden sm:inline">จำนวนทรัพยากรตามสถานที่</span>
+                                <span className="sm:hidden">ทรัพยากรตามสถานที่</span>
                             </h3>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                             {analytics.byLocation.map(([loc, count]) => (
                                 <div 
                                     key={loc} 
@@ -200,14 +210,15 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                     </div>
 
                     {/* 2. Category Value Report - แสดง 4 คอลัมน์ */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-bold text-slate-800 flex items-center">
-                                <PieChart className="w-5 h-5 mr-2 text-blue-500" />
-                                มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน)
+                    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
+                            <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
+                                <PieChart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
+                                <span className="hidden lg:inline">มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน)</span>
+                                <span className="lg:hidden">มูลค่าตามหมวดหมู่</span>
                             </h3>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             {analytics.byCategory.map(([cat, info]) => (
                                 <div 
                                     key={cat} 
@@ -257,48 +268,51 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
 
                     {/* Asset List Modal */}
                     {selectedFilter && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
+                            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
                                 {/* Header */}
-                                <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-blue-50 flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                                <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-blue-50 flex items-center justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-lg sm:text-2xl font-black text-slate-800 flex items-center gap-2 sm:gap-3">
                                             {selectedFilter.type === 'location' ? (
-                                                <MapPin className="w-6 h-6 text-rose-500" />
+                                                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 shrink-0" />
                                             ) : (
-                                                <PieChart className="w-6 h-6 text-blue-500" />
+                                                <PieChart className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 shrink-0" />
                                             )}
-                                            {selectedFilter.type === 'location' ? 'ทรัพย์สินในสถานที่' : 'ทรัพย์สินในหมวดหมู่'}: {selectedFilter.value}
+                                            <span className="truncate">
+                                                <span className="hidden sm:inline">{selectedFilter.type === 'location' ? 'ทรัพย์สินในสถานที่' : 'ทรัพย์สินในหมวดหมู่'}: </span>
+                                                {selectedFilter.value}
+                                            </span>
                                         </h3>
-                                        <p className="text-sm text-slate-500 mt-1">{filteredAssets.length} รายการ</p>
+                                        <p className="text-xs sm:text-sm text-slate-500 mt-1">{filteredAssets.length} รายการ</p>
                                     </div>
                                     <button
                                         onClick={() => setSelectedFilter(null)}
-                                        className="p-2 hover:bg-white/50 rounded-xl transition-colors"
+                                        className="p-2 hover:bg-white/50 rounded-xl transition-colors shrink-0"
                                     >
-                                        <X className="w-6 h-6 text-slate-500" />
+                                        <X className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500" />
                                     </button>
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 overflow-y-auto p-6">
+                                <div className="flex-1 overflow-y-auto p-3 sm:p-6">
                                     <div className="overflow-x-auto">
-                                        <table className="w-full text-left">
+                                        <table className="w-full text-left min-w-[800px]">
                                             <thead className="bg-slate-50 sticky top-0">
                                                 <tr>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider w-24">รูปภาพ</th>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">รหัสครุภัณฑ์</th>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">ชื่อรายการ</th>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">ยี่ห้อ</th>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider text-right">ราคาทุน</th>
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider text-right">มูลค่าปัจจุบัน</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider w-20 sm:w-24">รูปภาพ</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider">รหัสครุภัณฑ์</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider">ชื่อรายการ</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider hidden sm:table-cell">ยี่ห้อ</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider text-right">ราคาทุน</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider text-right">มูลค่าปัจจุบัน</th>
                                                     {selectedFilter.type === 'location' && (
-                                                        <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">หมวดหมู่</th>
+                                                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider hidden md:table-cell">หมวดหมู่</th>
                                                     )}
                                                     {selectedFilter.type === 'category' && (
-                                                        <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">สถานที่</th>
+                                                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider hidden md:table-cell">สถานที่</th>
                                                     )}
-                                                    <th className="px-6 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">สถานะ</th>
+                                                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-black text-slate-600 uppercase tracking-wider">สถานะ</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
@@ -310,8 +324,8 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                                     
                                                     return (
                                                         <tr key={asset.id} className="hover:bg-slate-50 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="w-16 h-16 rounded-xl bg-slate-100 border-2 border-slate-200 overflow-hidden flex items-center justify-center relative">
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-slate-100 border-2 border-slate-200 overflow-hidden flex items-center justify-center relative">
                                                                     {imageUrl ? (
                                                                         <>
                                                                             <img 
@@ -325,45 +339,46 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                                                                 }}
                                                                             />
                                                                             <div className="icon-fallback hidden absolute inset-0 w-full h-full flex items-center justify-center bg-slate-100">
-                                                                                <CategoryIcon className="w-8 h-8 text-slate-400" />
+                                                                                <CategoryIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
                                                                             </div>
                                                                         </>
                                                                     ) : (
                                                                         <div className="w-full h-full flex items-center justify-center">
-                                                                            <CategoryIcon className="w-8 h-8 text-slate-400" />
+                                                                            <CategoryIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="font-mono text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                                <span className="font-mono text-xs sm:text-sm font-bold text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
                                                                     {asset.code}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="font-bold text-slate-800">{asset.name}</div>
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                                <div className="font-bold text-sm sm:text-base text-slate-800">{asset.name}</div>
                                                                 {asset.serial && (
                                                                     <div className="text-xs text-slate-400">S/N: {asset.serial}</div>
                                                                 )}
+                                                                <div className="text-xs sm:hidden text-slate-500 mt-1">{asset.brand || '-'}</div>
                                                             </td>
-                                                            <td className="px-6 py-4 text-sm text-slate-600">{asset.brand || '-'}</td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <span className="font-mono text-sm text-slate-700">฿{asset.price.toLocaleString()}</span>
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-slate-600 hidden sm:table-cell">{asset.brand || '-'}</td>
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                                                <span className="font-mono text-xs sm:text-sm text-slate-700">฿{asset.price.toLocaleString()}</span>
                                                             </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <span className="font-mono text-sm font-bold text-emerald-600">฿{Math.round(dep.bookValue).toLocaleString()}</span>
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                                                <span className="font-mono text-xs sm:text-sm font-bold text-emerald-600">฿{Math.round(dep.bookValue).toLocaleString()}</span>
                                                             </td>
                                                             {selectedFilter.type === 'location' && (
-                                                                <td className="px-6 py-4">
-                                                                    <span className="text-sm text-slate-600">{asset.category || 'ไม่ระบุ'}</span>
+                                                                <td className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">
+                                                                    <span className="text-xs sm:text-sm text-slate-600">{asset.category || 'ไม่ระบุ'}</span>
                                                                 </td>
                                                             )}
                                                             {selectedFilter.type === 'category' && (
-                                                                <td className="px-6 py-4">
-                                                                    <span className="text-sm text-slate-600">{asset.location || 'ไม่ระบุ'}</span>
+                                                                <td className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">
+                                                                    <span className="text-xs sm:text-sm text-slate-600">{asset.location || 'ไม่ระบุ'}</span>
                                                                 </td>
                                                             )}
-                                                            <td className="px-6 py-4">
+                                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
                                                                 <StatusBadge status={asset.status} />
                                                             </td>
                                                         </tr>
@@ -371,10 +386,10 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                                 })}
                                                 {filteredAssets.length === 0 && (
                                                     <tr>
-                                                        <td colSpan={selectedFilter.type === 'location' ? 8 : 8} className="p-16 text-center">
+                                                        <td colSpan={selectedFilter.type === 'location' ? 8 : 8} className="p-8 sm:p-16 text-center">
                                                             <div className="text-slate-300">
-                                                                <AlertCircle className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                                                                <p className="font-bold text-slate-400">ไม่พบรายการ</p>
+                                                                <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-20" />
+                                                                <p className="font-bold text-sm sm:text-base text-slate-400">ไม่พบรายการ</p>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -385,18 +400,18 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                 </div>
 
                                 {/* Footer */}
-                                <div className="px-8 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-                                    <div className="text-sm text-slate-600">
+                                <div className="px-4 sm:px-8 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                    <div className="text-xs sm:text-sm text-slate-600">
                                         <span className="font-bold">รวม {filteredAssets.length} รายการ</span>
                                         {selectedFilter.type === 'category' && (
-                                            <span className="ml-4">
+                                            <span className="block sm:inline sm:ml-4 mt-1 sm:mt-0">
                                                 ราคาทุนรวม: <span className="font-mono font-bold">฿{filteredAssets.reduce((sum, a) => sum + a.price, 0).toLocaleString()}</span>
                                             </span>
                                         )}
                                     </div>
                                     <button
                                         onClick={() => setSelectedFilter(null)}
-                                        className="px-6 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition-colors flex items-center gap-2"
+                                        className="px-4 sm:px-6 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition-colors flex items-center gap-2 w-full sm:w-auto justify-center"
                                     >
                                         <ArrowLeft className="w-4 h-4" />
                                         ปิด
