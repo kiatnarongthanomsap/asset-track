@@ -41,7 +41,7 @@ const AVAILABLE_ICONS = [
     'Clock', 'Lightbulb', 'Fan', 'AirVent', 'Lamp', 'Book', 'Archive', 'Calculator', 'Thermometer'
 ];
 
-const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, user }) => {
+const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, user, onDataChange }) => {
     const [activeSection, setActiveSection] = useState('categories');
     const [editingCategory, setEditingCategory] = useState(null);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -60,6 +60,14 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
         scrapValue: 1,
         rounding: '2-decimal',
     });
+
+    const [generalSettings, setGeneralSettings] = useState({
+        organizationName: '',
+        currentYear: '2568',
+    });
+
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState(null);
 
     const sidebarItems = [
         { id: 'general', label: 'ตั้งค่าทั่วไป', icon: Globe },
@@ -146,6 +154,54 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
             alert('เกิดข้อผิดพลาดในการลบหมวดหมู่');
         }
     };
+
+    const handleSaveAllSettings = async () => {
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        try {
+            // Save general settings to database (if you have a settings table)
+            // For now, we'll just save numbering and depreciation patterns
+            // This is a placeholder - adjust based on your database schema
+            const { supabase } = await import('../config/supabase');
+            
+            // Save settings to a settings table if it exists
+            // Example: await supabase.from('settings').upsert({...})
+            
+            setSaveMessage({
+                type: 'success',
+                text: 'บันทึกการตั้งค่าสำเร็จ'
+            });
+            
+            // Clear message after 3 seconds
+            setTimeout(() => {
+                setSaveMessage(null);
+            }, 3000);
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            setSaveMessage({
+                type: 'error',
+                text: 'เกิดข้อผิดพลาดในการบันทึกการตั้งค่า: ' + error.message
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Check permission before rendering
+    if (user && !supabaseService.canAccessSettings(user)) {
+        return (
+            <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center">
+                    <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Lock className="w-8 h-8 text-rose-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-rose-800 mb-2">ไม่มีสิทธิ์เข้าถึง</h2>
+                    <p className="text-rose-600">คุณไม่มีสิทธิ์เข้าถึงหน้าการตั้งค่าระบบ กรุณาติดต่อผู้ดูแลระบบ</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">

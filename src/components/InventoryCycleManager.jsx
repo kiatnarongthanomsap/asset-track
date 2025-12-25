@@ -28,6 +28,7 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
         assigned_to: null,
         notes: ''
     });
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -56,6 +57,29 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
     };
 
     const handleCreateCycle = async () => {
+        // Validation
+        setError(null);
+        
+        if (!formData.cycle_name.trim()) {
+            setError('กรุณากรอกชื่อรอบการตรวจนับ');
+            return;
+        }
+
+        if (!formData.start_date) {
+            setError('กรุณาเลือกวันที่เริ่มต้น');
+            return;
+        }
+
+        if (!formData.end_date) {
+            setError('กรุณาเลือกวันที่สิ้นสุด');
+            return;
+        }
+
+        if (new Date(formData.start_date) > new Date(formData.end_date)) {
+            setError('วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด');
+            return;
+        }
+
         try {
             // ดึงทรัพย์สินทั้งหมด
             const assets = await supabaseService.fetchAssets();
@@ -69,6 +93,7 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
 
             if (result.status === 'success') {
                 setShowCreateModal(false);
+                setError(null);
                 setFormData({
                     year: new Date().getFullYear() + 543,
                     cycle_name: '',
@@ -80,15 +105,29 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
                 fetchData();
                 alert('สร้างรอบการตรวจนับสำเร็จ');
             } else {
-                alert('เกิดข้อผิดพลาด: ' + result.message);
+                setError('เกิดข้อผิดพลาด: ' + result.message);
             }
         } catch (error) {
             console.error('Error creating cycle:', error);
-            alert('เกิดข้อผิดพลาดในการสร้างรอบการตรวจนับ');
+            setError('เกิดข้อผิดพลาดในการสร้างรอบการตรวจนับ: ' + (error.message || 'Unknown error'));
         }
     };
 
-    const handleUpdateStatus = async (cycleId, newStatus) => {
+    const handleUpdateStatus = async (cycleId, newStatus, cycleName) => {
+        const statusLabels = {
+            'In Progress': 'เริ่มตรวจนับ',
+            'Completed': 'เสร็จสิ้น',
+            'Cancelled': 'ยกเลิก'
+        };
+
+        const confirmMessage = newStatus === 'Completed' 
+            ? `คุณแน่ใจหรือไม่ว่าต้องการเสร็จสิ้นรอบการตรวจนับ "${cycleName}"?\n\nหลังจากเสร็จสิ้นแล้ว จะไม่สามารถแก้ไขข้อมูลได้อีก`
+            : `คุณแน่ใจหรือไม่ว่าต้องการ${statusLabels[newStatus]}รอบการตรวจนับ "${cycleName}"?`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
         try {
             const result = await supabaseService.updateInventoryCycle(cycleId, {
                 status: newStatus
@@ -96,11 +135,13 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
 
             if (result.status === 'success') {
                 fetchData();
+                alert(`อัพเดทสถานะเป็น "${statusLabels[newStatus]}" สำเร็จ`);
             } else {
                 alert('เกิดข้อผิดพลาด: ' + result.message);
             }
         } catch (error) {
             console.error('Error updating status:', error);
+            alert('เกิดข้อผิดพลาดในการอัพเดทสถานะ');
         }
     };
 
@@ -197,8 +238,9 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
                                 <div className="flex gap-2">
                                     {cycle.status === 'Planning' && (
                                         <button
-                                            onClick={() => handleUpdateStatus(cycle.id, 'In Progress')}
+                                            onClick={() => handleUpdateStatus(cycle.id, 'In Progress', cycle.cycle_name)}
                                             className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
+                                            title="หมายเหตุ: สถานะจะเปลี่ยนเป็น 'In Progress' อัตโนมัติเมื่อมีการบันทึกการตรวจนับครั้งแรก"
                                         >
                                             <Play className="w-4 h-4 inline mr-1" />
                                             เริ่มตรวจนับ
@@ -206,8 +248,9 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
                                     )}
                                     {cycle.status === 'In Progress' && (
                                         <button
-                                            onClick={() => handleUpdateStatus(cycle.id, 'Completed')}
+                                            onClick={() => handleUpdateStatus(cycle.id, 'Completed', cycle.cycle_name)}
                                             className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all"
+                                            title="เสร็จสิ้นรอบการตรวจนับ (สามารถทำได้แม้ยังไม่ครบทุกรายการ)"
                                         >
                                             <CheckCircle2 className="w-4 h-4 inline mr-1" />
                                             เสร็จสิ้น
@@ -268,6 +311,24 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <h3 className="text-2xl font-bold text-slate-800 mb-6">สร้างรอบการตรวจนับใหม่</h3>
+                        
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-bold text-red-800">{error}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setError(null)}
+                                        className="ml-4 text-red-600 hover:text-red-800"
+                                    >
+                                        <XCircle className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 mb-2">ชื่อรอบการตรวจนับ</label>
@@ -344,7 +405,18 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
                                 สร้างรอบการตรวจนับ
                             </button>
                             <button
-                                onClick={() => setShowCreateModal(false)}
+                                onClick={() => {
+                                    setShowCreateModal(false);
+                                    setError(null);
+                                    setFormData({
+                                        year: new Date().getFullYear() + 543,
+                                        cycle_name: '',
+                                        start_date: '',
+                                        end_date: '',
+                                        assigned_to: null,
+                                        notes: ''
+                                    });
+                                }}
                                 className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-all"
                             >
                                 ยกเลิก

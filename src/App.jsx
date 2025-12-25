@@ -276,22 +276,36 @@ export default function App() {
                 </div>
 
                 <nav className="p-4 space-y-2 mt-4">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
-                            className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${activeTab === item.id
-                                ? 'bg-white/10 text-white shadow-lg border border-white/10'
-                                : 'text-emerald-100/70 hover:bg-white/5 hover:text-white'
-                                }`}
-                        >
-                            {activeTab === item.id && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl"></div>
-                            )}
-                            <item.icon className={`w-5 h-5 mr-3 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'text-emerald-300' : 'text-emerald-400/50'}`} />
-                            {item.label}
-                        </button>
-                    ))}
+                    {navItems.map((item) => {
+                        // Check if user has permission to access settings
+                        if (item.id === 'settings' && user && !supabaseService.canAccessSettings(user)) {
+                            return null; // Don't show settings menu if no permission
+                        }
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => {
+                                    // Double check permission before switching to settings
+                                    if (item.id === 'settings' && user && !supabaseService.canAccessSettings(user)) {
+                                        alert('คุณไม่มีสิทธิ์เข้าถึงการตั้งค่า');
+                                        return;
+                                    }
+                                    setActiveTab(item.id);
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${activeTab === item.id
+                                    ? 'bg-white/10 text-white shadow-lg border border-white/10'
+                                    : 'text-emerald-100/70 hover:bg-white/5 hover:text-white'
+                                    }`}
+                            >
+                                {activeTab === item.id && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl"></div>
+                                )}
+                                <item.icon className={`w-5 h-5 mr-3 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'text-emerald-300' : 'text-emerald-400/50'}`} />
+                                {item.label}
+                            </button>
+                        );
+                    })}
                 </nav>
 
                 <div className="absolute bottom-0 w-full p-6">

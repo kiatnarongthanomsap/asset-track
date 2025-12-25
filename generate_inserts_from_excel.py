@@ -182,10 +182,28 @@ def main():
             # อ่านคอลัมน์เพิ่มเติมถ้ามี
             location = None
             status = 'Normal'
-            if 'สถานที่' in headers:
-                location = str(row[headers['สถานที่'] - 1].value).strip() if row[headers['สถานที่'] - 1].value else None
-            if 'สถานะ' in headers:
-                status = str(row[headers['สถานะ'] - 1].value).strip() if row[headers['สถานะ'] - 1].value else 'Normal'
+            
+            # หาคอลัมน์สถานที่ (ลองหลายชื่อ)
+            location_col = None
+            for loc_key in ['สถานที่ใช้งานปัจจุบัน', 'สถานที่ตั้ง', 'สถานที่', 'ที่ตั้ง', 'location']:
+                if loc_key in headers:
+                    location_col = headers[loc_key]
+                    break
+            
+            if location_col:
+                location = str(row[location_col - 1].value).strip() if row[location_col - 1].value else None
+                if location and location.lower() in ['', 'null', 'none', '-']:
+                    location = None
+            
+            # หาคอลัมน์สถานะ
+            status_col = None
+            for status_key in ['สถานะ', 'status', 'สภานะ']:
+                if status_key in headers:
+                    status_col = headers[status_key]
+                    break
+            
+            if status_col:
+                status = str(row[status_col - 1].value).strip() if row[status_col - 1].value else 'Normal'
             
             # ข้ามแถวว่างหรือแถวสรุป
             if not code or code.startswith('รวม') or code.startswith('รวมหมวด') or code == 'รหัสหมวด':

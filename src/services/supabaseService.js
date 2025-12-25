@@ -424,13 +424,21 @@ export const fetchUsers = async () => {
 
 export const saveUser = async (user) => {
   try {
+    // Build userData with only fields that exist in the schema
     const userData = {
       username: user.username,
       password: user.password || undefined, // Only update password if provided
       name: user.name || null,
-      role: user.role || 'Viewer',
-      email: user.email || null,
-      status: user.status || 'Active'
+      role: user.role || 'Viewer'
+    }
+
+    // Only include email and status if they exist in the schema
+    // We'll try to include them, but if the error mentions missing columns, we'll retry without them
+    if (user.email !== undefined && user.email !== null && user.email !== '') {
+      userData.email = user.email
+    }
+    if (user.status !== undefined && user.status !== null) {
+      userData.status = user.status || 'Active'
     }
 
     let result
@@ -441,28 +449,81 @@ export const saveUser = async (user) => {
         // Remove password from update if not provided
         delete userData.password
       }
-      const { data, error } = await supabase
-        .from('users')
-        .update(userData)
-        .eq('id', user.id)
-        .select()
-        .single()
+      
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .update(userData)
+          .eq('id', user.id)
+          .select()
+          .single()
 
-      if (error) throw error
-      result = { status: 'success', data }
+        if (error) throw error
+        result = { status: 'success', data }
+      } catch (updateError) {
+        // If error is about missing columns (email or status), retry without them
+        if (updateError.message && updateError.message.includes('email') || updateError.message.includes('status')) {
+          console.warn('Email or status column not found, retrying without them:', updateError.message)
+          const fallbackData = {
+            username: user.username,
+            name: user.name || null,
+            role: user.role || 'Viewer'
+          }
+          if (userData.password) {
+            fallbackData.password = userData.password
+          }
+          
+          const { data, error } = await supabase
+            .from('users')
+            .update(fallbackData)
+            .eq('id', user.id)
+            .select()
+            .single()
+
+          if (error) throw error
+          result = { status: 'success', data }
+        } else {
+          throw updateError
+        }
+      }
     } else {
       // Insert new user
       if (!userData.password) {
         return { status: 'error', message: 'Password is required for new users' }
       }
-      const { data, error } = await supabase
-        .from('users')
-        .insert(userData)
-        .select()
-        .single()
+      
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .insert(userData)
+          .select()
+          .single()
 
-      if (error) throw error
-      result = { status: 'success', data }
+        if (error) throw error
+        result = { status: 'success', data }
+      } catch (insertError) {
+        // If error is about missing columns (email or status), retry without them
+        if (insertError.message && (insertError.message.includes('email') || insertError.message.includes('status'))) {
+          console.warn('Email or status column not found, retrying without them:', insertError.message)
+          const fallbackData = {
+            username: user.username,
+            password: user.password,
+            name: user.name || null,
+            role: user.role || 'Viewer'
+          }
+          
+          const { data, error } = await supabase
+            .from('users')
+            .insert(fallbackData)
+            .select()
+            .single()
+
+          if (error) throw error
+          result = { status: 'success', data }
+        } else {
+          throw insertError
+        }
+      }
     }
 
     return result
@@ -534,11 +595,40 @@ export const canAccessSettings = (user) => {
  */
 export const createInventoryCycle = async (cycleData) => {
   try {
+    // Validation
+    if (!cycleData.cycle_name || !cycleData.cycle_name.trim()) {
+      return { status: 'error', message: 'กรุณากรอกชื่อรอบการตรวจนับ' }
+    }
+
+    if (!cycleData.start_date) {
+      return { status: 'error', message: 'กรุณาเลือกวันที่เริ่มต้น' }
+    }
+
+    if (!cycleData.end_date) {
+      return { status: 'error', message: 'กรุณาเลือกวันที่สิ้นสุด' }
+    }
+
+    // Validate date format
+    const startDate = new Date(cycleData.start_date)
+    const endDate = new Date(cycleData.end_date)
+
+    if (isNaN(startDate.getTime())) {
+      return { status: 'error', message: 'รูปแบบวันที่เริ่มต้นไม่ถูกต้อง' }
+    }
+
+    if (isNaN(endDate.getTime())) {
+      return { status: 'error', message: 'รูปแบบวันที่สิ้นสุดไม่ถูกต้อง' }
+    }
+
+    if (startDate > endDate) {
+      return { status: 'error', message: 'วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด' }
+    }
+
     const { data, error } = await supabase
       .from('inventory_cycles')
       .insert({
         year: cycleData.year,
-        cycle_name: cycleData.cycle_name,
+        cycle_name: cycleData.cycle_name.trim(),
         start_date: cycleData.start_date,
         end_date: cycleData.end_date,
         status: cycleData.status || 'Planning',
@@ -700,6 +790,7 @@ export const fetchAssetsForCounting = async (cycleId, filters = {}) => {
 
 /**
  * บันทึกผลการตรวจนับ
+ * อัพเดทสถานะ Cycle และ Assignment อัตโนมัติ
  */
 export const saveInventoryCount = async (countData) => {
   try {
@@ -724,6 +815,8 @@ export const saveInventoryCount = async (countData) => {
     }
 
     let result
+    let isFirstCount = false
+    
     if (countData.id) {
       // Update existing count
       const { data, error } = await supabase
@@ -736,7 +829,16 @@ export const saveInventoryCount = async (countData) => {
       if (error) throw error
       result = { status: 'success', data }
     } else {
-      // Insert new count
+      // Insert new count - ตรวจสอบว่าเป็นการตรวจนับครั้งแรกหรือไม่
+      const { data: existingCounts } = await supabase
+        .from('inventory_counts')
+        .select('id')
+        .eq('cycle_id', countData.cycle_id)
+        .not('counted_status', 'is', null)
+        .limit(1)
+
+      isFirstCount = !existingCounts || existingCounts.length === 0
+
       const { data, error } = await supabase
         .from('inventory_counts')
         .insert({
@@ -750,6 +852,131 @@ export const saveInventoryCount = async (countData) => {
 
       if (error) throw error
       result = { status: 'success', data }
+    }
+
+    // ============================================================================
+    // อัพเดทสถานะ Cycle และ Assignment อัตโนมัติ
+    // ============================================================================
+    
+    // 1. ถ้าเป็นการตรวจนับครั้งแรก ให้เปลี่ยน Cycle Status จาก Planning → In Progress
+    if (isFirstCount) {
+      const { data: cycle } = await supabase
+        .from('inventory_cycles')
+        .select('status')
+        .eq('id', countData.cycle_id)
+        .single()
+
+      if (cycle && cycle.status === 'Planning') {
+        await supabase
+          .from('inventory_cycles')
+          .update({ status: 'In Progress' })
+          .eq('id', countData.cycle_id)
+      }
+
+      // 2. อัพเดท Assignment Status จาก Pending → In Progress
+      const { data: assignments } = await supabase
+        .from('inventory_assignments')
+        .select('id, status')
+        .eq('cycle_id', countData.cycle_id)
+        .eq('assigned_to', countData.counted_by)
+        .eq('status', 'Pending')
+
+      if (assignments && assignments.length > 0) {
+        for (const assignment of assignments) {
+          await supabase
+            .from('inventory_assignments')
+            .update({ 
+              status: 'In Progress',
+              started_at: new Date().toISOString()
+            })
+            .eq('id', assignment.id)
+        }
+      }
+    }
+
+    // 3. อัพเดท counted_assets ใน assignments
+    const { data: countStats } = await supabase
+      .from('inventory_counts')
+      .select('id', { count: 'exact', head: false })
+      .eq('cycle_id', countData.cycle_id)
+      .not('counted_status', 'is', null)
+
+    const countedCount = countStats?.length || 0
+
+    // อัพเดททุก assignment ที่เกี่ยวข้อง
+    const { data: allAssignments } = await supabase
+      .from('inventory_assignments')
+      .select('id, total_assets')
+      .eq('cycle_id', countData.cycle_id)
+
+    if (allAssignments) {
+      for (const assignment of allAssignments) {
+        // นับเฉพาะ assets ที่อยู่ใน scope ของ assignment นี้
+        let assignmentCount = countedCount
+        
+        // ถ้ามี filter ให้นับเฉพาะที่ตรงกับ filter
+        if (assignment.location_filter || assignment.category_filter) {
+          const { data: filteredCounts } = await supabase
+            .from('inventory_counts')
+            .select(`
+              id,
+              asset:assets(location, category)
+            `)
+            .eq('cycle_id', countData.cycle_id)
+            .not('counted_status', 'is', null)
+
+          assignmentCount = (filteredCounts || []).filter(item => {
+            const asset = item.asset
+            if (!asset) return false
+            if (assignment.location_filter && asset.location !== assignment.location_filter) return false
+            if (assignment.category_filter && asset.category !== assignment.category_filter) return false
+            return true
+          }).length
+        }
+
+        const updateData = { counted_assets: assignmentCount }
+        
+        // ถ้าตรวจนับครบแล้ว ให้เปลี่ยน status เป็น Completed
+        if (assignmentCount >= assignment.total_assets && assignment.total_assets > 0) {
+          updateData.status = 'Completed'
+          updateData.completed_at = new Date().toISOString()
+        }
+
+        await supabase
+          .from('inventory_assignments')
+          .update(updateData)
+          .eq('id', assignment.id)
+      }
+    }
+
+    // 4. ตรวจสอบว่าตรวจนับครบทุกรายการหรือไม่ (สำหรับ Cycle)
+    const { data: totalCounts } = await supabase
+      .from('inventory_counts')
+      .select('id', { count: 'exact', head: false })
+      .eq('cycle_id', countData.cycle_id)
+
+    const { data: completedCounts } = await supabase
+      .from('inventory_counts')
+      .select('id', { count: 'exact', head: false })
+      .eq('cycle_id', countData.cycle_id)
+      .not('counted_status', 'is', null)
+
+    const total = totalCounts?.length || 0
+    const completed = completedCounts?.length || 0
+
+    // ถ้าตรวจนับครบแล้ว ให้เปลี่ยน Cycle Status เป็น Completed (ถ้ายังไม่เป็น)
+    if (total > 0 && completed >= total) {
+      const { data: cycle } = await supabase
+        .from('inventory_cycles')
+        .select('status')
+        .eq('id', countData.cycle_id)
+        .single()
+
+      if (cycle && cycle.status === 'In Progress') {
+        // ไม่เปลี่ยนอัตโนมัติ - ให้ผู้ใช้กดปุ่มเสร็จสิ้นเอง
+        // หรือถ้าต้องการให้อัตโนมัติ ให้ uncomment บรรทัดนี้:
+        // await supabase.from('inventory_cycles').update({ status: 'Completed' }).eq('id', countData.cycle_id)
+      }
     }
 
     return result
