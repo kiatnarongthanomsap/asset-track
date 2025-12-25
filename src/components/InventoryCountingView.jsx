@@ -8,9 +8,11 @@ import {
     Filter,
     Save,
     ArrowLeft,
-    Package
+    Package,
+    QrCode
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import QRCodeScanner from './QRCodeScanner';
 import * as supabaseService from '../services/supabaseService';
 
 const InventoryCountingView = ({ cycle, user, onBack }) => {
@@ -25,12 +27,24 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
         counted_location: '',
         counted_notes: ''
     });
+    const [showQRScanner, setShowQRScanner] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         if (cycle) {
             fetchAssets();
         }
     }, [cycle, statusFilter]);
+
+    useEffect(() => {
+        // ตรวจสอบว่าเป็นมือถือหรือไม่
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const fetchAssets = async () => {
         setLoading(true);
@@ -107,6 +121,31 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
             counted_location: assetCount.counted_location || asset?.location || '',
             counted_notes: assetCount.counted_notes || ''
         });
+    };
+
+    const handleQRScan = (scannedCode) => {
+        // ค้นหา asset ที่มี code ตรงกับที่สแกนได้
+        const scannedCodeClean = scannedCode.trim().toUpperCase();
+        const foundAsset = assets.find(item => {
+            const asset = item.asset;
+            if (!asset) return false;
+            return asset.code.toUpperCase() === scannedCodeClean;
+        });
+
+        if (foundAsset) {
+            handleAssetClick(foundAsset);
+            setShowQRScanner(false);
+            // Scroll to selected asset
+            setTimeout(() => {
+                const element = document.getElementById(`asset-${foundAsset.id}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        } else {
+            alert(`ไม่พบครุภัณฑ์รหัส "${scannedCodeClean}" ในรอบการตรวจนับนี้`);
+            setShowQRScanner(false);
+        }
     };
 
     const filteredAssets = assets.filter(item => {
@@ -187,6 +226,15 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                                 />
                             </div>
                             <div className="flex gap-2">
+                                {isMobile && (
+                                    <button
+                                        onClick={() => setShowQRScanner(true)}
+                                        className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center"
+                                        title="สแกน QR Code"
+                                    >
+                                        <QrCode className="w-5 h-5" />
+                                    </button>
+                                )}
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -217,6 +265,7 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
 
                                 return (
                                     <div
+                                        id={`asset-${item.id}`}
                                         key={item.id}
                                         onClick={() => handleAssetClick(item)}
                                         className={`bg-white rounded-xl p-4 border-2 cursor-pointer transition-all ${
@@ -362,6 +411,14 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     )}
                 </div>
             </div>
+
+            {/* QR Code Scanner Modal */}
+            {showQRScanner && (
+                <QRCodeScanner
+                    onScan={handleQRScan}
+                    onClose={() => setShowQRScanner(false)}
+                />
+            )}
         </div>
     );
 };
