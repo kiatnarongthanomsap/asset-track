@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Lock, User, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import * as supabaseService from '../services/supabaseService';
 
 const LoginPage = ({ onLogin }) => {
     const [username, setUsername] = useState('admin');
@@ -12,59 +11,20 @@ const LoginPage = ({ onLogin }) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const result = await supabaseService.login(username, password);
-            if (result.success) {
+            const response = await fetch('/api-remote/api.php?action=login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
                 onLogin(result.user);
             } else {
-                // ถ้า Supabase ไม่สามารถเชื่อมต่อได้ หรือ table ไม่มี ให้ใช้ mock user
-                if (result.message && (
-                    result.message.includes('relation') || 
-                    result.message.includes('does not exist') ||
-                    result.message.includes('table not found') ||
-                    result.message.includes('PGRST116')
-                )) {
-                    console.warn('Supabase tables not found, using mock login');
-                    // ใช้ mock user สำหรับ development
-                    onLogin({
-                        id: 1,
-                        username: username,
-                        name: 'Administrator',
-                        role: 'Manager'
-                    });
-                } else if (result.message && result.message.includes('Invalid credentials')) {
-                    // ถ้า credentials ไม่ถูกต้อง และเป็น admin/123456 ให้ใช้ mock login
-                    if (username === 'admin' && password === '123456') {
-                        console.warn('User not found in Supabase, using mock login for admin');
-                        onLogin({
-                            id: 1,
-                            username: username,
-                            name: 'Administrator',
-                            role: 'Manager'
-                        });
-                    } else {
-                        alert('Login failed: ' + (result.message || 'Invalid credentials'));
-                    }
-                } else {
-                    // Error อื่นๆ ให้ใช้ mock login
-                    console.warn('Supabase error, using mock login:', result.message);
-                    onLogin({
-                        id: 1,
-                        username: username,
-                        name: 'Administrator',
-                        role: 'Manager'
-                    });
-                }
+                alert('Login failed: ' + (result.message || 'Invalid credentials'));
             }
         } catch (error) {
             console.error('Login error:', error);
-            // Fallback to mock login for development
-            console.warn('Supabase connection failed, using mock login');
-            onLogin({
-                id: 1,
-                username: username,
-                name: 'Administrator',
-                role: 'Manager'
-            });
+            alert('Connection failed. Please check your API.');
         } finally {
             setIsLoading(false);
         }
