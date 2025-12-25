@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
     PieChart,
     MapPin,
@@ -22,6 +22,18 @@ import { getImageUrl } from '../services/imageService';
 const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
     const [reportMode, setReportMode] = useState('analytics'); // 'analytics' or 'detailed'
     const [selectedFilter, setSelectedFilter] = useState(null); // { type: 'location' | 'category', value: string }
+    const [expandedCategories, setExpandedCategories] = useState(new Set()); // Track which categories are expanded
+
+    // Grouping for Detailed Report (ต้องประกาศก่อนใช้ใน useEffect)
+    const groupedData = useMemo(() => {
+        const groups = {};
+        data.forEach(item => {
+            const cat = item.category || 'ไม่ระบุ';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+        });
+        return groups;
+    }, [data]);
 
     // Filter assets based on selected filter
     const filteredAssets = useMemo(() => {
@@ -35,6 +47,35 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
             return false;
         });
     }, [data, selectedFilter]);
+
+    // Expand all categories by default when switching to detailed mode
+    useEffect(() => {
+        if (reportMode === 'detailed') {
+            const allCategories = Object.keys(groupedData);
+            setExpandedCategories(new Set(allCategories));
+        }
+    }, [reportMode, groupedData]);
+
+    const toggleCategory = (category) => {
+        setExpandedCategories(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(category)) {
+                newSet.delete(category);
+            } else {
+                newSet.add(category);
+            }
+            return newSet;
+        });
+    };
+
+    const expandAll = () => {
+        const allCategories = Object.keys(groupedData);
+        setExpandedCategories(new Set(allCategories));
+    };
+
+    const collapseAll = () => {
+        setExpandedCategories(new Set());
+    };
 
     // Grouping for Analytics
     const analytics = useMemo(() => {
@@ -80,17 +121,6 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
 
     const maintenanceList = useMemo(() => {
         return data.filter(item => ['Repair', 'Check'].includes(item.status));
-    }, [data]);
-
-    // Grouping for Detailed Report
-    const groupedData = useMemo(() => {
-        const groups = {};
-        data.forEach(item => {
-            const cat = item.category || 'ไม่ระบุ';
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(item);
-        });
-        return groups;
     }, [data]);
 
     const handlePrint = () => {
@@ -425,76 +455,117 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
             ) : (
                 /* Detailed Categorized Report */
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500 print:shadow-none print:border-none">
-                    <div className="p-8 border-b border-slate-50 print:pb-4">
-                        <h3 className="text-xl font-bold text-slate-800 print:text-2xl">รายงานสรุปทรัพย์สินและค่าเสื่อมราคาแยกตามหมวดหมู่</h3>
-                        <p className="text-slate-500 text-sm mt-1">ข้อมูล ณ วันที่ {new Date().toLocaleDateString('th-TH')}</p>
+                    <div className="p-6 sm:p-8 border-b border-slate-50 print:pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-800 print:text-2xl">รายงานสรุปทรัพย์สินและค่าเสื่อมราคาแยกตามหมวดหมู่</h3>
+                                <p className="text-slate-500 text-xs sm:text-sm mt-1">ข้อมูล ณ วันที่ {new Date().toLocaleDateString('th-TH')}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={expandAll}
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-lg text-xs sm:text-sm font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+                                >
+                                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">ขยายทั้งหมด</span>
+                                    <span className="sm:hidden">ขยาย</span>
+                                </button>
+                                <button
+                                    onClick={collapseAll}
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-lg text-xs sm:text-sm font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+                                >
+                                    <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">ย่อทั้งหมด</span>
+                                    <span className="sm:hidden">ย่อ</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="p-8 space-y-12 print:p-0">
-                        {Object.entries(groupedData).map(([category, assets]) => (
-                            <div key={category} className="space-y-4 break-inside-avoid">
-                                <div className="flex items-center justify-between border-l-4 border-emerald-500 pl-4 py-1 bg-emerald-50/30 pr-4 rounded-r-xl">
-                                    <h4 className="font-bold text-emerald-900 text-lg">{category}</h4>
-                                    <span className="text-sm font-bold text-emerald-600">{assets.length} รายการ</span>
-                                </div>
+                    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-12 print:p-0">
+                        {Object.entries(groupedData).map(([category, assets]) => {
+                            const isExpanded = expandedCategories.has(category);
+                            return (
+                                <div key={category} className="space-y-4 break-inside-avoid border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                                    <div 
+                                        className="flex items-center justify-between border-l-4 border-emerald-500 pl-4 py-3 bg-emerald-50/30 pr-4 cursor-pointer hover:bg-emerald-50/50 transition-colors"
+                                        onClick={() => toggleCategory(category)}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {isExpanded ? (
+                                                <ChevronDown className="w-5 h-5 text-emerald-700 shrink-0" />
+                                            ) : (
+                                                <ChevronUp className="w-5 h-5 text-emerald-700 shrink-0" />
+                                            )}
+                                            <h4 className="font-bold text-emerald-900 text-base sm:text-lg">{category}</h4>
+                                        </div>
+                                        <span className="text-sm font-bold text-emerald-600">{assets.length} รายการ</span>
+                                    </div>
+                                    
+                                    {isExpanded && (
+                                        <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-300">
 
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="border-b border-slate-100 text-[10px] uppercase font-black text-slate-400 tracking-widest">
-                                                <th className="px-4 py-3">รหัส</th>
-                                                <th className="px-4 py-3">ชื่อรายการ</th>
-                                                <th className="px-4 py-3 text-right">ราคาทุน</th>
-                                                <th className="px-4 py-3 text-right">ค่าเสื่อมสะสม</th>
-                                                <th className="px-4 py-3 text-right">มูลค่าปัจจุบัน</th>
-                                                <th className="px-4 py-3">สถานที่</th>
-                                                <th className="px-4 py-3">สถานะ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-50">
-                                            {assets.map(asset => {
-                                                const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
-                                                return (
-                                                    <tr key={asset.id} className="text-sm hover:bg-slate-50/50">
-                                                        <td className="px-4 py-3 font-mono font-bold text-slate-700">{asset.code}</td>
-                                                        <td className="px-4 py-3 font-bold text-slate-800">
-                                                            {asset.name}
-                                                            <div className="text-[10px] text-slate-400 font-normal">{asset.brand} • S/N: {asset.serial}</div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-right font-mono text-slate-500">{asset.price.toLocaleString()}</td>
-                                                        <td className="px-4 py-3 text-right font-mono text-slate-400">{Math.round(dep.accumulatedDepreciation).toLocaleString()}</td>
-                                                        <td className="px-4 py-3 text-right font-mono font-bold text-emerald-700">{Math.round(dep.bookValue).toLocaleString()}</td>
-                                                        <td className="px-4 py-3 text-slate-600 font-medium">{asset.location}</td>
-                                                        <td className="px-4 py-3">
-                                                            <StatusBadge status={asset.status} />
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                            <tr className="bg-slate-50/70 border-t-2 border-slate-100 font-black">
-                                                <td colSpan="2" className="px-4 py-3 text-slate-800 text-right uppercase text-xs">รวมหมวด {category}:</td>
-                                                <td className="px-4 py-3 text-right font-mono text-slate-600">
-                                                    {assets.reduce((sum, a) => sum + a.price, 0).toLocaleString()}
-                                                </td>
-                                                <td className="px-4 py-3 text-right font-mono text-slate-400">
-                                                    {assets.reduce((sum, a) => {
-                                                        const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
-                                                        return sum + dep.accumulatedDepreciation;
-                                                    }, 0).toLocaleString()}
-                                                </td>
-                                                <td className="px-4 py-3 text-right font-mono text-emerald-700">
-                                                    {assets.reduce((sum, a) => {
-                                                        const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
-                                                        return sum + dep.bookValue;
-                                                    }, 0).toLocaleString()}
-                                                </td>
-                                                <td colSpan="2"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse min-w-[700px]">
+                                                    <thead>
+                                                        <tr className="border-b border-slate-100 text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3">รหัส</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3">ชื่อรายการ</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3 text-right">ราคาทุน</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3 text-right hidden md:table-cell">ค่าเสื่อมสะสม</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3 text-right">มูลค่าปัจจุบัน</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3 hidden lg:table-cell">สถานที่</th>
+                                                            <th className="px-3 sm:px-4 py-2 sm:py-3">สถานะ</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-50">
+                                                        {assets.map(asset => {
+                                                            const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
+                                                            return (
+                                                                <tr key={asset.id} className="text-xs sm:text-sm hover:bg-slate-50/50">
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 font-mono font-bold text-slate-700">{asset.code}</td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 font-bold text-slate-800">
+                                                                        {asset.name}
+                                                                        <div className="text-[10px] text-slate-400 font-normal">{asset.brand} • S/N: {asset.serial}</div>
+                                                                    </td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono text-slate-500">{asset.price.toLocaleString()}</td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono text-slate-400 hidden md:table-cell">{Math.round(dep.accumulatedDepreciation).toLocaleString()}</td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono font-bold text-emerald-700">{Math.round(dep.bookValue).toLocaleString()}</td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600 font-medium hidden lg:table-cell">{asset.location}</td>
+                                                                    <td className="px-3 sm:px-4 py-2 sm:py-3">
+                                                                        <StatusBadge status={asset.status} />
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                        <tr className="bg-slate-50/70 border-t-2 border-slate-100 font-black">
+                                                            <td colSpan="2" className="px-3 sm:px-4 py-2 sm:py-3 text-slate-800 text-right uppercase text-xs">รวมหมวด {category}:</td>
+                                                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono text-slate-600">
+                                                                {assets.reduce((sum, a) => sum + a.price, 0).toLocaleString()}
+                                                            </td>
+                                                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono text-slate-400 hidden md:table-cell">
+                                                                {assets.reduce((sum, a) => {
+                                                                    const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
+                                                                    return sum + dep.accumulatedDepreciation;
+                                                                }, 0).toLocaleString()}
+                                                            </td>
+                                                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right font-mono text-emerald-700">
+                                                                {assets.reduce((sum, a) => {
+                                                                    const dep = calculateDepreciation(a.price, a.purchaseDate, a.usefulLife);
+                                                                    return sum + dep.bookValue;
+                                                                }, 0).toLocaleString()}
+                                                            </td>
+                                                            <td colSpan="2" className="hidden lg:table-cell"></td>
+                                                            <td className="lg:hidden"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         <div className="pt-8 mt-12 border-t-2 border-slate-100 bg-slate-900 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6 print:bg-white print:text-black print:border-t-4">
                             <div className="flex gap-12">
