@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown, MapPin } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
@@ -266,11 +266,17 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
-                                        <div>
+                                        <div className="flex-1">
                                             <h3 className="font-bold text-slate-800 line-clamp-1 text-lg group-hover:text-emerald-600 transition-colors">{asset.name}</h3>
                                             <p className="text-xs text-slate-400 font-mono mt-1">{asset.code}</p>
                                         </div>
                                     </div>
+                                    {asset.location && (
+                                        <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 mt-2">
+                                            <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                                            <span className="line-clamp-1">{asset.location}</span>
+                                        </div>
+                                    )}
                                     <div className="space-y-3 mt-6">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-500">มูลค่าปัจจุบัน</span>

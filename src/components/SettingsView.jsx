@@ -268,15 +268,6 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                             <h3 className="text-xl font-bold text-slate-800 mb-6">ตั้งค่าทั่วไป</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">ชื่อสหกรณ์ / หน่วยงาน</label>
-                                    <input 
-                                        type="text" 
-                                        value={generalSettings.organizationName}
-                                        onChange={(e) => setGeneralSettings({ ...generalSettings, organizationName: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all" 
-                                    />
-                                </div>
-                                <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">ปีระบบ (ปัจจุบัน)</label>
                                     <select 
                                         value={generalSettings.currentYear}

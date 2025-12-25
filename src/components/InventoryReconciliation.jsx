@@ -44,8 +44,20 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
     };
 
     const handleApplyAdjustment = async () => {
-        if (!selectedItem || !adjustmentData.reason) {
+        if (!selectedItem) {
+            alert('กรุณาเลือกรายการที่ต้องการแก้ไข');
+            return;
+        }
+
+        if (!adjustmentData.reason || adjustmentData.reason.trim() === '') {
             alert('กรุณากรอกเหตุผลในการแก้ไข');
+            return;
+        }
+
+        // ตรวจสอบว่ามีข้อมูลที่ต้องแก้ไขหรือไม่
+        const discrepancyType = getDiscrepancyType(selectedItem);
+        if (discrepancyType === 'location' && (!adjustmentData.new_location || adjustmentData.new_location.trim() === '')) {
+            alert('กรุณากรอกสถานที่ใหม่');
             return;
         }
 
@@ -56,10 +68,10 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                 cycle_id: cycle.id,
                 asset_id: selectedItem.asset?.id || selectedItem.asset_id,
                 asset_code: selectedItem.asset?.code || selectedItem.asset_code,
-                new_location: adjustmentData.new_location || null,
+                new_location: adjustmentData.new_location?.trim() || null,
                 new_status: adjustmentData.new_status || null,
-                reason: adjustmentData.reason,
-                approved_by: user.id
+                reason: adjustmentData.reason.trim(),
+                approved_by: user?.id || null
             });
 
             if (result.status === 'success') {
@@ -69,14 +81,14 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                     new_status: '',
                     reason: ''
                 });
-                fetchDiscrepancies();
+                await fetchDiscrepancies();
                 alert('แก้ไขข้อมูลสำเร็จ');
             } else {
-                alert('เกิดข้อผิดพลาด: ' + result.message);
+                alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'));
             }
         } catch (error) {
             console.error('Error applying adjustment:', error);
-            alert('เกิดข้อผิดพลาดในการแก้ไข');
+            alert('เกิดข้อผิดพลาดในการแก้ไข: ' + (error.message || 'ไม่ทราบสาเหตุ'));
         } finally {
             setSaving(false);
         }
@@ -85,9 +97,22 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
     const handleItemClick = (item) => {
         setSelectedItem(item);
         const asset = item.asset;
+        // ตั้งค่า initial values สำหรับการแก้ไข
+        // ถ้ามี counted_location และไม่ตรงกับ location ในระบบ ให้ใช้ counted_location
+        // ถ้าไม่มี ให้ใช้ location จากระบบ
+        const initialLocation = (item.counted_location && item.counted_location !== asset?.location) 
+            ? item.counted_location 
+            : (asset?.location || '');
+        
+        // สำหรับสถานะ: ถ้า counted_status เป็น Damaged ให้ตั้งเป็น Repair หรือ Check
+        let initialStatus = asset?.status || 'Normal';
+        if (item.counted_status === 'Damaged') {
+            initialStatus = asset?.status === 'Repair' ? 'Repair' : 'Check';
+        }
+        
         setAdjustmentData({
-            new_location: item.counted_location || asset?.location || '',
-            new_status: asset?.status || 'Normal',
+            new_location: initialLocation,
+            new_status: initialStatus,
             reason: item.adjustment_reason || ''
         });
     };
@@ -243,10 +268,34 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                             )}
 
                             <div className="space-y-4">
+                                {/* แสดงข้อมูลความแตกต่าง */}
+                                <div className="p-4 bg-slate-50 rounded-xl space-y-2">
+                                    {selectedItem.counted_location && selectedItem.counted_location !== selectedItem.asset?.location && (
+                                        <div className="flex items-start gap-2 text-sm">
+                                            <MapPin className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                                            <div>
+                                                <span className="font-medium text-slate-700">สถานที่:</span>
+                                                <p className="text-slate-500">ระบบ: {selectedItem.asset?.location || 'ไม่ระบุ'}</p>
+                                                <p className="text-amber-600 font-medium">พบจริง: {selectedItem.counted_location}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {selectedItem.counted_status && (
+                                        <div className="flex items-start gap-2 text-sm">
+                                            <AlertCircle className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" />
+                                            <div>
+                                                <span className="font-medium text-slate-700">สถานะการตรวจนับ:</span>
+                                                <p className="text-slate-600">{selectedItem.counted_status}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Form สำหรับแก้ไข */}
                                 {getDiscrepancyType(selectedItem) === 'location' && (
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 mb-2">
-                                            สถานที่ใหม่
+                                            สถานที่ใหม่ *
                                         </label>
                                         <input
                                             type="text"
@@ -261,7 +310,7 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                                     </div>
                                 )}
 
-                                {getDiscrepancyType(selectedItem) === 'condition' && (
+                                {(getDiscrepancyType(selectedItem) === 'condition' || selectedItem.counted_status === 'Damaged') && (
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 mb-2">
                                             สถานะใหม่
@@ -276,6 +325,9 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                                             <option value="Check">ตรวจสอบ</option>
                                             <option value="Disposed">จำหน่าย</option>
                                         </select>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            เดิม: {selectedItem.asset?.status || 'ไม่ระบุ'}
+                                        </p>
                                     </div>
                                 )}
 

@@ -241,6 +241,8 @@ export default function App() {
                 isOpen={isStickerModalOpen}
                 onClose={() => setIsStickerModalOpen(false)}
                 assets={assets}
+                categories={categories}
+                onDataChange={fetchData}
             />
 
             {/* Excel Import Modal */}
@@ -373,7 +375,6 @@ export default function App() {
                             </div>
                         </div>
 
-                        <CoopHeader />
 
                         <InventoryAlertSection
                             onViewInventory={(cycle) => {
@@ -492,6 +493,7 @@ export default function App() {
                     <ReportsView
                         data={assets}
                         onUpdateStatus={handleUpdateStatus}
+                        categories={categories}
                     />
                 )}
 

@@ -988,9 +988,12 @@ export const saveInventoryCount = async (countData) => {
 
 /**
  * ดึงรายการที่แตกต่าง (Discrepancies)
+ * รายการที่ต้องแก้ไข: มีการตรวจนับแล้ว และมีความแตกต่าง (location/status ไม่ตรง หรือ requires_adjustment = true)
  */
 export const fetchDiscrepancies = async (cycleId) => {
   try {
+    // ดึงข้อมูลการตรวจนับทั้งหมดที่ต้องแก้ไข
+    // เงื่อนไข: มีการตรวจนับแล้ว (counted_status ไม่เป็น null) และมีความแตกต่าง
     const { data, error } = await supabase
       .from('inventory_counts')
       .select(`
@@ -998,16 +1001,38 @@ export const fetchDiscrepancies = async (cycleId) => {
         asset:assets(*)
       `)
       .eq('cycle_id', cycleId)
-      .or('requires_adjustment.eq.true,location_match.eq.false,status_match.eq.false')
+      .not('counted_status', 'is', null) // ต้องมีการตรวจนับแล้ว
+      .or('requires_adjustment.eq.true,location_match.eq.false,status_match.eq.false,counted_status.eq.Not Found,counted_status.eq.Moved,counted_status.eq.Damaged')
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
 
-    const formattedData = (data || []).map(item => ({
+    // กรองรายการที่ต้องแก้ไขจริงๆ
+    const discrepancies = (data || []).filter(item => {
+      // ถ้า requires_adjustment = true ให้แสดง
+      if (item.requires_adjustment === true) return true
+      
+      // ถ้า location ไม่ตรง ให้แสดง
+      if (item.location_match === false) return true
+      
+      // ถ้า status ไม่ตรง ให้แสดง
+      if (item.status_match === false) return true
+      
+      // ถ้าสถานะการตรวจนับเป็น Not Found, Moved, หรือ Damaged ให้แสดง
+      if (['Not Found', 'Moved', 'Damaged'].includes(item.counted_status)) return true
+      
+      return false
+    })
+
+    const formattedData = discrepancies.map(item => ({
       ...item,
       asset: item.asset ? {
         ...item.asset,
         purchaseDate: item.asset.purchase_date,
-        usefulLife: item.asset.useful_life || 5
+        usefulLife: item.asset.useful_life || 5,
+        isStickerPrinted: item.asset.is_sticker_printed || false
       } : null
     }))
 
@@ -1025,8 +1050,12 @@ export const applyInventoryAdjustment = async (adjustmentData) => {
   try {
     // อัพเดทข้อมูลทรัพย์สิน
     const assetUpdates = {}
-    if (adjustmentData.new_location) assetUpdates.location = adjustmentData.new_location
-    if (adjustmentData.new_status) assetUpdates.status = adjustmentData.new_status
+    if (adjustmentData.new_location && adjustmentData.new_location.trim() !== '') {
+      assetUpdates.location = adjustmentData.new_location.trim()
+    }
+    if (adjustmentData.new_status && adjustmentData.new_status.trim() !== '') {
+      assetUpdates.status = adjustmentData.new_status.trim()
+    }
 
     if (Object.keys(assetUpdates).length > 0) {
       const { error: assetError } = await supabase
@@ -1034,36 +1063,64 @@ export const applyInventoryAdjustment = async (adjustmentData) => {
         .update(assetUpdates)
         .eq('id', adjustmentData.asset_id)
 
-      if (assetError) throw assetError
+      if (assetError) {
+        console.error('Error updating asset:', assetError)
+        throw assetError
+      }
     }
 
     // อัพเดท inventory_count
+    const updateData = {
+      adjustment_reason: adjustmentData.reason || null,
+      adjustment_approved_by: adjustmentData.approved_by || null,
+      adjustment_approved_at: new Date().toISOString(),
+      requires_adjustment: false
+    }
+
+    // อัพเดท location_match และ status_match ตามข้อมูลใหม่
+    if (adjustmentData.new_location) {
+      // ดึงข้อมูล asset เพื่อเปรียบเทียบ
+      const { data: asset } = await supabase
+        .from('assets')
+        .select('location, status')
+        .eq('id', adjustmentData.asset_id)
+        .single()
+
+      if (asset) {
+        updateData.location_match = (adjustmentData.new_location === asset.location)
+        updateData.status_match = (!adjustmentData.new_status || adjustmentData.new_status === asset.status)
+      }
+    }
+
     const { data, error } = await supabase
       .from('inventory_counts')
-      .update({
-        adjustment_reason: adjustmentData.reason,
-        adjustment_approved_by: adjustmentData.approved_by,
-        adjustment_approved_at: new Date().toISOString(),
-        requires_adjustment: false
-      })
+      .update(updateData)
       .eq('id', adjustmentData.count_id)
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Error updating inventory count:', error)
+      throw error
+    }
 
     // สร้าง audit log
-    await createAuditLog({
-      action: `Inventory Adjustment: ${adjustmentData.reason}`,
-      asset_code: adjustmentData.asset_code,
-      operator: adjustmentData.approved_by?.toString() || 'System',
-      document_ref: `Cycle ${adjustmentData.cycle_id}`
-    })
+    try {
+      await createAuditLog({
+        action: `Inventory Adjustment: ${adjustmentData.reason}`,
+        asset_code: adjustmentData.asset_code,
+        operator: adjustmentData.approved_by?.toString() || 'System',
+        document_ref: `Cycle ${adjustmentData.cycle_id}`
+      })
+    } catch (logError) {
+      // ไม่ให้ audit log error หยุดการทำงาน
+      console.warn('Error creating audit log:', logError)
+    }
 
     return { status: 'success', data }
   } catch (error) {
     console.error('Error applying inventory adjustment:', error)
-    return { status: 'error', message: error.message }
+    return { status: 'error', message: error.message || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล' }
   }
 }
 
