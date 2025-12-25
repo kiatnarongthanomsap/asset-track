@@ -192,7 +192,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                 purchase_date: result.data.purchase_date || null,
                 category: result.data.category || null,
                 useful_life: parseInt(result.data.useful_life) || 5,
-                image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
+                image: null, // ไม่ตั้งค่า default image - ให้แสดง icon แทน
                 is_sticker_printed: false
             }));
 

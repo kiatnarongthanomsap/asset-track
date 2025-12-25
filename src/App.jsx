@@ -65,12 +65,8 @@ export default function App() {
 
             // ใช้ข้อมูลจาก Supabase ถ้ามี (และไม่ว่าง)
             if (assetsData && assetsData.length > 0) {
-                // เพิ่ม default image ถ้าไม่มี
-                const assetsWithImages = assetsData.map(asset => ({
-                    ...asset,
-                    image: asset.image || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400'
-                }));
-                setAssets(assetsWithImages);
+                // ไม่ตั้งค่า default image - ให้แสดง icon แทนเมื่อไม่มีรูป
+                setAssets(assetsData);
             } else {
                 console.warn('No assets from Supabase, using mock data');
             }

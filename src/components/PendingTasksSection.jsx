@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Wrench, Search, ArrowRight, Clock, AlertCircle } from 'lucide-react';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import { hasRealImage } from '../utils/assetManager';
 
 const PendingTasksSection = ({ assets, onStatClick, categories = [] }) => {
     const pendingItems = useMemo(() => {
@@ -65,7 +66,7 @@ const PendingTasksSection = ({ assets, onStatClick, categories = [] }) => {
                                     className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-amber-50 border border-transparent hover:border-amber-200 cursor-pointer transition-all group/item"
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative">
-                                        {asset.image ? (
+                                        {hasRealImage(asset.image) ? (
                                             <img 
                                                 src={asset.image} 
                                                 alt={asset.name} 
@@ -80,7 +81,7 @@ const PendingTasksSection = ({ assets, onStatClick, categories = [] }) => {
                                                 }}
                                             />
                                         ) : null}
-                                        <div className={`w-full h-full flex items-center justify-center text-amber-500 ${asset.image ? 'hidden' : 'flex'}`}>
+                                        <div className={`w-full h-full flex items-center justify-center text-amber-500 ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                                             {(() => {
                                                 const iconName = getIconNameFromCategories(asset.category, categories);
                                                 const IconComponent = getCategoryIcon(asset.category, iconName);
@@ -140,7 +141,7 @@ const PendingTasksSection = ({ assets, onStatClick, categories = [] }) => {
                                     className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-orange-50 border border-transparent hover:border-orange-200 cursor-pointer transition-all group/item"
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative">
-                                        {asset.image ? (
+                                        {hasRealImage(asset.image) ? (
                                             <img 
                                                 src={asset.image} 
                                                 alt={asset.name} 
@@ -155,7 +156,7 @@ const PendingTasksSection = ({ assets, onStatClick, categories = [] }) => {
                                                 }}
                                             />
                                         ) : null}
-                                        <div className={`w-full h-full flex items-center justify-center text-orange-500 ${asset.image ? 'hidden' : 'flex'}`}>
+                                        <div className={`w-full h-full flex items-center justify-center text-orange-500 ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                                             {(() => {
                                                 const iconName = getIconNameFromCategories(asset.category, categories);
                                                 const IconComponent = getCategoryIcon(asset.category, iconName);

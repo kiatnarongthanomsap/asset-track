@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import { hasRealImage } from '../utils/assetManager';
 
 const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [] }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -131,35 +132,66 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
             )}
 
             {/* Filters Toolbar */}
-            <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-4 justify-between items-center pr-2">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="ค้นหาตาม รหัส, ชื่อ, ยี่ห้อ, สี, Serial, สถานที่, หมวดหมู่..."
-                        className="w-full pl-12 pr-4 py-3 bg-transparent rounded-xl focus:outline-none focus:bg-slate-50 text-slate-700 placeholder:text-slate-400 font-medium"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex gap-4 items-center w-full md:w-auto p-2">
-                    <div className="flex bg-slate-100/50 rounded-xl p-1">
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <List className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <LayoutGrid className="w-5 h-5" />
-                        </button>
+            <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col gap-4">
+                {/* Top Row: Search and View Mode */}
+                <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                    <div className="relative w-full md:w-96">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="ค้นหาตาม รหัส, ชื่อ, ยี่ห้อ, สี, Serial, สถานที่, หมวดหมู่..."
+                            className="w-full pl-12 pr-4 py-3 bg-transparent rounded-xl focus:outline-none focus:bg-slate-50 text-slate-700 placeholder:text-slate-400 font-medium"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
 
-                    <div className="flex items-center space-x-1">
+                    <div className="flex gap-4 items-center w-full md:w-auto">
+                        <div className="flex bg-slate-100/50 rounded-xl p-1">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <List className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <LayoutGrid className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Row: Category and Status Filters */}
+                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                    {/* Category Filter */}
+                    <div className="relative flex-1 md:flex-initial">
+                        <div className="relative">
+                            <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                            <select
+                                value={categoryFilter || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value || null;
+                                    setCategoryFilter(value);
+                                    onCategoryFilterChange?.(value);
+                                }}
+                                className="w-full md:w-64 pl-12 pr-10 py-3 bg-transparent border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-700 font-medium appearance-none cursor-pointer hover:bg-slate-50 transition-colors"
+                            >
+                                <option value="">ทั้งหมดหมวดหมู่</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.id || cat.name} value={cat.name}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="flex items-center space-x-1 flex-wrap gap-2">
                         {['All', 'Normal', 'Repair', 'Check', 'Disposed'].map((status) => (
                             <button
                                 key={status}
@@ -187,7 +219,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                         return (
                             <div key={asset.id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group cursor-pointer" onClick={() => onEditAsset(asset)}>
                                 <div className="h-56 w-full bg-slate-100 relative overflow-hidden">
-                                    {asset.image ? (
+                                    {hasRealImage(asset.image) ? (
                                         <img 
                                             src={asset.image} 
                                             alt={asset.name} 
@@ -202,7 +234,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                             }}
                                         />
                                     ) : null}
-                                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 ${asset.image ? 'hidden' : 'flex'}`}>
+                                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                                         <div className="text-center">
                                             <div className="w-16 h-16 mx-auto mb-2 rounded-xl bg-white/50 backdrop-blur-sm flex items-center justify-center">
                                                 {(() => {
@@ -281,7 +313,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                     return (
                                         <tr key={asset.id} className="bg-white shadow-sm hover:shadow-lg transition-all duration-300 group rounded-2xl">
                                             <td className="p-4 rounded-l-2xl border-y border-l border-slate-50 group-hover:border-slate-100">
-                                                {asset.image ? (
+                                                {hasRealImage(asset.image) ? (
                                                     <img 
                                                         src={asset.image} 
                                                         alt="" 
@@ -296,7 +328,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                                         }}
                                                     />
                                                 ) : null}
-                                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${asset.image ? 'hidden' : 'flex'}`}>
+                                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                                                     {(() => {
                                                         const iconName = getIconNameFromCategories(asset.category, categories);
                                                         const IconComponent = getCategoryIcon(asset.category, iconName);

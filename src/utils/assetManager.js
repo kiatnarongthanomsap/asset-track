@@ -1,4 +1,21 @@
 /**
+ * Default image URL ที่ใช้ในระบบ (ถ้าเป็น URL นี้ถือว่าไม่มีรูป)
+ */
+export const DEFAULT_IMAGE_URL = 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400';
+
+/**
+ * ตรวจสอบว่า asset มีรูปภาพจริงหรือไม่
+ * @param {string|null} image - Image URL
+ * @returns {boolean} true ถ้ามีรูปภาพจริง, false ถ้าไม่มีหรือเป็น default image
+ */
+export const hasRealImage = (image) => {
+    if (!image || image === '' || image === null) return false;
+    // ถ้าเป็น default image URL ถือว่าไม่มีรูป
+    if (image.includes('unsplash.com/photo-1497215728101-856f4ea42174')) return false;
+    return true;
+};
+
+/**
  * Logic for generating Asset Numbers
  * 
  * รูปแบบมาตรฐาน: {PREFIX}{RUNNING}-{DD}-{MM}-{YYYY}

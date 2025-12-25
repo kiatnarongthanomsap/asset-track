@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Wrench, Download, FileText, User, CreditCard } from 'lucide-react';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import { hasRealImage } from '../utils/assetManager';
 
 const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
     const [formData, setFormData] = useState({
@@ -41,7 +42,7 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
 
                 <form onSubmit={handleSubmit} className="p-8">
                     <div className="bg-slate-50 p-4 rounded-2xl mb-8 border border-slate-100 flex gap-4 items-center">
-                        {asset.image ? (
+                        {hasRealImage(asset.image) ? (
                             <img 
                                 src={asset.image} 
                                 alt="" 
@@ -56,7 +57,7 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
                                 }}
                             />
                         ) : null}
-                        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${asset.image ? 'hidden' : 'flex'}`}>
+                        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
                             {(() => {
                                 const iconName = getIconNameFromCategories(asset.category, categories);
                                 const IconComponent = getCategoryIcon(asset.category, iconName);

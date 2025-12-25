@@ -46,16 +46,31 @@ def parse_date(date_value):
     return None
 
 def parse_price(price_value):
-    """แปลงราคา"""
+    """แปลงราคา - ตรวจสอบและจำกัดค่าสูงสุดที่ 999,999,999.99 (รองรับ NUMERIC(12,2))"""
     if price_value is None:
         return 0.00
+    
+    # ค่าสูงสุดที่รองรับ NUMERIC(12,2) = 9,999,999,999.99
+    MAX_PRICE = 9999999999.99
+    
     if isinstance(price_value, (int, float)):
-        return float(price_value)
+        price = float(price_value)
+        # ถ้าราคาเกินค่าสูงสุด ให้เป็น 0 (อาจเป็นข้อมูลผิดพลาด)
+        if price > MAX_PRICE:
+            print(f"⚠️  ราคาเกินค่าสูงสุด ({price:,.2f}) - ตั้งเป็น 0")
+            return 0.00
+        return price
+    
     if isinstance(price_value, str):
         # ลบเครื่องหมายคอมมาและสัญลักษณ์อื่นๆ
         cleaned = re.sub(r'[^\d.]', '', price_value)
         try:
-            return float(cleaned) if cleaned else 0.00
+            price = float(cleaned) if cleaned else 0.00
+            # ถ้าราคาเกินค่าสูงสุด ให้เป็น 0 (อาจเป็นข้อมูลผิดพลาด)
+            if price > MAX_PRICE:
+                print(f"⚠️  ราคาเกินค่าสูงสุด ({price:,.2f}) - ตั้งเป็น 0")
+                return 0.00
+            return price
         except:
             return 0.00
     return 0.00
@@ -101,7 +116,7 @@ print(f"   {', '.join(english_prefix_sheets[:5])}{'...' if len(english_prefix_sh
 categories = {}
 assets = []
 
-# อ่านข้อมูลจากแต่ละ sheet
+    # อ่านข้อมูลจากแต่ละ sheet
 for sheet_name in english_prefix_sheets:
     prefix = get_prefix(sheet_name)
     category_name = get_category_name(sheet_name)
@@ -110,6 +125,11 @@ for sheet_name in english_prefix_sheets:
         categories[category_name] = prefix
     
     sheet = wb[sheet_name]
+    
+    # ตรวจสอบว่าเป็น sheet A หรือ sheet อื่นๆ (โครงสร้างต่างกัน)
+    # Sheet A: คอลัมน์ C = เลขทะเบียน, คอลัมน์ D = วันที่ซื้อ
+    # Sheet B-Z: คอลัมน์ B = เลขทะเบียน, คอลัมน์ C = วันที่ซื้อ
+    is_sheet_a = (prefix == 'A')
     
     # หาแถว header (แถวที่ 5)
     data_start_row = 6
@@ -121,17 +141,41 @@ for sheet_name in english_prefix_sheets:
             continue
         
         # อ่านข้อมูลตามคอลัมน์
-        # คอลัมน์: A=ลำดับ, C=เลขทะเบียน, D=วันที่ซื้อ, E=ยี่ห้อ, F=สี, G=รุ่น, H=Serial No., 
-        #          I=ราคาทุน, J=สถานที่ซื้อ, K=สถานที่ใช้งานปัจจุบัน, L=ผู้ตรวจนับ, M=เลขครุภัณฑ์, N=แปะสติกเกอร์
+        if is_sheet_a:
+            # Sheet A: A=ลำดับ, C=เลขทะเบียน, D=วันที่ซื้อ, E=ยี่ห้อ, F=สี, G=รุ่น, H=Serial No., 
+            #          I=ราคาทุน, J=สถานที่ซื้อ, K=สถานที่ใช้งานปัจจุบัน, L=ผู้ตรวจนับ, M=เลขครุภัณฑ์, N=แปะสติกเกอร์
+            asset_code = clean_value(row[2]) if len(row) > 2 else None  # เลขทะเบียน (C)
+            purchase_date = parse_date(row[3]) if len(row) > 3 else None  # วันที่ซื้อ (D)
+            brand = clean_value(row[4]) if len(row) > 4 else None  # ยี่ห้อ (E)
+            color = clean_value(row[5]) if len(row) > 5 else None  # สี (F)
+            model = clean_value(row[6]) if len(row) > 6 else None  # รุ่น (G)
+            serial = clean_value(row[7]) if len(row) > 7 else None  # Serial No. (H)
+            price = parse_price(row[8]) if len(row) > 8 else None  # ราคาทุน (I)
+            purchase_location = clean_value(row[9]) if len(row) > 9 else None  # สถานที่ซื้อ (J)
+            current_location = clean_value(row[10]) if len(row) > 10 else None  # สถานที่ใช้งานปัจจุบัน (K)
+            checker = clean_value(row[11]) if len(row) > 11 else None  # ผู้ตรวจนับ (L)
+            asset_number = clean_value(row[12]) if len(row) > 12 else None  # เลขครุภัณฑ์ (M)
+            sticker_printed = clean_value(row[13]) if len(row) > 13 else None  # แปะสติกเกอร์ (N)
+        else:
+            # Sheet B-Z: A=ลำดับ, B=เลขทะเบียน, C=วันที่ซื้อ, D=ยี่ห้อ, E=สี, F=รุ่น, G=Serial No., 
+            #           H=ราคาทุน, I=สถานที่ซื้อ, J=สถานที่ใช้งานปัจจุบัน, K=ผู้ตรวจนับ, L=เลขครุภัณฑ์, M=แปะสติกเกอร์
+            asset_code = clean_value(row[1]) if len(row) > 1 else None  # เลขทะเบียน (B)
+            purchase_date = parse_date(row[2]) if len(row) > 2 else None  # วันที่ซื้อ (C)
+            brand = clean_value(row[3]) if len(row) > 3 else None  # ยี่ห้อ (D)
+            color = clean_value(row[4]) if len(row) > 4 else None  # สี (E)
+            model = clean_value(row[5]) if len(row) > 5 else None  # รุ่น (F)
+            serial = clean_value(row[6]) if len(row) > 6 else None  # Serial No. (G)
+            price = parse_price(row[7]) if len(row) > 7 else None  # ราคาทุน (H)
+            purchase_location = clean_value(row[8]) if len(row) > 8 else None  # สถานที่ซื้อ (I)
+            current_location = clean_value(row[9]) if len(row) > 9 else None  # สถานที่ใช้งานปัจจุบัน (J)
+            checker = clean_value(row[10]) if len(row) > 10 else None  # ผู้ตรวจนับ (K)
+            asset_number = clean_value(row[11]) if len(row) > 11 else None  # เลขครุภัณฑ์ (L)
+            sticker_printed = clean_value(row[12]) if len(row) > 12 else None  # แปะสติกเกอร์ (M)
         
-        asset_code = clean_value(row[2]) if len(row) > 2 else None  # เลขทะเบียน (C)
         if not asset_code:
             continue
         
-        # ดึงวันที่ซื้อจากคอลัมน์ D ก่อน
-        purchase_date = parse_date(row[3]) if len(row) > 3 else None  # วันที่ซื้อ (D)
-        
-        # ถ้าไม่มีวันที่ซื้อ ให้ลองดึงจากรหัสทรัพย์สิน (รูปแบบ: A004-09-04-2557)
+        # ถ้าไม่มีวันที่ซื้อ ให้ลองดึงจากรหัสทรัพย์สิน (รูปแบบ: A004-09-04-2557 หรือ B002-20-05-2557)
         if not purchase_date and asset_code:
             date_match = re.match(r'.*-(\d{1,2})-(\d{1,2})-(\d{4})$', str(asset_code))
             if date_match:
@@ -147,16 +191,6 @@ for sheet_name in english_prefix_sheets:
                         purchase_date = f"{year}-{month:02d}-{day:02d}"
                 except:
                     pass
-        brand = clean_value(row[4]) if len(row) > 4 else None  # ยี่ห้อ (E)
-        color = clean_value(row[5]) if len(row) > 5 else None  # สี (F)
-        model = clean_value(row[6]) if len(row) > 6 else None  # รุ่น (G)
-        serial = clean_value(row[7]) if len(row) > 7 else None  # Serial No. (H)
-        price = parse_price(row[8]) if len(row) > 8 else None  # ราคาทุน (I)
-        purchase_location = clean_value(row[9]) if len(row) > 9 else None  # สถานที่ซื้อ (J)
-        current_location = clean_value(row[10]) if len(row) > 10 else None  # สถานที่ใช้งานปัจจุบัน (K)
-        checker = clean_value(row[11]) if len(row) > 11 else None  # ผู้ตรวจนับ (L)
-        asset_number = clean_value(row[12]) if len(row) > 12 else None  # เลขครุภัณฑ์ (M)
-        sticker_printed = clean_value(row[13]) if len(row) > 13 else None  # แปะสติกเกอร์ (N)
         
         # สร้างชื่อทรัพย์สิน (ยี่ห้อ + รุ่น + สี)
         name_parts = []
