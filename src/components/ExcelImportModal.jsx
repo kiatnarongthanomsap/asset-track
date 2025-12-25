@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import * as supabaseService from '../services/supabaseService';
 
 export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) {
     const [file, setFile] = useState(null);
@@ -134,43 +135,44 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
         setImportStatus({ success: 0, failed: 0, total: validRows.length });
 
         try {
-            const API_URL = '/api-remote/api.php';
-            let successCount = 0;
-            let failedCount = 0;
+            // แปลงข้อมูลให้ตรงกับรูปแบบ Supabase
+            const assetsToImport = validRows.map(result => ({
+                code: result.data.code,
+                name: result.data.name,
+                brand: result.data.brand || null,
+                serial: result.data.serial || null,
+                price: parseFloat(result.data.price) || 0,
+                location: result.data.location || null,
+                status: result.data.status || 'Normal',
+                purchase_date: result.data.purchase_date || new Date().toISOString().split('T')[0],
+                category: result.data.category || null,
+                useful_life: parseInt(result.data.useful_life) || 5,
+                image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400',
+                is_sticker_printed: false
+            }));
 
-            for (const result of validRows) {
-                try {
-                    const response = await fetch(`${API_URL}?action=assets`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            ...result.data,
-                            price: parseFloat(result.data.price) || 0,
-                            usefulLife: parseInt(result.data.useful_life) || 5,
-                            purchaseDate: result.data.purchase_date || new Date().toISOString().split('T')[0],
-                            status: result.data.status || 'Normal',
-                            isStickerPrinted: 0,
-                            image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=400'
-                        })
-                    });
+            // ใช้ bulk import
+            const result = await supabaseService.bulkImportAssets(assetsToImport);
 
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        successCount++;
-                    } else {
-                        failedCount++;
-                    }
-                } catch (error) {
-                    failedCount++;
+            if (result.status === 'success') {
+                setImportStatus({ 
+                    success: result.inserted, 
+                    failed: result.total - result.inserted, 
+                    total: result.total 
+                });
+                
+                alert(`นำเข้าข้อมูลเสร็จสิ้น\nสำเร็จ: ${result.inserted} รายการ\nล้มเหลว: ${result.total - result.inserted} รายการ`);
+
+                if (result.inserted > 0) {
+                    onImportComplete?.();
                 }
-
-                setImportStatus({ success: successCount, failed: failedCount, total: validRows.length });
-            }
-
-            alert(`นำเข้าข้อมูลเสร็จสิ้น\nสำเร็จ: ${successCount} รายการ\nล้มเหลว: ${failedCount} รายการ`);
-
-            if (successCount > 0) {
-                onImportComplete?.();
+            } else {
+                alert(`เกิดข้อผิดพลาด: ${result.message || 'ไม่สามารถนำเข้าข้อมูลได้'}`);
+                setImportStatus({ 
+                    success: result.inserted || 0, 
+                    failed: result.total - (result.inserted || 0), 
+                    total: result.total 
+                });
             }
 
             // Reset
