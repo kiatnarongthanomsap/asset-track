@@ -11,9 +11,6 @@ import {
     ClipboardCheck
 } from 'lucide-react';
 
-import { INITIAL_DATA } from './data/mockData';
-import { ASSET_CATEGORIES } from './utils/assetManager';
-
 import CoopHeader from './components/CoopHeader';
 import KPICards from './components/KPICards';
 import ValueStatusSection from './components/ValueStatusSection';
@@ -30,11 +27,11 @@ import AlertSection from './components/AlertSection';
 import ExcelImportModal from './components/ExcelImportModal';
 import PendingTasksSection from './components/PendingTasksSection';
 import InventoryAlertSection from './components/InventoryAlertSection';
+import NotificationBell from './components/NotificationBell';
 import InventoryCycleManager from './components/InventoryCycleManager';
 import InventoryCountingView from './components/InventoryCountingView';
 import InventoryReconciliation from './components/InventoryReconciliation';
 import InventoryReport from './components/InventoryReport';
-import { AUDIT_LOGS } from './data/mockData';
 import * as supabaseService from './services/supabaseService';
 
 export default function App() {
@@ -43,9 +40,9 @@ export default function App() {
 
     // -- State Management --
     const [user, setUser] = useState(null);
-    const [assets, setAssets] = useState(INITIAL_DATA);
-    const [auditLogs, setAuditLogs] = useState(AUDIT_LOGS);
-    const [categories, setCategories] = useState(ASSET_CATEGORIES);
+    const [assets, setAssets] = useState([]);
+    const [auditLogs, setAuditLogs] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isStickerModalOpen, setIsStickerModalOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -71,23 +68,12 @@ export default function App() {
                 supabaseService.fetchCategories()
             ]);
 
-            // ใช้ข้อมูลจาก Supabase ถ้ามี (และไม่ว่าง)
-            if (assetsData && assetsData.length > 0) {
-                // ไม่ตั้งค่า default image - ให้แสดง icon แทนเมื่อไม่มีรูป
-                setAssets(assetsData);
-            } else {
-                console.warn('No assets from Supabase, using mock data');
-            }
+            // ตั้งค่าข้อมูลจาก Supabase (เป็น empty array ถ้าไม่มีข้อมูล)
+            setAssets(assetsData || []);
+            setAuditLogs(logsData || []);
 
-            if (logsData && logsData.length > 0) {
-                setAuditLogs(logsData);
-            } else {
-                console.warn('No audit logs from Supabase, using mock data');
-            }
-
-            // เก็บ categories เป็น objects (มี name, icon_name, และ useful_life)
+            // แปลง categories จาก Supabase format เป็น component format
             if (catsData && catsData.length > 0) {
-                // แปลง useful_life เป็น usefulLife และ icon_name เป็น iconName
                 const formattedCategories = catsData.map(cat => ({
                     ...cat,
                     usefulLife: cat.useful_life || cat.usefulLife || 5,
@@ -95,37 +81,16 @@ export default function App() {
                 }));
                 setCategories(formattedCategories);
             } else {
-                // ใช้ mock categories (แปลงเป็น objects)
-                const mockCategories = ASSET_CATEGORIES.map(c => {
-                    if (typeof c === 'string') {
-                        return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
-                    }
-                    return { 
-                        name: c.name || c, 
-                        icon_name: null, 
-                        useful_life: c.usefulLife || 5,
-                        usefulLife: c.usefulLife || 5
-                    };
-                });
-                setCategories(mockCategories);
-                console.warn('No categories from Supabase, using mock data');
+                // ถ้าไม่มี categories จาก Supabase ให้เป็น empty array
+                setCategories([]);
+                console.warn('No categories from Supabase');
             }
         } catch (error) {
             console.error('Failed to fetch data from Supabase:', error);
-            console.log('Falling back to mock data');
-            // ใช้ mock data เป็น fallback (แปลงเป็น objects)
-            const mockCategories = ASSET_CATEGORIES.map(c => {
-                if (typeof c === 'string') {
-                    return { name: c, icon_name: null, useful_life: 5, usefulLife: 5 };
-                }
-                return { 
-                    name: c.name || c, 
-                    icon_name: null, 
-                    useful_life: c.usefulLife || 5,
-                    usefulLife: c.usefulLife || 5
-                };
-            });
-            setCategories(mockCategories);
+            // ถ้าเกิด error ให้ตั้งค่าเป็น empty arrays
+            setAssets([]);
+            setAuditLogs([]);
+            setCategories([]);
         }
     };
 
@@ -337,12 +302,40 @@ export default function App() {
             {/* Main Content */}
             <main className="flex-1 overflow-auto h-screen flex flex-col relative z-10 w-full">
 
+                {/* Notification Bell - Fixed Top Right */}
+                <div className="fixed top-4 right-4 z-50">
+                    <NotificationBell
+                        assets={assets}
+                        onAlertClick={handleEditAsset}
+                        onStatClick={handleDashboardStatClick}
+                        onViewInventory={(cycle) => {
+                            setSelectedCycle(cycle);
+                            setActiveTab('inventory');
+                            setInventoryView('counting');
+                        }}
+                        categories={categories}
+                    />
+                </div>
+
                 {/* Mobile Header */}
                 <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
                     <span className="font-bold text-slate-800 text-lg">AssetTrack</span>
-                    <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Menu className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <NotificationBell
+                            assets={assets}
+                            onAlertClick={handleEditAsset}
+                            onStatClick={handleDashboardStatClick}
+                            onViewInventory={(cycle) => {
+                                setSelectedCycle(cycle);
+                                setActiveTab('inventory');
+                                setInventoryView('counting');
+                            }}
+                            categories={categories}
+                        />
+                        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </div>
                 </header>
 
                 {/* --- Content Area --- */}
@@ -374,26 +367,6 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
-
-
-                        <InventoryAlertSection
-                            onViewInventory={(cycle) => {
-                                setSelectedCycle(cycle);
-                                setActiveTab('inventory');
-                                setInventoryView('counting');
-                            }}
-                        />
-
-                        <AlertSection 
-                            assets={assets}
-                            onAlertClick={handleEditAsset}
-                        />
-
-                        <PendingTasksSection
-                            assets={assets}
-                            onStatClick={handleDashboardStatClick}
-                            categories={categories}
-                        />
 
                         <KPICards
                             data={assets}

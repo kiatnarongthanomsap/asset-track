@@ -207,92 +207,95 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                     </div>
 
 
-                    {/* 1. Location Distribution - แสดง 4 คอลัมน์ */}
-                    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
-                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-rose-500" />
-                                <span className="hidden sm:inline">จำนวนทรัพยากรตามสถานที่</span>
-                                <span className="sm:hidden">ทรัพยากรตามสถานที่</span>
-                            </h3>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                            {analytics.byLocation.map(([loc, count]) => (
-                                <div 
-                                    key={loc} 
-                                    onClick={() => setSelectedFilter({ type: 'location', value: loc })}
-                                    className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg group cursor-pointer"
-                                >
-                                    <div className="p-5">
-                                        <div className="flex items-center justify-end mb-3">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    {/* Location Distribution & Category Value Report - แสดงในแถวเดียวกันเสมอ */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        {/* 1. Location Distribution - จำนวนทรัพยากรตามสถานที่ */}
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
+                                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-rose-500" />
+                                    <span className="hidden sm:inline">จำนวนทรัพยากรตามสถานที่</span>
+                                    <span className="sm:hidden">ทรัพยากรตามสถานที่</span>
+                                </h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                {analytics.byLocation.map(([loc, count]) => (
+                                    <div 
+                                        key={loc} 
+                                        onClick={() => setSelectedFilter({ type: 'location', value: loc })}
+                                        className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg group cursor-pointer"
+                                    >
+                                        <div className="p-5">
+                                            <div className="flex items-center justify-end mb-3">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-800 mb-3 line-clamp-2 min-h-[2.5rem]">{loc}</h4>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-2xl font-black text-emerald-600">{count}</span>
+                                                <span className="text-xs font-bold text-slate-500">รายการ</span>
+                                            </div>
                                         </div>
-                                        <h4 className="text-sm font-bold text-slate-800 mb-3 line-clamp-2 min-h-[2.5rem]">{loc}</h4>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-2xl font-black text-emerald-600">{count}</span>
-                                            <span className="text-xs font-bold text-slate-500">รายการ</span>
-                                        </div>
+                                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* 2. Category Value Report - แสดง 4 คอลัมน์ */}
-                    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
-                                <PieChart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
-                                <span className="hidden lg:inline">มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน)</span>
-                                <span className="lg:hidden">มูลค่าตามหมวดหมู่</span>
-                            </h3>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            {analytics.byCategory.map(([cat, info]) => (
-                                <div 
-                                    key={cat} 
-                                    onClick={() => setSelectedFilter({ type: 'category', value: cat })}
-                                    className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-emerald-50 rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl group cursor-pointer"
-                                >
-                                    <div className="p-5">
-                                        {/* Header */}
-                                        <div className="mb-4">
-                                            <h4 className="font-bold text-slate-800 text-sm mb-1 line-clamp-2 min-h-[2.5rem]">{cat}</h4>
-                                            <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-600 text-[10px] font-bold rounded-full">
-                                                {info.count} ชิ้น
-                                            </span>
-                                        </div>
-                                        
-                                        {/* Values */}
-                                        <div className="space-y-2 mb-4">
-                                            <div className="bg-white/70 rounded-lg p-2 border border-slate-200">
-                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-0.5">ราคาทุน</p>
-                                                <p className="text-sm font-black text-slate-700 font-mono">฿{info.cost.toLocaleString()}</p>
+                        {/* 2. Category Value Report - มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน) */}
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <div className="flex items-center justify-between mb-4 sm:mb-6">
+                                <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
+                                    <PieChart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
+                                    <span className="hidden sm:inline">มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน)</span>
+                                    <span className="sm:hidden">มูลค่าตามหมวดหมู่</span>
+                                </h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                {analytics.byCategory.map(([cat, info]) => (
+                                    <div 
+                                        key={cat} 
+                                        onClick={() => setSelectedFilter({ type: 'category', value: cat })}
+                                        className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-emerald-50 rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl group cursor-pointer"
+                                    >
+                                        <div className="p-5">
+                                            {/* Header */}
+                                            <div className="mb-4">
+                                                <h4 className="font-bold text-slate-800 text-sm mb-1 line-clamp-2 min-h-[2.5rem]">{cat}</h4>
+                                                <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-600 text-[10px] font-bold rounded-full">
+                                                    {info.count} ชิ้น
+                                                </span>
                                             </div>
-                                            <div className="bg-emerald-50/70 rounded-lg p-2 border border-emerald-200">
-                                                <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide mb-0.5">มูลค่าปัจจุบัน</p>
-                                                <p className="text-sm font-black text-emerald-700 font-mono">฿{Math.round(info.bookValue).toLocaleString()}</p>
+                                            
+                                            {/* Values */}
+                                            <div className="space-y-2 mb-4">
+                                                <div className="bg-white/70 rounded-lg p-2 border border-slate-200">
+                                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide mb-0.5">ราคาทุน</p>
+                                                    <p className="text-sm font-black text-slate-700 font-mono">฿{info.cost.toLocaleString()}</p>
+                                                </div>
+                                                <div className="bg-emerald-50/70 rounded-lg p-2 border border-emerald-200">
+                                                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide mb-0.5">มูลค่าปัจจุบัน</p>
+                                                    <p className="text-sm font-black text-emerald-700 font-mono">฿{Math.round(info.bookValue).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Progress Bar */}
+                                            <div className="relative">
+                                                <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                                    <div
+                                                        className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full rounded-full transition-all duration-700 shadow-sm"
+                                                        style={{ width: `${(info.bookValue / analytics.maxCategoryValue) * 100}%` }}
+                                                    ></div>
+                                                </div>
+                                                <p className="text-[9px] text-slate-400 font-medium mt-1 text-center">
+                                                    {((info.bookValue / info.cost) * 100).toFixed(0)}% ของทุน
+                                                </p>
                                             </div>
                                         </div>
-                                        
-                                        {/* Progress Bar */}
-                                        <div className="relative">
-                                            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                                                <div
-                                                    className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full rounded-full transition-all duration-700 shadow-sm"
-                                                    style={{ width: `${(info.bookValue / analytics.maxCategoryValue) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                            <p className="text-[9px] text-slate-400 font-medium mt-1 text-center">
-                                                {((info.bookValue / info.cost) * 100).toFixed(0)}% ของทุน
-                                            </p>
-                                        </div>
+                                        {/* Hover Effect */}
+                                        <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-400/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
                                     </div>
-                                    {/* Hover Effect */}
-                                    <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-400/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
 

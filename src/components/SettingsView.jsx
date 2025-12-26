@@ -377,27 +377,20 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                 <table className="w-full text-left">
                                     <thead className="bg-slate-50 text-slate-400 text-xs uppercase font-bold">
                                         <tr>
-                                            <th className="px-6 py-3">ชื่อหมวด</th>
                                             <th className="px-6 py-3">Prefix</th>
+                                            <th className="px-6 py-3">ชื่อหมวด</th>
                                             <th className="px-6 py-3">อายุใช้งาน (ปี)</th>
                                             <th className="px-6 py-3">Icon</th>
                                             <th className="px-6 py-3 text-right">จัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {categories.map((cat) => (
+                                        {[...categories].sort((a, b) => {
+                                            const prefixA = (a.prefix || '').toUpperCase();
+                                            const prefixB = (b.prefix || '').toUpperCase();
+                                            return prefixA.localeCompare(prefixB);
+                                        }).map((cat) => (
                                             <tr key={cat.id || cat.name} className="hover:bg-slate-50 transition-colors group">
-                                                <td className="px-6 py-4 font-semibold text-slate-700">
-                                                    {editingCategory?.id === cat.id ? (
-                                                        <input
-                                                            className="w-full px-2 py-1 border rounded"
-                                                            value={editingCategory.name || ''}
-                                                            onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                                                        />
-                                                    ) : (
-                                                            <span>{cat.name}</span>
-                                                    )}
-                                                </td>
                                                 <td className="px-6 py-4">
                                                     {editingCategory?.id === cat.id ? (
                                                         <input
@@ -407,6 +400,17 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                                         />
                                                     ) : (
                                                         <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md font-mono text-xs font-bold">{cat.prefix}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 font-semibold text-slate-700">
+                                                    {editingCategory?.id === cat.id ? (
+                                                        <input
+                                                            className="w-full px-2 py-1 border rounded"
+                                                            value={editingCategory.name || ''}
+                                                            onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                                                        />
+                                                    ) : (
+                                                            <span>{cat.name}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-600">

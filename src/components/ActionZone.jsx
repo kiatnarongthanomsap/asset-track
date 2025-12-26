@@ -5,8 +5,7 @@ import {
     History,
     Settings,
     ArrowRight,
-    Tag,
-    Upload
+    Tag
 } from 'lucide-react';
 import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
@@ -25,21 +24,6 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
                     return;
                 }
                 onAddAsset();
-            }
-        },
-        {
-            title: 'นำเข้า Excel',
-            desc: 'อัพโหลดไฟล์ Excel เพื่อนำเข้าข้อมูล',
-            icon: Upload,
-            color: 'bg-violet-600',
-            shadow: 'shadow-violet-200',
-            hover: 'hover:bg-violet-700',
-            onClick: () => {
-                if (user && !supabaseService.canImportAssets(user)) {
-                    alert('คุณไม่มีสิทธิ์นำเข้าข้อมูล');
-                    return;
-                }
-                onImportExcel();
             }
         },
         {

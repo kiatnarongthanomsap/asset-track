@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { ASSET_CATEGORIES, generateAssetCodeStandard } from '../utils/assetManager';
+import { generateAssetCodeStandard } from '../utils/assetManager';
 import * as imageService from '../services/imageService';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 
