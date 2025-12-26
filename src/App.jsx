@@ -479,6 +479,15 @@ export default function App() {
                                     setSelectedCycle(null);
                                     setInventoryView('manager');
                                 }}
+                                onCountSaved={async () => {
+                                    // Refresh audit logs after saving count
+                                    try {
+                                        const logsData = await supabaseService.fetchAuditLogs();
+                                        setAuditLogs(logsData || []);
+                                    } catch (error) {
+                                        console.error('Error refreshing audit logs:', error);
+                                    }
+                                }}
                             />
                         )}
                         {inventoryView === 'reconciliation' && selectedCycle && (

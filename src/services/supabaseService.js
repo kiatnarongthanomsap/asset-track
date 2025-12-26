@@ -1144,11 +1144,17 @@ export const saveInventoryCount = async (countData) => {
         }
       }
 
+      // สร้าง document_ref ที่รวม cycle_id และ notes (ถ้ามี)
+      let documentRef = `Cycle ${countData.cycle_id}`;
+      if (countData.counted_notes && countData.counted_notes.trim()) {
+        documentRef += ` - ${countData.counted_notes.trim()}`;
+      }
+      
       await createAuditLog({
         action: 'ตรวจนับ',
         asset_code: countData.asset_code || asset?.code || null,
         operator: operator,
-        document_ref: `Cycle ${countData.cycle_id}`
+        document_ref: documentRef
       })
     } catch (logError) {
       console.warn('Error creating audit log:', logError)

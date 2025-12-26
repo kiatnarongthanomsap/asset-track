@@ -13,7 +13,20 @@ const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, 
 
     useEffect(() => {
         fetchActiveCycles();
+        
+        // Refresh every 30 seconds to update badge count
+        const interval = setInterval(() => {
+            fetchActiveCycles();
+        }, 30000);
+        
+        return () => clearInterval(interval);
     }, []);
+    
+    // Refresh when assets change (to update alerts and pending items)
+    useEffect(() => {
+        // This will trigger re-calculation of alerts and pendingItems
+        // which will update totalNotifications via useMemo
+    }, [assets]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -130,10 +143,17 @@ const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, 
         };
     }, [assets]);
 
-    const totalNotifications = alerts.length + (!loadingCycles && activeCycles.length > 0 ? activeCycles.length : 0) + pendingItems.total;
+    const totalNotifications = useMemo(() => {
+        const alertsCount = alerts.length;
+        const cyclesCount = (!loadingCycles && activeCycles.length > 0 ? activeCycles.length : 0);
+        const pendingCount = pendingItems.total || 0;
+        const total = alertsCount + cyclesCount + pendingCount;
+        // Debug log to track updates
+        console.log('NotificationBell - totalNotifications updated:', { alertsCount, cyclesCount, pendingCount, total });
+        return total;
+    }, [alerts, loadingCycles, activeCycles, pendingItems]);
+    
     const hasNotifications = totalNotifications > 0;
-
-    if (!hasNotifications) return null;
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -143,7 +163,7 @@ const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, 
             >
                 <Bell className="w-5 h-5" />
                 {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse">
                         {totalNotifications > 99 ? '99+' : totalNotifications}
                     </span>
                 )}

@@ -18,7 +18,7 @@ import { hasRealImage } from '../utils/assetManager';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 import { ToastContainer, useToast } from './Toast';
 
-const InventoryCountingView = ({ cycle, user, onBack, categories = [] }) => {
+const InventoryCountingView = ({ cycle, user, onBack, categories = [], onCountSaved }) => {
     const toast = useToast();
     const [assets, setAssets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -123,6 +123,10 @@ const InventoryCountingView = ({ cycle, user, onBack, categories = [] }) => {
                 });
                 // Refresh data to update summary
                 await fetchAssets();
+                // Refresh audit logs in parent component
+                if (onCountSaved) {
+                    await onCountSaved();
+                }
                 toast.success('บันทึกผลการตรวจนับสำเร็จ');
             } else {
                 toast.error('เกิดข้อผิดพลาด: ' + result.message);
