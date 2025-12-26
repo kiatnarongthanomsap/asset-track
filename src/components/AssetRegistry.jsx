@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown, MapPin } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown, MapPin, FileSpreadsheet } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { calculateDepreciation } from '../utils/calculations';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
-import { hasRealImage } from '../utils/assetManager';
+import { hasRealImage, exportAssetsToCSV } from '../utils/assetManager';
 
-const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user }) => {
+const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user, onPrintStickers }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState(initialFilter);
     const [categoryFilter, setCategoryFilter] = useState(initialCategoryFilter);
@@ -28,7 +28,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
     const filteredAssets = useMemo(() => {
         const query = searchQuery.toLowerCase().trim();
         
-        return data.filter(asset => {
+        const filtered = data.filter(asset => {
             // Filter by category
             if (categoryFilter && (asset.category || 'ไม่ระบุ') !== categoryFilter) {
                 return false;
@@ -62,6 +62,13 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
             
             return matchesSearch;
         });
+
+        // Sort by code to ensure consistent ordering
+        return filtered.sort((a, b) => {
+            const codeA = (a.code || '').toUpperCase()
+            const codeB = (b.code || '').toUpperCase()
+            return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' })
+        })
     }, [data, searchQuery, filterStatus, categoryFilter]);
 
     return (
@@ -71,14 +78,32 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                     <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">ทะเบียนทรัพย์สิน</h2>
                     <p className="text-sm sm:text-base text-slate-500 mt-1">จัดการข้อมูลทรัพย์สินและอุปกรณ์สำนักงาน</p>
                 </div>
-                <button
-                    onClick={onAddAsset}
-                    className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
-                >
-                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    <span className="hidden sm:inline">เพิ่มทรัพย์สินใหม่</span>
-                    <span className="sm:hidden">เพิ่มใหม่</span>
-                </button>
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <button
+                        onClick={onPrintStickers}
+                        className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-amber-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-200 hover:shadow-amber-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                    >
+                        <Tag className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        <span className="hidden sm:inline">พิมพ์สติ๊กเกอร์</span>
+                        <span className="sm:hidden">สติ๊กเกอร์</span>
+                    </button>
+                    <button
+                        onClick={() => exportAssetsToCSV(data)}
+                        className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                    >
+                        <FileSpreadsheet className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        <span className="hidden sm:inline">รายงาน Excel</span>
+                        <span className="sm:hidden">Excel</span>
+                    </button>
+                    <button
+                        onClick={onAddAsset}
+                        className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                    >
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        <span className="hidden sm:inline">เพิ่มทรัพย์สินใหม่</span>
+                        <span className="sm:hidden">เพิ่มใหม่</span>
+                    </button>
+                </div>
             </div>
 
             {/* Active Filters Display */}

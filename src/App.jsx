@@ -340,61 +340,83 @@ export default function App() {
 
                 {/* --- Content Area --- */}
                 {activeTab === 'dashboard' && (
-                    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-6 sm:space-y-8 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-8 sm:space-y-10 lg:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {/* Welcome Header Section */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div>
-                                <h2 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                                    ยินดีต้อนรับกลับมา, <span className="text-emerald-600">Staff Member</span> 👋
-                                </h2>
-                                <p className="text-slate-500 font-semibold text-sm flex items-center">
-                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                                    วันนี้วันที่ {new Date().toLocaleDateString('th-TH', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </p>
-                            </div>
-                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-4">
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
-                                    <p className="text-emerald-600 font-black text-sm">พร้อมใช้งาน (Live)</p>
-                                </div>
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                    <BarChart3 className="w-6 h-6 text-white" />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 rounded-3xl blur-3xl"></div>
+                            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200/50 shadow-xl">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                    <div className="flex-1">
+                                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight mb-3 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
+                                            ยินดีต้อนรับกลับมา, <span className="text-emerald-600">Staff Member</span> 👋
+                                        </h2>
+                                        <p className="text-slate-500 font-semibold text-sm sm:text-base flex items-center">
+                                            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2.5 animate-pulse shadow-lg shadow-emerald-500/50"></div>
+                                            วันนี้วันที่ {new Date().toLocaleDateString('th-TH', {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-6 py-4 rounded-2xl shadow-xl shadow-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 flex items-center gap-4 group">
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
+                                            <p className="text-white font-black text-sm group-hover:scale-105 transition-transform">พร้อมใช้งาน (Live)</p>
+                                        </div>
+                                        <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                                            <BarChart3 className="w-7 h-7 text-white" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <KPICards
-                            data={assets}
-                            onStatClick={handleDashboardStatClick}
-                        />
-                        <ValueStatusSection
-                            data={assets}
-                            onStatClick={handleDashboardStatClick}
-                            onCategoryClick={handleCategoryClick}
-                            categories={categories}
-                        />
+                        {/* Alerts and Monitoring Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-orange-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 p-6 sm:p-8">
+                                <AlertSection
+                                    assets={assets}
+                                    onAlertClick={(asset) => {
+                                        setCurrentAsset(asset);
+                                        setIsEditModalOpen(true);
+                                    }}
+                                />
+                            </div>
+                        </div>
 
-                        <div className="grid grid-cols-1 gap-8">
-                            <AuditTrailTable logs={auditLogs} />
-                            <ActionZone
-                                assets={assets}
-                                onAddAsset={handleAddAsset}
-                                onTabChange={setActiveTab}
-                                onPrintStickers={() => setIsStickerModalOpen(true)}
-                                onImportExcel={() => {
-                                    if (!supabaseService.canImportAssets(user)) {
-                                        alert('คุณไม่มีสิทธิ์นำเข้าข้อมูล');
-                                        return;
-                                    }
-                                    setIsImportModalOpen(true);
-                                }}
-                                user={user}
-                            />
+                        {/* Financial Summary Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-emerald-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative">
+                                <ValueStatusSection
+                                    data={assets}
+                                    onStatClick={handleDashboardStatClick}
+                                    onCategoryClick={handleCategoryClick}
+                                    categories={categories}
+                                />
+                            </div>
+                        </div>
+
+                        {/* KPI Cards Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-blue-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative">
+                                <KPICards
+                                    data={assets}
+                                    onStatClick={handleDashboardStatClick}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Audit Trail Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 overflow-hidden">
+                                <AuditTrailTable logs={auditLogs} />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -411,6 +433,7 @@ export default function App() {
                         initialCategoryFilter={categoryFilter}
                         onCategoryFilterChange={setCategoryFilter}
                         categories={categories}
+                        onPrintStickers={() => setIsStickerModalOpen(true)}
                     />
                 )}
 

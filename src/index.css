@@ -14,21 +14,25 @@ body {
 }
 
 /* Custom Scrollbar Styles */
-.overflow-y-auto::-webkit-scrollbar {
+.overflow-y-auto::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
     width: 8px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
+.overflow-y-auto::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 10px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #10b981 0%, #059669 100%);
     border-radius: 10px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #059669 0%, #047857 100%);
 }
 
@@ -55,4 +59,18 @@ body {
 .card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Shimmer animation for progress bars */
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite;
 }

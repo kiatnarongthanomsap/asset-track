@@ -148,7 +148,7 @@ export const fetchAssets = async () => {
     const { data, error } = await supabase
       .from('assets')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('code', { ascending: true })
 
     if (error) {
       console.error('Supabase assets error:', error)
@@ -156,7 +156,7 @@ export const fetchAssets = async () => {
     }
 
     // แปลงข้อมูลให้ตรงกับรูปแบบที่แอปใช้
-    return (data || []).map(asset => {
+    const formattedData = (data || []).map(asset => {
       // แปลง image path เป็น public URL จาก Supabase Storage
       // - ถ้า image เป็น full URL (http/https) จะใช้ตามเดิม
       // - ถ้า image เป็น filename/path (เช่น "A001-1234567890.jpg") จะแปลงเป็น public URL
@@ -188,6 +188,21 @@ export const fetchAssets = async () => {
         warrantyExpiry: asset.warranty_expiry || ''
       }
     })
+
+    // Sort by code to ensure consistent ordering (natural sort for codes like A001, A002, A010)
+    // ใช้ natural sort เพื่อให้ A001, A002, A010 เรียงลำดับได้ถูกต้อง (ไม่ใช่ A001, A010, A002)
+    formattedData.sort((a, b) => {
+      const codeA = (a.code || '').toUpperCase().trim()
+      const codeB = (b.code || '').toUpperCase().trim()
+      // ถ้าไม่มี code ให้ไว้ท้ายสุด
+      if (!codeA && !codeB) return 0
+      if (!codeA) return 1
+      if (!codeB) return -1
+      // ใช้ localeCompare with numeric option สำหรับ natural sort
+      return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' })
+    })
+
+    return formattedData
   } catch (error) {
     console.error('Error fetching assets:', error)
     // Return empty array instead of throwing to allow fallback

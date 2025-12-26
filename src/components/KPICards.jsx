@@ -58,21 +58,10 @@ const KPICards = ({ data, onStatClick }) => {
             border: 'border-orange-100',
             progress: stats.all ? (stats.check / stats.all) * 100 : 0
         },
-        {
-            title: 'จำหน่ายออก',
-            statusValue: 'Disposed',
-            subtitle: 'โอนย้าย/ทำลายแล้ว',
-            value: stats.disposed,
-            icon: Trash2,
-            color: 'text-rose-600',
-            bg: 'bg-rose-50',
-            border: 'border-rose-100',
-            progress: stats.all ? (stats.disposed / stats.all) * 100 : 0
-        },
     ];
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
             {kpis.map((kpi, index) => (
                 <div
                     key={index}

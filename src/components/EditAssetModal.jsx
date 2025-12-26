@@ -44,8 +44,15 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
         setUploadError('');
 
         try {
-            // ใช้ asset code หรือ generate temporary code
-            const assetCode = formData.code || `TEMP-${Date.now()}`;
+            // ตรวจสอบว่ามี asset code หรือไม่
+            if (!formData.code || formData.code.trim() === '') {
+                setUploadError('กรุณากรอกรหัสทรัพย์สินก่อนอัพโหลดรูปภาพ');
+                setUploading(false);
+                return;
+            }
+
+            // ใช้ asset code
+            const assetCode = formData.code.trim();
             const result = await imageService.uploadImage(file, assetCode);
 
             if (result.success) {
@@ -54,12 +61,19 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                     image: result.url
                 }));
                 setUploadError('');
+                // แสดงข้อความสำเร็จชั่วคราว
+                setTimeout(() => {
+                    setUploadError('');
+                }, 3000);
             } else {
-                setUploadError(result.error || 'ไม่สามารถอัพโหลดรูปภาพได้');
+                // แสดง error message ที่ละเอียดขึ้น
+                const errorMsg = result.error || 'ไม่สามารถอัพโหลดรูปภาพได้';
+                setUploadError(errorMsg);
+                console.error('Upload failed:', errorMsg);
             }
         } catch (error) {
-            console.error('Upload error:', error);
-            setUploadError('เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ');
+            console.error('Upload exception:', error);
+            setUploadError(`เกิดข้อผิดพลาด: ${error.message || 'ไม่ทราบสาเหตุ'}`);
         } finally {
             setUploading(false);
             // Reset file input

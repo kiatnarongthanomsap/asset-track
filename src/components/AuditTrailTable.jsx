@@ -42,16 +42,16 @@ const normalizeLog = (log) => {
 // Get action badge color
 const getActionBadgeClass = (action) => {
     const actionMap = {
-        'ตรวจนับ': 'bg-green-100 text-green-700',
-        'ซ่อม': 'bg-yellow-100 text-yellow-700',
-        'จำหน่าย': 'bg-red-100 text-red-700',
-        'โอนย้าย': 'bg-blue-100 text-blue-700',
-        'เพิ่ม': 'bg-indigo-100 text-indigo-700',
-        'แก้ไข': 'bg-purple-100 text-purple-700',
-        'ลบ': 'bg-red-100 text-red-700'
+        'ตรวจนับ': 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+        'ซ่อม': 'bg-amber-100 text-amber-700 border border-amber-200',
+        'จำหน่าย': 'bg-rose-100 text-rose-700 border border-rose-200',
+        'โอนย้าย': 'bg-blue-100 text-blue-700 border border-blue-200',
+        'เพิ่ม': 'bg-indigo-100 text-indigo-700 border border-indigo-200',
+        'แก้ไข': 'bg-purple-100 text-purple-700 border border-purple-200',
+        'ลบ': 'bg-red-100 text-red-700 border border-red-200'
     };
     
-    return actionMap[action] || 'bg-gray-100 text-gray-700';
+    return actionMap[action] || 'bg-slate-100 text-slate-700 border border-slate-200';
 };
 
 // Export to CSV/Excel
@@ -86,50 +86,66 @@ const ViewAllModal = ({ logs, isOpen, onClose, onExportCSV, onExportPDF }) => {
     const normalizedLogs = logs.map(normalizeLog).filter(Boolean);
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-800">
-                        ประวัติการดำเนินการทั้งหมด ({normalizedLogs.length} รายการ)
-                    </h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col border border-slate-200/50 overflow-hidden">
+                <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-slate-200/50 bg-gradient-to-r from-slate-50/50 to-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+                            ประวัติการดำเนินการทั้งหมด
+                        </h3>
+                        <p className="text-sm text-slate-500 font-medium mt-1">
+                            {normalizedLogs.length} รายการ
+                        </p>
+                    </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => onExportCSV(normalizedLogs)}
-                            className="text-xs flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 transition"
+                            className="text-xs flex items-center px-4 py-2 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 text-slate-700 font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                            <FileSpreadsheet className="w-3 h-3 mr-1" /> Excel
+                            <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" /> Excel
                         </button>
                         <button
                             onClick={onClose}
-                            className="p-1 hover:bg-gray-100 rounded transition"
+                            className="p-2 hover:bg-slate-100 rounded-xl transition-all duration-200"
                         >
-                            <X className="w-5 h-5 text-gray-600" />
+                            <X className="w-5 h-5 text-slate-600" />
                         </button>
                     </div>
                 </div>
                 <div className="overflow-auto flex-1">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs sticky top-0">
+                    <table className="w-full text-left">
+                        <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200 sticky top-0 z-10">
                             <tr>
-                                <th className="px-6 py-3 font-semibold">วันที่</th>
-                                <th className="px-6 py-3 font-semibold">รายการ</th>
-                                <th className="px-6 py-3 font-semibold">เลขครุภัณฑ์</th>
-                                <th className="px-6 py-3 font-semibold">ผู้ดำเนินการ</th>
-                                <th className="px-6 py-3 font-semibold">เอกสารอ้างอิง</th>
+                                <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">วันที่</th>
+                                <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">รายการ</th>
+                                <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">เลขครุภัณฑ์</th>
+                                <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">ผู้ดำเนินการ</th>
+                                <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">เอกสารอ้างอิง</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {normalizedLogs.map((log) => (
-                                <tr key={log.id} className="hover:bg-blue-50/50">
-                                    <td className="px-6 py-3 font-mono text-gray-600">{log.date}</td>
-                                    <td className="px-6 py-3">
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getActionBadgeClass(log.action)}`}>
+                        <tbody className="divide-y divide-slate-100">
+                            {normalizedLogs.map((log, index) => (
+                                <tr 
+                                    key={log.id} 
+                                    className="group hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-200"
+                                >
+                                    <td className="px-6 sm:px-8 py-4 font-mono text-sm text-slate-600 font-semibold group-hover:text-slate-800">
+                                        {log.date}
+                                    </td>
+                                    <td className="px-6 sm:px-8 py-4">
+                                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${getActionBadgeClass(log.action)}`}>
                                             {log.action}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-3 font-mono text-blue-600 font-medium">{log.code}</td>
-                                    <td className="px-6 py-3 text-gray-900">{log.operator}</td>
-                                    <td className="px-6 py-3 text-gray-500">{log.doc}</td>
+                                    <td className="px-6 sm:px-8 py-4 font-mono text-sm text-indigo-600 font-bold group-hover:text-indigo-700">
+                                        {log.code}
+                                    </td>
+                                    <td className="px-6 sm:px-8 py-4 text-sm text-slate-800 font-semibold group-hover:text-slate-900">
+                                        {log.operator}
+                                    </td>
+                                    <td className="px-6 sm:px-8 py-4 text-sm text-slate-500 group-hover:text-slate-600">
+                                        {log.doc}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -166,69 +182,98 @@ const AuditTrailTable = ({ logs = [] }) => {
     
     return (
         <>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
-                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <h3 className="font-bold text-gray-800 flex items-center">
-                        <Database className="w-5 h-5 mr-2 text-indigo-600" />
-                        Audit Trail (ประวัติการดำเนินการล่าสุด)
-                    </h3>
-                    <div className="flex gap-2">
+            <div className="relative overflow-hidden">
+                {/* Header Section */}
+                <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-slate-200/50 bg-gradient-to-r from-slate-50/50 to-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                            <Database className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
+                                Audit Trail
+                            </h3>
+                            <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                                ประวัติการดำเนินการล่าสุด ({displayLogs.length} รายการ)
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                         <button
                             onClick={handleExportCSV}
-                            className="text-xs flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 transition"
+                            className="text-xs flex items-center px-4 py-2 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 text-slate-700 font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                            <FileSpreadsheet className="w-3 h-3 mr-1" /> Excel
+                            <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5" /> Excel
                         </button>
                         <button
                             onClick={handleExportPDF}
-                            className="text-xs flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-gray-700 transition"
+                            className="text-xs flex items-center px-4 py-2 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 text-slate-700 font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                         >
-                            <FileIcon className="w-3 h-3 mr-1" /> PDF
+                            <FileIcon className="w-3.5 h-3.5 mr-1.5" /> PDF
                         </button>
                         {allLogs.length > 10 && (
                             <button
                                 onClick={() => setShowAllModal(true)}
-                                className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 flex items-center"
+                                className="text-xs text-indigo-600 hover:text-indigo-700 font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-xl flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
                             >
                                 ดูทั้งหมด ({allLogs.length})
-                                <ChevronRight className="w-3 h-3 ml-1" />
+                                <ChevronRight className="w-3.5 h-3.5 ml-1.5" />
                             </button>
                         )}
                     </div>
                 </div>
+
+                {/* Table Section */}
                 <div className="overflow-x-auto">
                     {displayLogs.length === 0 ? (
-                        <div className="px-6 py-12 text-center text-gray-500">
-                            <Database className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                            <p>ยังไม่มีประวัติการดำเนินการ</p>
+                        <div className="px-6 sm:px-8 py-16 sm:py-20 text-center">
+                            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+                                <Database className="w-10 h-10 text-slate-300" />
+                            </div>
+                            <p className="text-slate-500 font-semibold text-sm sm:text-base">ยังไม่มีประวัติการดำเนินการ</p>
+                            <p className="text-slate-400 text-xs mt-1">เมื่อมีการดำเนินการใดๆ จะแสดงที่นี่</p>
                         </div>
                     ) : (
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs">
-                                <tr>
-                                    <th className="px-6 py-3 font-semibold">วันที่</th>
-                                    <th className="px-6 py-3 font-semibold">รายการ</th>
-                                    <th className="px-6 py-3 font-semibold">เลขครุภัณฑ์</th>
-                                    <th className="px-6 py-3 font-semibold">ผู้ดำเนินการ</th>
-                                    <th className="px-6 py-3 font-semibold">เอกสารอ้างอิง</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {displayLogs.map((log) => (
-                                    <tr key={log.id} className="hover:bg-blue-50/50 transition">
-                                        <td className="px-6 py-3 font-mono text-gray-600">{log.date}</td>
-                                        <td className="px-6 py-3">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getActionBadgeClass(log.action)}`}>
-                                                {log.action}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-3 font-mono text-blue-600 font-medium">{log.code}</td>
-                                        <td className="px-6 py-3 text-gray-900">{log.operator}</td>
-                                        <td className="px-6 py-3 text-gray-500">{log.doc}</td>
+                        <div className="relative">
+                            <table className="w-full text-left">
+                                <thead className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200">
+                                    <tr>
+                                        <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">วันที่</th>
+                                        <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">รายการ</th>
+                                        <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">เลขครุภัณฑ์</th>
+                                        <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">ผู้ดำเนินการ</th>
+                                        <th className="px-6 sm:px-8 py-4 text-xs font-black text-slate-600 uppercase tracking-wider">เอกสารอ้างอิง</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {displayLogs.map((log, index) => (
+                                        <tr 
+                                            key={log.id} 
+                                            className="group hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 cursor-pointer"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
+                                            <td className="px-6 sm:px-8 py-4 font-mono text-sm text-slate-600 font-semibold group-hover:text-slate-800">
+                                                {log.date}
+                                            </td>
+                                            <td className="px-6 sm:px-8 py-4">
+                                                <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${getActionBadgeClass(log.action)}`}>
+                                                    {log.action}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 sm:px-8 py-4 font-mono text-sm text-indigo-600 font-bold group-hover:text-indigo-700">
+                                                {log.code}
+                                            </td>
+                                            <td className="px-6 sm:px-8 py-4 text-sm text-slate-800 font-semibold group-hover:text-slate-900">
+                                                {log.operator}
+                                            </td>
+                                            <td className="px-6 sm:px-8 py-4 text-sm text-slate-500 group-hover:text-slate-600">
+                                                {log.doc}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>

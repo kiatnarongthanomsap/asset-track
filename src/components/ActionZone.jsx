@@ -1,15 +1,11 @@
 import {
     PlusCircle,
-    Printer,
-    FileSpreadsheet,
     History,
     Settings,
-    ArrowRight,
-    Tag
+    ArrowRight
 } from 'lucide-react';
-import { exportAssetsToCSV, exportPendingStickersCSV } from '../utils/assetManager';
 
-const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImportExcel, user }) => {
+const ActionZone = ({ assets, onAddAsset, onTabChange, onImportExcel, user }) => {
     const actions = [
         {
             title: 'เพิ่มครุภัณฑ์ใหม่',
@@ -25,24 +21,6 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
                 }
                 onAddAsset();
             }
-        },
-        {
-            title: 'พิมพ์สติ๊กเกอร์',
-            desc: 'พิมพ์ QR Code และรหัสทรัพย์สิน',
-            icon: Tag,
-            color: 'bg-amber-500',
-            shadow: 'shadow-amber-200',
-            hover: 'hover:bg-amber-600',
-            onClick: onPrintStickers
-        },
-        {
-            title: 'รายงาน Excel',
-            desc: 'สรุปทรัพย์สินตามหมวดหมู่',
-            icon: FileSpreadsheet,
-            color: 'bg-indigo-600',
-            shadow: 'shadow-indigo-200',
-            hover: 'hover:bg-indigo-700',
-            onClick: () => exportAssetsToCSV(assets)
         },
         {
             title: 'ประวัติธุรกรรม',
@@ -71,7 +49,7 @@ const ActionZone = ({ assets, onAddAsset, onTabChange, onPrintStickers, onImport
     ];
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {actions.map((action, index) => (
                 <button
                     key={index}

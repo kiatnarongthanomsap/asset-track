@@ -15,31 +15,48 @@ const BUCKET_NAME = 'asset-images'
  */
 export const uploadImage = async (file, assetCode) => {
   try {
+    // ตรวจสอบว่า file และ assetCode มีค่าหรือไม่
+    if (!file) {
+      return { success: false, error: 'กรุณาเลือกไฟล์รูปภาพ' }
+    }
+
+    if (!assetCode || assetCode.trim() === '') {
+      return { success: false, error: 'กรุณากรอกรหัสทรัพย์สินก่อนอัพโหลดรูปภาพ' }
+    }
+
     // สร้างชื่อไฟล์จาก asset code และ timestamp
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${assetCode}-${Date.now()}.${fileExt}`
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    // ทำความสะอาด asset code เพื่อใช้เป็นชื่อไฟล์ (ลบอักขระพิเศษ)
+    const cleanCode = assetCode.replace(/[^a-zA-Z0-9-_]/g, '_')
+    const fileName = `${cleanCode}-${Date.now()}.${fileExt}`
     const filePath = `${fileName}`
 
-    // ลองอัพโหลดโดยตรง (ไม่ต้องตรวจสอบ bucket ก่อน เพราะอาจมีปัญหา permissions)
-    // ถ้า bucket มีอยู่แล้ว การอัพโหลดจะสำเร็จ
+    console.log('Uploading image:', { fileName, filePath, fileSize: file.size })
+
+    // ลองอัพโหลดโดยตรง
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true // อนุญาตให้ overwrite ถ้ามีไฟล์ชื่อเดียวกัน
       })
 
     if (error) {
-      console.error('Upload error:', error)
+      console.error('Upload error details:', {
+        message: error.message,
+        statusCode: error.statusCode,
+        error: error
+      })
       
       // ถ้าเป็น error เกี่ยวกับ bucket ไม่มี
       if (error.message?.includes('Bucket not found') || 
           error.message?.includes('not found') ||
-          error.statusCode === '404' ||
-          error.message?.includes('does not exist')) {
+          error.statusCode === 404 ||
+          error.message?.includes('does not exist') ||
+          error.message?.includes('The resource was not found')) {
         return { 
           success: false, 
-          error: `Bucket '${BUCKET_NAME}' not found. Please create it in Supabase Storage.\n\nวิธีสร้าง:\n1. เปิด Supabase Dashboard → Storage\n2. คลิก "New bucket"\n3. ตั้งชื่อ: "asset-images"\n4. เลือก "Public bucket"\n5. คลิก "Create bucket"` 
+          error: `ไม่พบ Storage Bucket '${BUCKET_NAME}'\n\nวิธีแก้:\n1. เปิด Supabase Dashboard → Storage\n2. คลิก "New bucket"\n3. ตั้งชื่อ: "asset-images"\n4. เลือก "Public bucket"\n5. คลิก "Create bucket"` 
         }
       }
       
@@ -47,15 +64,21 @@ export const uploadImage = async (file, assetCode) => {
       if (error.message?.includes('permission') || 
           error.message?.includes('policy') ||
           error.message?.includes('denied') ||
-          error.statusCode === '403' ||
-          error.message?.includes('new row violates row-level security')) {
+          error.message?.includes('forbidden') ||
+          error.statusCode === 403 ||
+          error.message?.includes('new row violates row-level security') ||
+          error.message?.includes('Row Level Security')) {
         return { 
           success: false, 
-          error: `Permission denied. Please set up Storage policies.\n\nวิธีแก้:\n1. เปิด Supabase Dashboard → SQL Editor\n2. รันไฟล์: storage_policies_public.sql\n3. หรือสร้าง policies ผ่าน Dashboard → Storage → Policies\n\nดูคู่มือ: FIX_STORAGE_PERMISSIONS.md` 
+          error: `ไม่มีสิทธิ์อัพโหลดไฟล์\n\nวิธีแก้:\n1. เปิด Supabase Dashboard → SQL Editor\n2. รันไฟล์: storage_policies_public.sql\n3. หรือไปที่ Storage → Policies → สร้าง policy ใหม่` 
         }
       }
       
-      return { success: false, error: error.message || 'ไม่สามารถอัพโหลดรูปภาพได้' }
+      // Error อื่นๆ
+      return { 
+        success: false, 
+        error: `ไม่สามารถอัพโหลดรูปภาพได้: ${error.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'}` 
+      }
     }
 
     // Get public URL
@@ -63,13 +86,25 @@ export const uploadImage = async (file, assetCode) => {
       .from(BUCKET_NAME)
       .getPublicUrl(filePath)
 
+    if (!urlData || !urlData.publicUrl) {
+      return { 
+        success: false, 
+        error: 'อัพโหลดสำเร็จแต่ไม่สามารถสร้าง URL ได้' 
+      }
+    }
+
+    console.log('Upload successful:', urlData.publicUrl)
+
     return {
       success: true,
       url: urlData.publicUrl
     }
   } catch (error) {
-    console.error('Upload error:', error)
-    return { success: false, error: error.message }
+    console.error('Upload exception:', error)
+    return { 
+      success: false, 
+      error: `เกิดข้อผิดพลาด: ${error.message || 'ไม่ทราบสาเหตุ'}` 
+    }
   }
 }
 
