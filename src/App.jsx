@@ -226,7 +226,7 @@ export default function App() {
             )}
 
             {/* Sidebar Navigation */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-emerald-900 via-emerald-800 to-slate-900 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl`}>
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl border-r border-emerald-500/20`}>
                 <div className="p-8 pb-4 flex justify-between items-center">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -260,15 +260,15 @@ export default function App() {
                                     setActiveTab(item.id);
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden ${activeTab === item.id
-                                    ? 'bg-white/10 text-white shadow-lg border border-white/10'
-                                    : 'text-emerald-100/70 hover:bg-white/5 hover:text-white'
+                                className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden ${activeTab === item.id
+                                    ? 'bg-white/20 text-white shadow-lg shadow-emerald-900/20 border border-white/30 backdrop-blur-sm'
+                                    : 'text-emerald-50/80 hover:bg-white/10 hover:text-white hover:shadow-md'
                                     }`}
                             >
                                 {activeTab === item.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl"></div>
+                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white rounded-l-xl shadow-lg"></div>
                                 )}
-                                <item.icon className={`w-5 h-5 mr-3 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'text-emerald-300' : 'text-emerald-400/50'}`} />
+                                <item.icon className={`w-5 h-5 mr-3 transition-all duration-300 group-hover:scale-110 ${activeTab === item.id ? 'text-white drop-shadow-sm' : 'text-emerald-200/70 group-hover:text-white'}`} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                 {item.label}
                             </button>
                         );
@@ -276,7 +276,7 @@ export default function App() {
                 </nav>
 
                 <div className="absolute bottom-0 w-full p-6">
-                    <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-lg">
                         <div className="flex items-center">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-500 p-[2px] shrink-0">
                                 <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xs font-bold text-white">
@@ -344,11 +344,11 @@ export default function App() {
                         {/* Welcome Header Section */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
-                                <h2 className="text-4xl font-black text-slate-800 tracking-tighter mb-1">
+                                <h2 className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tight mb-2 bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                                     ยินดีต้อนรับกลับมา, <span className="text-emerald-600">Staff Member</span> 👋
                                 </h2>
-                                <p className="text-slate-400 font-bold text-sm flex items-center">
-                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
+                                <p className="text-slate-500 font-semibold text-sm flex items-center">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse shadow-lg shadow-emerald-500/50"></div>
                                     วันนี้วันที่ {new Date().toLocaleDateString('th-TH', {
                                         weekday: 'long',
                                         year: 'numeric',
@@ -357,13 +357,13 @@ export default function App() {
                                     })}
                                 </p>
                             </div>
-                            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div className="bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-4">
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
                                     <p className="text-emerald-600 font-black text-sm">พร้อมใช้งาน (Live)</p>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                    <BarChart3 className="w-5 h-5 text-emerald-600" />
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                    <BarChart3 className="w-6 h-6 text-white" />
                                 </div>
                             </div>
                         </div>

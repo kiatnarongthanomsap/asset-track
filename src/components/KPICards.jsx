@@ -72,43 +72,37 @@ const KPICards = ({ data, onStatClick }) => {
     ];
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-8">
             {kpis.map((kpi, index) => (
                 <div
                     key={index}
                     onClick={() => onStatClick?.(kpi.statusValue)}
-                    className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden cursor-pointer"
+                    className="group relative bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-slate-200/50 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden"
                 >
-                    {/* Background Icon Detail */}
-                    <kpi.icon className={`absolute -right-4 -bottom-4 w-24 h-24 opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-125 group-hover:-rotate-12 ${kpi.color}`} />
+                    {/* Gradient Background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${kpi.bg.replace('bg-', 'from-')} to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                    
+                    {/* Shine Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
                     <div className="flex flex-col h-full relative z-10">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`${kpi.bg} p-2.5 rounded-2xl ${kpi.border} border transition-colors duration-300 group-hover:bg-white`}>
-                                <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
+                        <div className="flex items-center justify-between mb-5">
+                            <div className={`${kpi.bg} p-3 rounded-xl ${kpi.border} border-2 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
+                                <kpi.icon className={`w-6 h-6 ${kpi.color}`} strokeWidth={2.5} />
                             </div>
-                            <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                            <ArrowUpRight className="w-5 h-5 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300" />
                         </div>
 
-                        <div>
-                            <p className="text-[11px] uppercase tracking-[0.1em] font-black text-slate-400 mb-1">{kpi.title}</p>
-                            <p className="text-[10px] text-slate-300 mb-4 line-clamp-1">{kpi.subtitle}</p>
+                        <div className="flex-1">
+                            <p className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-1.5">{kpi.title}</p>
+                            <p className="text-[11px] text-slate-400 mb-5 line-clamp-1">{kpi.subtitle}</p>
 
-                            <div className="flex items-end gap-2 mb-4">
-                                <span className={`text-5xl font-black tracking-tighter ${kpi.color}`}>{kpi.value}</span>
-                                <span className="text-slate-400 text-sm font-bold mb-2 leading-none">รายการ</span>
+                            <div className="flex items-baseline gap-2 mb-5">
+                                <span className={`text-4xl sm:text-5xl font-black tracking-tight ${kpi.color} drop-shadow-sm`}>{kpi.value}</span>
+                                <span className="text-slate-400 text-sm font-semibold mb-1">รายการ</span>
                             </div>
                         </div>
 
-                        {/* Progress Bar Detail */}
-                        <div className="mt-auto pt-2">
-                            <div className="w-full bg-slate-50 h-[3px] rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full transition-all duration-1000 ease-out ${kpi.color.replace('text', 'bg')}`}
-                                    style={{ width: `${kpi.progress}%` }}
-                                ></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             ))}

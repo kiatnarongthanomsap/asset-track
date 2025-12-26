@@ -180,29 +180,45 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
             {reportMode === 'analytics' ? (
                 <div className="space-y-6 animate-in fade-in duration-500">
                     {/* KPI Cards for Reports - จัดเรียงใหม่ */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {/* 1. จำนวนรายการทั้งหมด */}
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl shadow-sm border border-blue-200">
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">จำนวนรายการทั้งหมด</p>
-                            <p className="text-3xl font-black text-blue-700">{data.length} <span className="text-lg">รายการ</span></p>
+                        <div className="group relative bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-2xl shadow-xl border border-blue-400/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <div className="relative z-10">
+                                <p className="text-xs font-bold text-blue-100 uppercase tracking-wider mb-2">จำนวนรายการทั้งหมด</p>
+                                <p className="text-3xl font-black text-white drop-shadow-sm">{data.length} <span className="text-lg font-semibold">รายการ</span></p>
+                            </div>
+                            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         </div>
                         {/* 2. ราคาทุนรวมทั้งหมด */}
-                        <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">ราคาทุนรวมทั้งหมด</p>
-                            <p className="text-2xl font-black text-slate-800">฿{analytics.totalCost.toLocaleString()}</p>
+                        <div className="group relative bg-gradient-to-br from-slate-600 to-slate-700 p-6 rounded-2xl shadow-xl border border-slate-500/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <div className="relative z-10">
+                                <p className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">ราคาทุนรวมทั้งหมด</p>
+                                <p className="text-2xl font-black text-white drop-shadow-sm">฿{analytics.totalCost.toLocaleString()}</p>
+                            </div>
+                            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         </div>
                         {/* 3. มูลค่าปัจจุบัน (Book Value) */}
-                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-2xl shadow-sm border border-emerald-200">
-                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">มูลค่าปัจจุบัน (Book Value)</p>
-                            <p className="text-2xl font-black text-emerald-700">฿{Math.round(analytics.totalBookValue).toLocaleString()}</p>
+                        <div className="group relative bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-2xl shadow-xl border border-emerald-400/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <div className="relative z-10">
+                                <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-2">มูลค่าปัจจุบัน (Book Value)</p>
+                                <p className="text-2xl font-black text-white drop-shadow-sm">฿{Math.round(analytics.totalBookValue).toLocaleString()}</p>
+                            </div>
+                            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         </div>
                         {/* 4. พิมพ์สติ๊กเกอร์แล้ว */}
-                        <div className="bg-gradient-to-br from-violet-50 to-violet-100 p-6 rounded-2xl shadow-sm border border-violet-200">
-                            <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-1">พิมพ์สติ๊กเกอร์แล้ว</p>
-                            <div className="flex items-end gap-2">
-                                <p className="text-2xl font-black text-violet-700">{analytics.stickerPrinted} / {data.length}</p>
-                                <span className="text-xs font-bold text-violet-500 mb-1">{analytics.stickerPercent.toFixed(0)}%</span>
+                        <div className="group relative bg-gradient-to-br from-violet-500 to-violet-600 p-6 rounded-2xl shadow-xl border border-violet-400/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <div className="relative z-10">
+                                <p className="text-xs font-bold text-violet-100 uppercase tracking-wider mb-2">พิมพ์สติ๊กเกอร์แล้ว</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-2xl font-black text-white drop-shadow-sm">{analytics.stickerPrinted} / {data.length}</p>
+                                    <span className="text-sm font-bold text-violet-100 mb-1">{analytics.stickerPercent.toFixed(0)}%</span>
+                                </div>
                             </div>
+                            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         </div>
                     </div>
 
@@ -210,7 +226,7 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                     {/* Location Distribution & Category Value Report - แสดงในแถวเดียวกันเสมอ */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         {/* 1. Location Distribution - จำนวนทรัพยากรตามสถานที่ */}
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="bg-white/90 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-200/50 hover:shadow-xl transition-all duration-300">
                             <div className="flex items-center justify-between mb-4 sm:mb-6">
                                 <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
                                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-rose-500" />
@@ -223,7 +239,7 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                     <div 
                                         key={loc} 
                                         onClick={() => setSelectedFilter({ type: 'location', value: loc })}
-                                        className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-white rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg group cursor-pointer"
+                                        className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer"
                                     >
                                         <div className="p-5">
                                             <div className="flex items-center justify-end mb-3">
@@ -242,7 +258,7 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                         </div>
 
                         {/* 2. Category Value Report - มูลค่าสะสมตามหมวดหมู่ (ทุน vs ปัจจุบัน) */}
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="bg-white/90 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-lg border border-slate-200/50 hover:shadow-xl transition-all duration-300">
                             <div className="flex items-center justify-between mb-4 sm:mb-6">
                                 <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center">
                                     <PieChart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
@@ -255,7 +271,7 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                                     <div 
                                         key={cat} 
                                         onClick={() => setSelectedFilter({ type: 'category', value: cat })}
-                                        className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-emerald-50 rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl group cursor-pointer"
+                                        className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-emerald-50 rounded-2xl border-2 border-slate-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group cursor-pointer"
                                     >
                                         <div className="p-5">
                                             {/* Header */}

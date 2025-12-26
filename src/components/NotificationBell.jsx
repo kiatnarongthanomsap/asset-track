@@ -7,6 +7,7 @@ import { hasRealImage } from '../utils/assetManager';
 const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, categories = [] }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeCycles, setActiveCycles] = useState([]);
+    const [cycleProgress, setCycleProgress] = useState({});
     const [loadingCycles, setLoadingCycles] = useState(true);
     const dropdownRef = useRef(null);
 
@@ -37,6 +38,21 @@ const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, 
             if (result.status === 'success') {
                 const inProgress = result.data.filter(c => c.status === 'In Progress');
                 setActiveCycles(inProgress);
+                
+                // ดึงข้อมูล progress สำหรับแต่ละ cycle
+                const progressData = {};
+                for (const cycle of inProgress) {
+                    try {
+                        const summaryResult = await supabaseService.getInventorySummary(cycle.id);
+                        if (summaryResult.status === 'success') {
+                            progressData[cycle.id] = summaryResult.data.progressPercent || 0;
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching progress for cycle ${cycle.id}:`, error);
+                        progressData[cycle.id] = 0;
+                    }
+                }
+                setCycleProgress(progressData);
             }
         } catch (error) {
             console.error('Error fetching inventory cycles:', error);
@@ -162,31 +178,48 @@ const NotificationBell = ({ assets, onAlertClick, onStatClick, onViewInventory, 
                                         <h4 className="text-sm font-black text-slate-800">มีการตรวจนับกำลังดำเนินการ</h4>
                                     </div>
                                     <div className="space-y-2">
-                                        {activeCycles.slice(0, 3).map((cycle) => (
-                                            <div
-                                                key={cycle.id}
-                                                className="bg-white/70 backdrop-blur-sm rounded-lg p-2 border border-blue-100"
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-xs text-slate-800 truncate">{cycle.cycle_name}</p>
-                                                        <p className="text-[10px] text-slate-500 mt-0.5">
-                                                            {new Date(cycle.start_date).toLocaleDateString('th-TH')} - {new Date(cycle.end_date).toLocaleDateString('th-TH')}
-                                                        </p>
+                                        {activeCycles.slice(0, 3).map((cycle) => {
+                                            const progress = cycleProgress[cycle.id] || 0;
+                                            return (
+                                                <div
+                                                    key={cycle.id}
+                                                    className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-blue-100"
+                                                >
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-xs text-slate-800 truncate">{cycle.cycle_name}</p>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">
+                                                                {new Date(cycle.start_date).toLocaleDateString('th-TH')} - {new Date(cycle.end_date).toLocaleDateString('th-TH')}
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                onViewInventory?.(cycle);
+                                                                setIsOpen(false);
+                                                            }}
+                                                            className="ml-2 px-2 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all flex items-center shrink-0"
+                                                        >
+                                                            ดู
+                                                            <ArrowRight className="w-3 h-3 ml-1" />
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            onViewInventory?.(cycle);
-                                                            setIsOpen(false);
-                                                        }}
-                                                        className="ml-2 px-2 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all flex items-center"
-                                                    >
-                                                        ดู
-                                                        <ArrowRight className="w-3 h-3 ml-1" />
-                                                    </button>
+                                                    
+                                                    {/* Progress Bar */}
+                                                    <div className="mt-2 pt-2 border-t border-blue-100">
+                                                        <div className="flex items-center justify-between mb-1.5">
+                                                            <span className="text-[9px] font-semibold text-slate-500">ความคืบหน้า</span>
+                                                            <span className="text-[9px] font-bold text-blue-600">{progress.toFixed(0)}%</span>
+                                                        </div>
+                                                        <div className="w-full bg-blue-100 rounded-full h-2 overflow-hidden">
+                                                            <div
+                                                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
+                                                                style={{ width: `${progress}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
