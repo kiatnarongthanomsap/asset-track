@@ -8,7 +8,8 @@ import {
     X,
     CreditCard,
     LogOut,
-    ClipboardCheck
+    ClipboardCheck,
+    ShieldCheck
 } from 'lucide-react';
 
 import CoopHeader from './components/CoopHeader';
@@ -226,19 +227,21 @@ export default function App() {
             )}
 
             {/* Sidebar Navigation */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl border-r border-emerald-500/20`}>
-                <div className="p-8 pb-4 flex justify-between items-center">
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl border-r border-slate-700/50`}>
+                <div className="p-6 pb-4 flex justify-between items-center border-b border-slate-700/50">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20">
-                                <span className="font-bold">A</span>
+                            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg">
+                                <ShieldCheck className="w-5 h-5 text-emerald-400" />
                             </div>
-                            <h1 className="text-xl font-bold text-white tracking-wide">AssetTrack</h1>
+                            <div>
+                                <h1 className="text-lg font-black text-white tracking-tight">AssetTrack</h1>
+                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">ระบบจัดการทรัพย์สิน</p>
+                            </div>
                         </div>
-                        <p className="text-xs text-emerald-300/80 font-medium tracking-wider uppercase ml-1">Kasetsart Univ. Co-op</p>
                     </div>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-emerald-300 hover:text-white p-2">
-                        <X className="w-6 h-6" />
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -260,36 +263,36 @@ export default function App() {
                                     setActiveTab(item.id);
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full flex items-center px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden ${activeTab === item.id
-                                    ? 'bg-white/20 text-white shadow-lg shadow-emerald-900/20 border border-white/30 backdrop-blur-sm'
-                                    : 'text-emerald-50/80 hover:bg-white/10 hover:text-white hover:shadow-md'
+                                className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden ${activeTab === item.id
+                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 border border-emerald-500/50'
+                                    : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
                                     }`}
                             >
                                 {activeTab === item.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white rounded-l-xl shadow-lg"></div>
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl"></div>
                                 )}
-                                <item.icon className={`w-5 h-5 mr-3 transition-all duration-300 group-hover:scale-110 ${activeTab === item.id ? 'text-white drop-shadow-sm' : 'text-emerald-200/70 group-hover:text-white'}`} strokeWidth={activeTab === item.id ? 2.5 : 2} />
+                                <item.icon className={`w-5 h-5 mr-3 transition-all duration-300 group-hover:scale-110 ${activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                 {item.label}
                             </button>
                         );
                     })}
                 </nav>
 
-                <div className="absolute bottom-0 w-full p-6">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-lg">
+                <div className="absolute bottom-0 w-full p-6 border-t border-slate-700/50">
+                    <div className="bg-slate-700/50 backdrop-blur-md rounded-xl p-4 border border-slate-600/50 shadow-lg">
                         <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-cyan-500 p-[2px] shrink-0">
-                                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-xs font-bold text-white">
-                                    SM
-                                </div>
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow-md shrink-0">
+                                <span className="text-xs font-bold text-white">
+                                    {user?.name?.charAt(0) || 'S'}
+                                </span>
                             </div>
                             <div className="ml-3 overflow-hidden flex-1">
                                 <p className="text-sm font-bold text-white truncate">{user?.name || 'Staff Member'}</p>
-                                <p className="text-xs text-emerald-300 truncate">{user?.role || 'Asset Officer'}</p>
+                                <p className="text-xs text-slate-400 truncate">{user?.role || 'Asset Officer'}</p>
                             </div>
                             <button
                                 onClick={() => setUser(null)}
-                                className="ml-2 p-2 rounded-xl text-emerald-300 hover:bg-white/10 hover:text-white transition-all group"
+                                className="ml-2 p-2 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-all group"
                                 title="ออกจากระบบ"
                             >
                                 <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -318,8 +321,13 @@ export default function App() {
                 </div>
 
                 {/* Mobile Header */}
-                <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
-                    <span className="font-bold text-slate-800 text-lg">AssetTrack</span>
+                <header className="bg-white border-b-2 border-slate-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <span className="font-black text-slate-800 text-lg">AssetTrack</span>
+                    </div>
                     <div className="flex items-center gap-2">
                         <NotificationBell
                             assets={assets}
@@ -340,33 +348,45 @@ export default function App() {
 
                 {/* --- Content Area --- */}
                 {activeTab === 'dashboard' && (
-                    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-8 sm:space-y-10 lg:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-6 sm:space-y-8 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {/* Welcome Header Section */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 rounded-3xl blur-3xl"></div>
-                            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-200/50 shadow-xl">
+                            <div className="relative bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-slate-200 shadow-lg">
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                     <div className="flex-1">
-                                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight mb-3 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent">
-                                            ยินดีต้อนรับกลับมา, <span className="text-emerald-600">Staff Member</span> 👋
-                                        </h2>
-                                        <p className="text-slate-500 font-semibold text-sm sm:text-base flex items-center">
-                                            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full mr-2.5 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-                                            วันนี้วันที่ {new Date().toLocaleDateString('th-TH', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
-                                            })}
-                                        </p>
-                                    </div>
-                                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 px-6 py-4 rounded-2xl shadow-xl shadow-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 flex items-center gap-4 group">
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none mb-1">สถานะระบบ</p>
-                                            <p className="text-white font-black text-sm group-hover:scale-105 transition-transform">พร้อมใช้งาน (Live)</p>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                                <BarChart3 className="w-6 h-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+                                                    ยินดีต้อนรับกลับมา
+                                                </h2>
+                                                <p className="text-sm text-slate-500 font-medium mt-1">
+                                                    {user?.name || 'Staff Member'} • {user?.role || 'Asset Officer'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
-                                            <BarChart3 className="w-7 h-7 text-white" />
+                                        <div className="flex items-center gap-2 text-slate-600 font-medium text-sm sm:text-base">
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-md shadow-emerald-500/50"></div>
+                                            <span>
+                                                {new Date().toLocaleDateString('th-TH', {
+                                                    weekday: 'long',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 px-6 py-4 rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 flex items-center gap-4 group">
+                                        <div className="text-right">
+                                            <p className="text-xs font-semibold text-emerald-100 uppercase tracking-wide leading-none mb-1">สถานะระบบ</p>
+                                            <p className="text-white font-bold text-sm group-hover:scale-105 transition-transform">พร้อมใช้งาน</p>
+                                        </div>
+                                        <div className="w-12 h-12 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                                            <ShieldCheck className="w-5 h-5 text-white" />
                                         </div>
                                     </div>
                                 </div>
@@ -376,7 +396,7 @@ export default function App() {
                         {/* Alerts and Monitoring Section */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-orange-50/50 rounded-3xl blur-2xl"></div>
-                            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 p-6 sm:p-8">
+                            <div className="relative bg-white rounded-3xl shadow-lg border-2 border-slate-200 p-6 sm:p-8">
                                 <AlertSection
                                     assets={assets}
                                     onAlertClick={(asset) => {
@@ -414,7 +434,7 @@ export default function App() {
                         {/* Audit Trail Section */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-3xl blur-2xl"></div>
-                            <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 overflow-hidden">
+                            <div className="relative bg-white rounded-3xl shadow-lg border-2 border-slate-200 overflow-hidden">
                                 <AuditTrailTable logs={auditLogs} />
                             </div>
                         </div>

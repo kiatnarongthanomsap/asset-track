@@ -64,71 +64,115 @@ const LoginPage = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans">
-            {/* Background Decorative Elements */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-[0.02]">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}></div>
+            </div>
 
-            <div className="w-full max-w-[1100px] flex bg-white/70 backdrop-blur-2xl rounded-[3rem] shadow-2xl border border-white/40 overflow-hidden relative z-10 m-4">
-                {/* Left Side: Illustration & Info */}
-                <div className="hidden lg:flex flex-col flex-1 bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 p-16 text-white relative">
+            {/* Subtle Background Elements */}
+            <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+
+            <div className="w-full max-w-5xl flex bg-white rounded-3xl shadow-2xl border border-slate-200/50 overflow-hidden relative z-10 m-4">
+                {/* Left Side: Organization Info */}
+                <div className="hidden lg:flex flex-col flex-1 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 p-12 text-white relative">
                     <div className="relative z-10 h-full flex flex-col">
-                        <div className="flex items-center gap-3 mb-12">
-                            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20">
-                                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                        {/* Logo Section */}
+                        <div className="mb-12">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+                                    <ShieldCheck className="w-8 h-8 text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-black tracking-tight">AssetTrack</h1>
+                                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest">ระบบจัดการทรัพย์สิน</p>
+                                </div>
                             </div>
-                            <span className="text-2xl font-black tracking-wider uppercase">AssetTrack</span>
                         </div>
 
-                        <div className="mt-auto">
-                            <h1 className="text-5xl font-black leading-tight mb-6">
-                                จัดการทุก <br /> <span className="text-emerald-400">ทรัพย์สิน</span> อย่างมืออาชีพ
-                            </h1>
-                            <p className="text-emerald-100/60 text-lg font-medium max-w-sm mb-8">
-                                ระบบบริหารจัดการครุภัณฑ์และตรวจสอบทรัพย์สินอัจฉริยะ สำหรับสหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์
-                            </p>
+                        {/* Content Section */}
+                        <div className="flex-1 flex flex-col justify-center">
+                            <div className="mb-8">
+                                <h2 className="text-4xl font-black leading-tight mb-4">
+                                    ระบบบริหารจัดการ<br />
+                                    <span className="text-emerald-400">ครุภัณฑ์และทรัพย์สิน</span>
+                                </h2>
+                                <p className="text-slate-300 text-base font-medium leading-relaxed max-w-md">
+                                    สำหรับสหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด
+                                </p>
+                            </div>
 
-                            <div className="flex gap-4">
-                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                            {/* Features */}
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+                                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
                                     </div>
-                                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-200">Secure Access</span>
+                                    <div>
+                                        <h3 className="font-bold text-sm mb-1">ความปลอดภัยสูง</h3>
+                                        <p className="text-xs text-slate-400">ระบบเข้ารหัสและควบคุมการเข้าถึง</p>
+                                    </div>
                                 </div>
-                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                                        <Lock className="w-5 h-5 text-blue-400" />
                                     </div>
-                                    <span className="text-xs font-bold uppercase tracking-widest text-blue-200">Cloud Sync</span>
+                                    <div>
+                                        <h3 className="font-bold text-sm mb-1">การเข้าถึงที่ควบคุม</h3>
+                                        <p className="text-xs text-slate-400">เฉพาะผู้ใช้ที่ได้รับอนุญาตเท่านั้น</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="mt-auto pt-8 border-t border-white/10">
+                            <p className="text-xs text-slate-400 font-semibold">
+                                © 2024 สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด
+                            </p>
                         </div>
                     </div>
-                    {/* Abstract shapes */}
-                    <div className="absolute top-0 right-0 w-full h-full opacity-10 overflow-hidden pointer-events-none">
-                        <div className="absolute top-1/4 -right-20 w-80 h-80 border-8 border-white rounded-full"></div>
-                        <div className="absolute -bottom-20 -left-20 w-80 h-80 border-8 border-white rounded-full"></div>
+                    {/* Subtle Pattern Overlay */}
+                    <div className="absolute inset-0 opacity-5 overflow-hidden pointer-events-none">
+                        <div className="absolute top-0 right-0 w-64 h-64 border-4 border-white rounded-full -mr-32 -mt-32"></div>
+                        <div className="absolute bottom-0 left-0 w-64 h-64 border-4 border-white rounded-full -ml-32 -mb-32"></div>
                     </div>
                 </div>
 
                 {/* Right Side: Login Form */}
-                <div className="flex-[0.8] p-8 md:p-16 flex flex-col justify-center bg-white">
+                <div className="flex-1 lg:flex-[0.9] p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
                     <div className="max-w-md mx-auto w-full">
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-black text-slate-800 mb-2">ยินดีต้อนรับ</h2>
-                            <p className="text-slate-400 font-bold">ล็อกอินเข้าสู่ระบบจัดการรายการครุภัณฑ์</p>
+                        {/* Mobile Logo */}
+                        <div className="lg:hidden mb-8 text-center">
+                            <div className="inline-flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
+                                    <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                                </div>
+                                <div className="text-left">
+                                    <h1 className="text-xl font-black text-slate-800">AssetTrack</h1>
+                                    <p className="text-xs text-slate-500 font-semibold">ระบบจัดการทรัพย์สิน</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="mb-10">
+                            <h2 className="text-3xl font-black text-slate-800 mb-2">เข้าสู่ระบบ</h2>
+                            <p className="text-slate-500 font-medium text-sm">กรุณาเข้าสู่ระบบด้วยบัญชีผู้ใช้ของคุณ</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Username / Email</label>
+                                <label className="text-sm font-semibold text-slate-700 block">ชื่อผู้ใช้ / อีเมล</label>
                                 <div className="relative group">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     <input
                                         required
                                         type="text"
-                                        placeholder="Enter your username"
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-700 placeholder:text-slate-300"
+                                        placeholder="กรุณากรอกชื่อผู้ใช้หรืออีเมล"
+                                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-800 placeholder:text-slate-400"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                     />
@@ -136,69 +180,69 @@ const LoginPage = ({ onLogin }) => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                                <label className="text-sm font-semibold text-slate-700 block">รหัสผ่าน</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                                     <input
                                         required
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="Enter your password"
-                                        className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-700 placeholder:text-slate-300"
+                                        placeholder="กรุณากรอกรหัสผ่าน"
+                                        className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all font-medium text-slate-800 placeholder:text-slate-400"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
                                     >
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between py-2 text-sm font-bold">
-                                <label className="flex items-center gap-2 cursor-pointer text-slate-500 hover:text-slate-700">
-                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                                    Remember me
+                            <div className="flex items-center justify-between py-1">
+                                <label className="flex items-center gap-2 cursor-pointer text-slate-600 hover:text-slate-800 transition-colors">
+                                    <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-2 focus:ring-emerald-500/20" />
+                                    <span className="text-sm font-medium">จดจำการเข้าสู่ระบบ</span>
                                 </label>
-                                <a href="#" className="text-emerald-600 hover:text-emerald-700">Forgot Password?</a>
+                                <a href="#" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors">ลืมรหัสผ่าน?</a>
                             </div>
 
                             <button
+                                type="submit"
                                 disabled={isLoading}
-                                className={`w-full py-4 rounded-2xl bg-emerald-600 text-white font-black uppercase tracking-widest shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:shadow-emerald-300 transition-all flex items-center justify-center gap-3 relative overflow-hidden ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
+                                className={`w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/30 hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl hover:shadow-emerald-500/40 transition-all flex items-center justify-center gap-2 relative overflow-hidden ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                                        <span>กำลังเข้าระบบ...</span>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>กำลังเข้าสู่ระบบ...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span>Sign In</span>
-                                        <ArrowRight className="w-5 h-5" />
+                                        <span>เข้าสู่ระบบ</span>
+                                        <ArrowRight className="w-4 h-4" />
                                     </>
                                 )}
                             </button>
                         </form>
 
-                        <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Authorized Access Only</p>
-                            <div className="flex gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                        {/* Security Notice */}
+                        <div className="mt-10 pt-6 border-t border-slate-200">
+                            <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
+                                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                <span className="font-medium">การเข้าถึงระบบนี้จำกัดเฉพาะผู้ใช้ที่ได้รับอนุญาตเท่านั้น</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Copyright Footer */}
-            <div className="absolute bottom-8 w-full text-center">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                    © 2024 KU CO-OPERATIVE STORE LIMITED • VER 1.0.4
+            {/* Footer */}
+            <div className="absolute bottom-6 w-full text-center z-10">
+                <p className="text-slate-500 text-xs font-medium">
+                    © 2024 สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด • เวอร์ชัน 1.0.4
                 </p>
             </div>
         </div>
