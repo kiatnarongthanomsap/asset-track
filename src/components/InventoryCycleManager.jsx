@@ -83,6 +83,12 @@ const InventoryCycleManager = ({ user, onCycleSelect, onViewChange }) => {
         try {
             // ดึงทรัพย์สินทั้งหมด
             const assets = await supabaseService.fetchAssets();
+            
+            // ตรวจสอบว่าได้ assets หรือไม่
+            if (!assets || assets.length === 0) {
+                setError('ไม่พบทรัพย์สินในระบบ กรุณาเพิ่มทรัพย์สินก่อนสร้างรอบการตรวจนับ');
+                return;
+            }
 
             const result = await supabaseService.createInventoryCycle({
                 ...formData,

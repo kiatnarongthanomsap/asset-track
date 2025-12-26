@@ -14,10 +14,15 @@ import {
 import StatusBadge from './StatusBadge';
 import QRCodeScanner from './QRCodeScanner';
 import * as supabaseService from '../services/supabaseService';
+import { hasRealImage } from '../utils/assetManager';
+import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import { ToastContainer, useToast } from './Toast';
 
-const InventoryCountingView = ({ cycle, user, onBack }) => {
+const InventoryCountingView = ({ cycle, user, onBack, categories = [] }) => {
+    const toast = useToast();
     const [assets, setAssets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [summary, setSummary] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all'); // all, pending, found, not_found, damaged, moved
     const [saving, setSaving] = useState(false);
@@ -58,9 +63,18 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     statusFilter === 'damaged' ? 'Damaged' : 'Moved';
             }
 
-            const result = await supabaseService.fetchAssetsForCounting(cycle.id, filters);
+            // ดึงข้อมูล assets และ summary พร้อมกัน
+            const [result, summaryResult] = await Promise.all([
+                supabaseService.fetchAssetsForCounting(cycle.id, filters),
+                supabaseService.getInventorySummary(cycle.id)
+            ]);
+
             if (result.status === 'success') {
                 setAssets(result.data);
+            }
+
+            if (summaryResult.status === 'success') {
+                setSummary(summaryResult.data);
             }
         } catch (error) {
             console.error('Error fetching assets:', error);
@@ -78,19 +92,26 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
         setSaving(true);
         try {
             const asset = selectedAsset.asset;
+            if (!asset || !asset.id) {
+                alert('ไม่พบข้อมูลทรัพย์สิน');
+                return;
+            }
+
             const result = await supabaseService.saveInventoryCount({
-                id: selectedAsset.id,
+                id: selectedAsset.id, // inventory_count id ถ้ามี (สำหรับ update)
                 cycle_id: cycle.id,
-                asset_id: asset?.id || selectedAsset.asset_id,
-                asset_code: asset?.code || selectedAsset.asset_code,
+                asset_id: asset.id,
+                asset_code: asset.code,
+                asset: asset, // ส่ง asset object ไปด้วยเพื่อตรวจสอบ location_match
                 counted_status: countData.counted_status,
-                counted_location: countData.counted_location || asset?.location || '',
+                counted_location: countData.counted_location || asset.location || '',
                 counted_by: user.id,
                 counted_date: new Date().toISOString().split('T')[0],
                 counted_notes: countData.counted_notes,
-                location_match: (countData.counted_location || asset?.location) === asset?.location,
+                location_match: (countData.counted_location || asset.location) === asset.location,
                 status_match: true,
-                condition_match: countData.counted_status === 'Found' || countData.counted_status === 'Damaged'
+                condition_match: countData.counted_status === 'Found' || countData.counted_status === 'Damaged',
+                requires_adjustment: false
             });
 
             if (result.status === 'success') {
@@ -100,14 +121,15 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     counted_location: '',
                     counted_notes: ''
                 });
-                fetchAssets();
-                alert('บันทึกผลการตรวจนับสำเร็จ');
+                // Refresh data to update summary
+                await fetchAssets();
+                toast.success('บันทึกผลการตรวจนับสำเร็จ');
             } else {
-                alert('เกิดข้อผิดพลาด: ' + result.message);
+                toast.error('เกิดข้อผิดพลาด: ' + result.message);
             }
         } catch (error) {
             console.error('Error saving count:', error);
-            alert('เกิดข้อผิดพลาดในการบันทึก');
+            toast.error('เกิดข้อผิดพลาดในการบันทึก');
         } finally {
             setSaving(false);
         }
@@ -142,8 +164,9 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }, 100);
+            toast.success(`พบครุภัณฑ์รหัส "${scannedCodeClean}"`);
         } else {
-            alert(`ไม่พบครุภัณฑ์รหัส "${scannedCodeClean}" ในรอบการตรวจนับนี้`);
+            toast.warning(`ไม่พบครุภัณฑ์รหัส "${scannedCodeClean}" ในรอบการตรวจนับนี้`);
             setShowQRScanner(false);
         }
     };
@@ -194,9 +217,24 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
         );
     }
 
+    if (!cycle) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-slate-500">ไม่พบข้อมูลรอบการตรวจนับ</p>
+            </div>
+        );
+    }
+
+    // คำนวณ progress percent
+    const progressPercent = summary && summary.total > 0 
+        ? Math.round((summary.counted / summary.total) * 100) 
+        : 0;
+
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
-            {/* Header */}
+        <>
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+            <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+                {/* Header */}
             <div className="mb-6">
                 <button
                     onClick={onBack}
@@ -206,8 +244,71 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     กลับ
                 </button>
                 <h2 className="text-3xl font-bold text-slate-800 tracking-tight">{cycle.cycle_name}</h2>
-                <p className="text-slate-500 mt-1">ตรวจนับครุภัณฑ์ - {filteredAssets.length} รายการ</p>
+                <p className="text-slate-500 mt-1">ตรวจนับครุภัณฑ์ - {summary ? summary.total : filteredAssets.length} รายการ</p>
             </div>
+
+            {/* Summary Cards */}
+            {summary && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                    <div className="bg-white rounded-2xl p-4 border border-slate-100">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ทั้งหมด</p>
+                            <Package className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <p className="text-2xl font-black text-slate-800">{summary.total}</p>
+                        <p className="text-xs text-slate-500 mt-1">รายการ</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 border border-slate-100">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ตรวจนับแล้ว</p>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <p className="text-2xl font-black text-emerald-600">{summary.counted}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1 bg-slate-100 rounded-full h-1.5">
+                                <div
+                                    className="bg-emerald-500 h-1.5 rounded-full transition-all"
+                                    style={{ width: `${progressPercent}%` }}
+                                />
+                            </div>
+                            <span className="text-xs font-bold text-slate-600">{progressPercent}%</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 border border-emerald-100 bg-emerald-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">พบ</p>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <p className="text-2xl font-black text-emerald-700">{summary.found || 0}</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 border border-red-100 bg-red-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-red-600 uppercase tracking-wider">ไม่พบ</p>
+                            <XCircle className="w-4 h-4 text-red-600" />
+                        </div>
+                        <p className="text-2xl font-black text-red-700">{summary.notFound || 0}</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 border border-amber-100 bg-amber-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">สภาพเปลี่ยน</p>
+                            <AlertTriangle className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <p className="text-2xl font-black text-amber-700">{summary.damaged || 0}</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-4 border border-blue-100 bg-blue-50/50">
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">ย้ายที่</p>
+                            <MapPin className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <p className="text-2xl font-black text-blue-700">{summary.moved || 0}</p>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Asset List */}
@@ -274,36 +375,109 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                                                 : 'border-slate-100 hover:border-emerald-200'
                                         }`}
                                     >
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
+                                        <div className="flex items-start gap-4">
+                                            {/* Image/Icon */}
+                                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative">
+                                                {hasRealImage(asset.image) ? (
+                                                    <img 
+                                                        src={asset.image} 
+                                                        alt={asset.name} 
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            const iconContainer = e.target.nextElementSibling;
+                                                            if (iconContainer) {
+                                                                iconContainer.style.display = 'flex';
+                                                            }
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
+                                                    {(() => {
+                                                        try {
+                                                            const iconName = getIconNameFromCategories(asset.category, categories || []);
+                                                            const IconComponent = getCategoryIcon(asset.category, iconName);
+                                                            return <IconComponent className="w-8 h-8 text-slate-500" strokeWidth={2} />;
+                                                        } catch (error) {
+                                                            console.error('Error rendering icon:', error);
+                                                            return <Package className="w-8 h-8 text-slate-500" strokeWidth={2} />;
+                                                        }
+                                                    })()}
+                                                </div>
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-2 flex-wrap">
                                                     <span className="font-mono text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
                                                         {asset.code}
                                                     </span>
-                                                    {item.counted_status && getStatusIcon(item.counted_status)}
+                                                    {/* แสดงสถานะการตรวจนับ */}
+                                                    {item.counted_status ? (
+                                                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border-2" style={{
+                                                            borderColor: item.counted_status === 'Found' ? '#10b981' :
+                                                                         item.counted_status === 'Not Found' ? '#ef4444' :
+                                                                         item.counted_status === 'Damaged' ? '#f59e0b' :
+                                                                         '#3b82f6',
+                                                            backgroundColor: item.counted_status === 'Found' ? '#ecfdf5' :
+                                                                             item.counted_status === 'Not Found' ? '#fef2f2' :
+                                                                             item.counted_status === 'Damaged' ? '#fffbeb' :
+                                                                             '#eff6ff'
+                                                        }}>
+                                                            {getStatusIcon(item.counted_status)}
+                                                            <span className="text-xs font-bold" style={{
+                                                                color: item.counted_status === 'Found' ? '#059669' :
+                                                                       item.counted_status === 'Not Found' ? '#dc2626' :
+                                                                       item.counted_status === 'Damaged' ? '#d97706' :
+                                                                       '#2563eb'
+                                                            }}>
+                                                                {getStatusLabel(item.counted_status)}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                                                            <Package className="w-4 h-4 text-slate-400" />
+                                                            <span className="text-xs font-bold text-slate-500">ยังไม่ตรวจนับ</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <h4 className="font-bold text-slate-800 mb-1">{asset.name}</h4>
-                                                <div className="flex items-center gap-4 text-sm text-slate-600">
-                                                    <span>{asset.brand}</span>
+                                                <h4 className="font-bold text-slate-800 mb-1 line-clamp-2">{asset.name}</h4>
+                                                <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
+                                                    {asset.brand && <span>{asset.brand}</span>}
                                                     <span className="flex items-center">
-                                                        <MapPin className="w-4 h-4 mr-1" />
-                                                        {asset.location}
+                                                        <MapPin className="w-4 h-4 mr-1 shrink-0" />
+                                                        <span className="line-clamp-1">{asset.location}</span>
                                                     </span>
                                                 </div>
+                                                {/* แสดงข้อมูลการตรวจนับ */}
                                                 {item.counted_status && (
-                                                    <div className="mt-2">
-                                                        <span className="text-xs font-bold text-emerald-600">
-                                                            {getStatusLabel(item.counted_status)}
-                                                        </span>
+                                                    <div className="mt-2 space-y-1">
                                                         {item.counted_location && item.counted_location !== asset.location && (
-                                                            <span className="text-xs text-amber-600 ml-2">
-                                                                (พบที่: {item.counted_location})
-                                                            </span>
+                                                            <div className="flex items-center gap-1">
+                                                                <MapPin className="w-3 h-3 text-amber-600" />
+                                                                <span className="text-xs text-amber-600 font-medium">
+                                                                    พบที่: {item.counted_location}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {item.counted_date && (
+                                                            <div className="text-xs text-slate-500">
+                                                                วันที่ตรวจนับ: {new Date(item.counted_date).toLocaleDateString('th-TH')}
+                                                            </div>
+                                                        )}
+                                                        {item.counted_notes && (
+                                                            <div className="text-xs text-slate-600 italic line-clamp-1">
+                                                                หมายเหตุ: {item.counted_notes}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 )}
                                             </div>
-                                            <StatusBadge status={asset.status} />
+
+                                            {/* Status Badge - สถานะทรัพย์สินในระบบ */}
+                                            <div className="shrink-0">
+                                                <StatusBadge status={asset.status} />
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -419,7 +593,8 @@ const InventoryCountingView = ({ cycle, user, onBack }) => {
                     onClose={() => setShowQRScanner(false)}
                 />
             )}
-        </div>
+            </div>
+        </>
     );
 };
 

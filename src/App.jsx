@@ -9,7 +9,8 @@ import {
     CreditCard,
     LogOut,
     ClipboardCheck,
-    ShieldCheck
+    ShieldCheck,
+    QrCode
 } from 'lucide-react';
 
 import CoopHeader from './components/CoopHeader';
@@ -33,11 +34,13 @@ import InventoryCycleManager from './components/InventoryCycleManager';
 import InventoryCountingView from './components/InventoryCountingView';
 import InventoryReconciliation from './components/InventoryReconciliation';
 import InventoryReport from './components/InventoryReport';
+import { ToastContainer, useToast } from './components/Toast';
 import * as supabaseService from './services/supabaseService';
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const toast = useToast();
 
     // -- State Management --
     const [user, setUser] = useState(null);
@@ -147,17 +150,17 @@ export default function App() {
 
     const handleSaveAsset = async (savedAsset) => {
         try {
-            const result = await supabaseService.saveAsset(savedAsset);
+            const result = await supabaseService.saveAsset(savedAsset, user);
             if (result.status === 'success') {
                 fetchData(); // Refresh all data
                 setIsEditModalOpen(false);
             } else {
                 console.error('Failed to save asset:', result.message);
-                alert('ไม่สามารถบันทึกข้อมูลได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
+                toast.error('ไม่สามารถบันทึกข้อมูลได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
             }
         } catch (error) {
             console.error('Failed to save asset:', error);
-            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            toast.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
     };
 
@@ -166,7 +169,7 @@ export default function App() {
         if (!asset) return;
 
         try {
-            const result = await supabaseService.updateAssetStatus(assetId, newStatus);
+            const result = await supabaseService.updateAssetStatus(assetId, newStatus, user);
             if (result.status === 'success') {
                 fetchData();
             } else {
@@ -182,6 +185,7 @@ export default function App() {
         { id: 'assets', label: 'ทะเบียนทรัพย์สิน', icon: Package },
         { id: 'inventory', label: 'ตรวจนับครุภัณฑ์', icon: ClipboardCheck },
         { id: 'reports', label: 'รายงานธุรกรรม', icon: BarChart3 },
+        { id: 'sticker', label: 'พิมพ์สติ๊กเกอร์', icon: QrCode, action: 'modal' },
         { id: 'settings', label: 'ตั้งค่าระบบ', icon: Settings },
     ];
 
@@ -192,6 +196,9 @@ export default function App() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col md:flex-row">
             <div className="fixed inset-0 bg-gray-50/50 pointer-events-none z-0"></div>
+            
+            {/* Toast Container */}
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
 
             {/* Edit Modal */}
             <EditAssetModal
@@ -255,9 +262,15 @@ export default function App() {
                             <button
                                 key={item.id}
                                 onClick={() => {
+                                    // Handle modal actions (like sticker print)
+                                    if (item.action === 'modal' && item.id === 'sticker') {
+                                        setIsStickerModalOpen(true);
+                                        setIsMobileMenuOpen(false);
+                                        return;
+                                    }
                                     // Double check permission before switching to settings
                                     if (item.id === 'settings' && user && !supabaseService.canAccessSettings(user)) {
-                                        alert('คุณไม่มีสิทธิ์เข้าถึงการตั้งค่า');
+                                        toast.error('คุณไม่มีสิทธิ์เข้าถึงการตั้งค่า');
                                         return;
                                     }
                                     setActiveTab(item.id);
@@ -393,20 +406,6 @@ export default function App() {
                             </div>
                         </div>
 
-                        {/* Alerts and Monitoring Section */}
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/50 to-orange-50/50 rounded-3xl blur-2xl"></div>
-                            <div className="relative bg-white rounded-3xl shadow-lg border-2 border-slate-200 p-6 sm:p-8">
-                                <AlertSection
-                                    assets={assets}
-                                    onAlertClick={(asset) => {
-                                        setCurrentAsset(asset);
-                                        setIsEditModalOpen(true);
-                                    }}
-                                />
-                            </div>
-                        </div>
-
                         {/* Financial Summary Section */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-emerald-50/50 rounded-3xl blur-2xl"></div>
@@ -453,7 +452,6 @@ export default function App() {
                         initialCategoryFilter={categoryFilter}
                         onCategoryFilterChange={setCategoryFilter}
                         categories={categories}
-                        onPrintStickers={() => setIsStickerModalOpen(true)}
                     />
                 )}
 
@@ -476,6 +474,7 @@ export default function App() {
                             <InventoryCountingView
                                 cycle={selectedCycle}
                                 user={user}
+                                categories={categories}
                                 onBack={() => {
                                     setSelectedCycle(null);
                                     setInventoryView('manager');

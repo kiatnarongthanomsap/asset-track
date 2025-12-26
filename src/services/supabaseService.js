@@ -210,7 +210,7 @@ export const fetchAssets = async () => {
   }
 }
 
-export const saveAsset = async (asset) => {
+export const saveAsset = async (asset, user = null) => {
   try {
     const assetData = {
       code: asset.code,
@@ -233,8 +233,31 @@ export const saveAsset = async (asset) => {
     }
 
     let result
+    const isNewAsset = !asset.id || isNaN(asset.id)
 
-    if (asset.id && !isNaN(asset.id)) {
+    if (isNewAsset) {
+      // Insert new asset
+      const { data, error } = await supabase
+        .from('assets')
+        .insert(assetData)
+        .select()
+        .single()
+
+      if (error) throw error
+      result = { status: 'success', data }
+
+      // สร้าง audit log สำหรับการเพิ่มทรัพย์สิน
+      try {
+        await createAuditLog({
+          action: 'เพิ่ม',
+          asset_code: assetData.code,
+          operator: user?.name || user?.username || 'System',
+          document_ref: null
+        })
+      } catch (logError) {
+        console.warn('Error creating audit log:', logError)
+      }
+    } else {
       // Update existing asset
       const { data, error } = await supabase
         .from('assets')
@@ -245,16 +268,18 @@ export const saveAsset = async (asset) => {
 
       if (error) throw error
       result = { status: 'success', data }
-    } else {
-      // Insert new asset
-      const { data, error } = await supabase
-        .from('assets')
-        .insert(assetData)
-        .select()
-        .single()
 
-      if (error) throw error
-      result = { status: 'success', data }
+      // สร้าง audit log สำหรับการแก้ไขทรัพย์สิน
+      try {
+        await createAuditLog({
+          action: 'แก้ไข',
+          asset_code: assetData.code,
+          operator: user?.name || user?.username || 'System',
+          document_ref: null
+        })
+      } catch (logError) {
+        console.warn('Error creating audit log:', logError)
+      }
     }
 
     return result
@@ -264,14 +289,36 @@ export const saveAsset = async (asset) => {
   }
 }
 
-export const deleteAsset = async (assetId) => {
+export const deleteAsset = async (assetId, user = null) => {
   try {
+    // ดึงข้อมูลทรัพย์สินก่อนลบเพื่อใช้ใน audit log
+    const { data: asset, error: fetchError } = await supabase
+      .from('assets')
+      .select('code')
+      .eq('id', assetId)
+      .single()
+
+    if (fetchError) throw fetchError
+
     const { error } = await supabase
       .from('assets')
       .delete()
       .eq('id', assetId)
 
     if (error) throw error
+
+    // สร้าง audit log สำหรับการลบทรัพย์สิน
+    try {
+      await createAuditLog({
+        action: 'ลบ',
+        asset_code: asset?.code || null,
+        operator: user?.name || user?.username || 'System',
+        document_ref: null
+      })
+    } catch (logError) {
+      console.warn('Error creating audit log:', logError)
+    }
+
     return { status: 'success' }
   } catch (error) {
     console.error('Error deleting asset:', error)
@@ -279,14 +326,46 @@ export const deleteAsset = async (assetId) => {
   }
 }
 
-export const updateAssetStatus = async (assetId, newStatus) => {
+export const updateAssetStatus = async (assetId, newStatus, user = null) => {
   try {
+    // ดึงข้อมูลทรัพย์สินก่อนอัพเดทเพื่อใช้ใน audit log
+    const { data: asset, error: fetchError } = await supabase
+      .from('assets')
+      .select('code, status')
+      .eq('id', assetId)
+      .single()
+
+    if (fetchError) throw fetchError
+
     const { error } = await supabase
       .from('assets')
       .update({ status: newStatus })
       .eq('id', assetId)
 
     if (error) throw error
+
+    // สร้าง audit log ตามสถานะที่เปลี่ยน
+    try {
+      let action = null
+      if (newStatus === 'Repair') {
+        action = 'ซ่อม'
+      } else if (newStatus === 'Disposed') {
+        action = 'จำหน่าย'
+      }
+
+      // สร้าง audit log เฉพาะเมื่อเปลี่ยนเป็นสถานะที่ต้องการบันทึก
+      if (action) {
+        await createAuditLog({
+          action: action,
+          asset_code: asset?.code || null,
+          operator: user?.name || user?.username || 'System',
+          document_ref: null
+        })
+      }
+    } catch (logError) {
+      console.warn('Error creating audit log:', logError)
+    }
+
     return { status: 'success' }
   } catch (error) {
     console.error('Error updating asset status:', error)
@@ -657,12 +736,22 @@ export const createInventoryCycle = async (cycleData) => {
     if (error) throw error
 
     // สร้าง inventory_counts records สำหรับทรัพย์สินทั้งหมด (หรือตาม filter)
-    if (cycleData.assets && cycleData.assets.length > 0) {
-      const countsData = cycleData.assets.map(asset => ({
+    if (cycleData.assets && Array.isArray(cycleData.assets) && cycleData.assets.length > 0) {
+      // กรองเฉพาะ assets ที่มี id และ code
+      const validAssets = cycleData.assets.filter(asset => asset && asset.id && asset.code)
+      
+      if (validAssets.length === 0) {
+        console.warn('No valid assets to create inventory counts')
+        return { status: 'success', data }
+      }
+
+      const countsData = validAssets.map(asset => ({
         cycle_id: data.id,
         asset_id: asset.id,
         asset_code: asset.code
       }))
+
+      console.log(`Creating ${countsData.length} inventory count records for cycle ${data.id}`)
 
       const { error: countsError } = await supabase
         .from('inventory_counts')
@@ -672,8 +761,12 @@ export const createInventoryCycle = async (cycleData) => {
         console.error('Error creating inventory counts:', countsError)
         // Rollback cycle creation
         await supabase.from('inventory_cycles').delete().eq('id', data.id)
-        throw countsError
+        throw new Error(`ไม่สามารถสร้างรายการตรวจนับได้: ${countsError.message}`)
       }
+      
+      console.log(`Successfully created ${countsData.length} inventory count records`)
+    } else {
+      console.warn('No assets provided or assets array is empty')
     }
 
     return { status: 'success', data }
@@ -844,7 +937,16 @@ export const saveInventoryCount = async (countData) => {
       if (error) throw error
       result = { status: 'success', data }
     } else {
-      // Insert new count - ตรวจสอบว่าเป็นการตรวจนับครั้งแรกหรือไม่
+      // Insert new count หรือ Upsert ถ้ามี record อยู่แล้ว
+      // ตรวจสอบว่ามี record อยู่แล้วหรือไม่ (สำหรับ asset นี้ใน cycle นี้)
+      const { data: existingCount } = await supabase
+        .from('inventory_counts')
+        .select('id')
+        .eq('cycle_id', countData.cycle_id)
+        .eq('asset_id', countData.asset_id)
+        .maybeSingle()
+
+      // ตรวจสอบว่าเป็นการตรวจนับครั้งแรกในรอบนี้หรือไม่
       const { data: existingCounts } = await supabase
         .from('inventory_counts')
         .select('id')
@@ -854,19 +956,51 @@ export const saveInventoryCount = async (countData) => {
 
       isFirstCount = !existingCounts || existingCounts.length === 0
 
-      const { data, error } = await supabase
-        .from('inventory_counts')
-        .insert({
-          cycle_id: countData.cycle_id,
-          asset_id: countData.asset_id,
-          asset_code: countData.asset_code,
-          ...updateData
-        })
-        .select()
-        .single()
+      let insertOrUpdateData
+      if (existingCount && existingCount.id) {
+        // มี record อยู่แล้ว (แต่อาจจะยังไม่มีการตรวจนับ) - Update
+        const { data, error } = await supabase
+          .from('inventory_counts')
+          .update(updateData)
+          .eq('id', existingCount.id)
+          .select()
+          .single()
 
-      if (error) throw error
-      result = { status: 'success', data }
+        if (error) throw error
+        result = { status: 'success', data }
+      } else {
+        // ไม่มี record - Insert ใหม่
+        const { data, error } = await supabase
+          .from('inventory_counts')
+          .insert({
+            cycle_id: countData.cycle_id,
+            asset_id: countData.asset_id,
+            asset_code: countData.asset_code,
+            ...updateData
+          })
+          .select()
+          .single()
+
+        if (error) {
+          // ถ้า error เป็น duplicate key ให้ลอง update แทน
+          if (error.code === '23505' || error.message?.includes('duplicate')) {
+            const { data: updateData, error: updateError } = await supabase
+              .from('inventory_counts')
+              .update(updateData)
+              .eq('cycle_id', countData.cycle_id)
+              .eq('asset_id', countData.asset_id)
+              .select()
+              .single()
+
+            if (updateError) throw updateError
+            result = { status: 'success', data: updateData }
+          } else {
+            throw error
+          }
+        } else {
+          result = { status: 'success', data }
+        }
+      }
     }
 
     // ============================================================================
@@ -994,6 +1128,32 @@ export const saveInventoryCount = async (countData) => {
       }
     }
 
+    // สร้าง audit log สำหรับการตรวจนับ
+    try {
+      // ดึงข้อมูล user สำหรับ operator (ถ้ามี counted_by)
+      let operator = 'System'
+      if (countData.counted_by) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('name, username')
+          .eq('id', countData.counted_by)
+          .single()
+        
+        if (userData) {
+          operator = userData.name || userData.username || 'System'
+        }
+      }
+
+      await createAuditLog({
+        action: 'ตรวจนับ',
+        asset_code: countData.asset_code || asset?.code || null,
+        operator: operator,
+        document_ref: `Cycle ${countData.cycle_id}`
+      })
+    } catch (logError) {
+      console.warn('Error creating audit log:', logError)
+    }
+
     return result
   } catch (error) {
     console.error('Error saving inventory count:', error)
@@ -1063,6 +1223,18 @@ export const fetchDiscrepancies = async (cycleId) => {
  */
 export const applyInventoryAdjustment = async (adjustmentData) => {
   try {
+    // ดึงข้อมูล asset เดิมเพื่อใช้เปรียบเทียบและสร้าง audit log
+    let oldLocation = null
+    const { data: oldAsset } = await supabase
+      .from('assets')
+      .select('location')
+      .eq('id', adjustmentData.asset_id)
+      .single()
+
+    if (oldAsset) {
+      oldLocation = oldAsset.location
+    }
+
     // อัพเดทข้อมูลทรัพย์สิน
     const assetUpdates = {}
     if (adjustmentData.new_location && adjustmentData.new_location.trim() !== '') {
@@ -1121,10 +1293,30 @@ export const applyInventoryAdjustment = async (adjustmentData) => {
 
     // สร้าง audit log
     try {
+      // กำหนด action ตามประเภทการแก้ไข
+      let action = 'แก้ไข' // default
+      if (adjustmentData.new_location && adjustmentData.new_location.trim() !== oldLocation) {
+        action = 'โอนย้าย' // ถ้ามีการเปลี่ยน location ให้ใช้ 'โอนย้าย'
+      }
+
+      // ดึงข้อมูล user สำหรับ operator
+      let operator = 'System'
+      if (adjustmentData.approved_by) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('name, username')
+          .eq('id', adjustmentData.approved_by)
+          .single()
+        
+        if (userData) {
+          operator = userData.name || userData.username || 'System'
+        }
+      }
+
       await createAuditLog({
-        action: `Inventory Adjustment: ${adjustmentData.reason}`,
+        action: action,
         asset_code: adjustmentData.asset_code,
-        operator: adjustmentData.approved_by?.toString() || 'System',
+        operator: operator,
         document_ref: `Cycle ${adjustmentData.cycle_id}`
       })
     } catch (logError) {

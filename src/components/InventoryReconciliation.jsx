@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import * as supabaseService from '../services/supabaseService';
+import { ToastContainer, useToast } from './Toast';
 
 const InventoryReconciliation = ({ cycle, user, onBack }) => {
+    const toast = useToast();
     const [discrepancies, setDiscrepancies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedItem, setSelectedItem] = useState(null);
@@ -45,19 +47,19 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
 
     const handleApplyAdjustment = async () => {
         if (!selectedItem) {
-            alert('กรุณาเลือกรายการที่ต้องการแก้ไข');
+            toast.warning('กรุณาเลือกรายการที่ต้องการแก้ไข');
             return;
         }
 
         if (!adjustmentData.reason || adjustmentData.reason.trim() === '') {
-            alert('กรุณากรอกเหตุผลในการแก้ไข');
+            toast.warning('กรุณากรอกเหตุผลในการแก้ไข');
             return;
         }
 
         // ตรวจสอบว่ามีข้อมูลที่ต้องแก้ไขหรือไม่
         const discrepancyType = getDiscrepancyType(selectedItem);
         if (discrepancyType === 'location' && (!adjustmentData.new_location || adjustmentData.new_location.trim() === '')) {
-            alert('กรุณากรอกสถานที่ใหม่');
+            toast.warning('กรุณากรอกสถานที่ใหม่');
             return;
         }
 
@@ -82,13 +84,13 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                     reason: ''
                 });
                 await fetchDiscrepancies();
-                alert('แก้ไขข้อมูลสำเร็จ');
+                toast.success('แก้ไขข้อมูลสำเร็จ');
             } else {
-                alert('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'));
+                toast.error('เกิดข้อผิดพลาด: ' + (result.message || 'ไม่ทราบสาเหตุ'));
             }
         } catch (error) {
             console.error('Error applying adjustment:', error);
-            alert('เกิดข้อผิดพลาดในการแก้ไข: ' + (error.message || 'ไม่ทราบสาเหตุ'));
+            toast.error('เกิดข้อผิดพลาดในการแก้ไข: ' + (error.message || 'ไม่ทราบสาเหตุ'));
         } finally {
             setSaving(false);
         }

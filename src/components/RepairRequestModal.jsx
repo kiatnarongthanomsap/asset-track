@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { X, Wrench, Download, FileText, User, CreditCard } from 'lucide-react';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 import { hasRealImage } from '../utils/assetManager';
+import { ToastContainer, useToast } from './Toast';
 
 const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
+    const toast = useToast();
     const [formData, setFormData] = useState({
         reason: '',
         serviceProvider: '',
@@ -14,12 +16,14 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         // Here we would typically save and generate the document
-        alert('ระบบจำลองการสร้างหนังสือขออนุมัติซ่อมเรียบร้อยแล้ว\n(กำลังดาวน์โหลดไฟล์...)');
+        toast.success('ระบบจำลองการสร้างหนังสือขออนุมัติซ่อมเรียบร้อยแล้ว (กำลังดาวน์โหลดไฟล์...)');
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <>
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="bg-gradient-to-r from-blue-700 to-indigo-600 p-8 text-white relative">
                     <button
@@ -151,7 +155,8 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
                     </div>
                 </form>
             </div>
-        </div>
+            </div>
+        </>
     );
 };
 

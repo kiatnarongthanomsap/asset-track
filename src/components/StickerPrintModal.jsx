@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Printer, QrCode, Grid, List, CheckCircle2, Filter, CheckCircle } from 'lucide-react';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 import * as supabaseService from '../services/supabaseService';
+import { ToastContainer, useToast } from './Toast';
 
 // QR Code Generator using Online API
 const QRCodeCanvas = ({ text, size = 100 }) => {
@@ -87,6 +88,7 @@ const QRCodeCanvas = ({ text, size = 100 }) => {
 };
 
 const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDataChange }) => {
+    const toast = useToast();
     const [selectedIds, setSelectedIds] = useState([]);
     const [layout, setLayout] = useState('grid'); // 'grid' or 'list'
     const [filterPending, setFilterPending] = useState(false);
@@ -126,7 +128,7 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
     // Mark stickers as printed after printing
     const handlePrint = async () => {
         if (printableAssets.length === 0) {
-            alert('กรุณาเลือกรายการที่ต้องการพิมพ์');
+            toast.warning('กรุณาเลือกรายการที่ต้องการพิมพ์');
             return;
         }
 
@@ -167,11 +169,11 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
                 await onDataChange();
             }
 
-            alert('บันทึกสถานะการพิมพ์สติ๊กเกอร์สำเร็จ');
+            toast.success('บันทึกสถานะการพิมพ์สติ๊กเกอร์สำเร็จ');
             setSelectedIds([]);
         } catch (error) {
             console.error('Error marking stickers as printed:', error);
-            alert('เกิดข้อผิดพลาดในการบันทึกสถานะ: ' + error.message);
+            toast.error('เกิดข้อผิดพลาดในการบันทึกสถานะ: ' + error.message);
         } finally {
             setIsMarkingPrinted(false);
         }
@@ -180,8 +182,10 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+        <>
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-12">
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
 
             <div className="relative bg-white w-full max-w-6xl h-full max-h-[90vh] rounded-2xl sm:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
@@ -409,8 +413,9 @@ const StickerPrintModal = ({ isOpen, onClose, assets = [], categories = [], onDa
                         }
                     }
                 `}} />
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

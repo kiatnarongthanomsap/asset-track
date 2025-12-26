@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import * as supabaseService from '../services/supabaseService';
+import { ToastContainer, useToast } from './Toast';
 
 export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) {
+    const toast = useToast();
     const [file, setFile] = useState(null);
     const [previewData, setPreviewData] = useState([]);
     const [validationResults, setValidationResults] = useState([]);
@@ -33,7 +35,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
         const fileExtension = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
 
         if (!validExtensions.includes(fileExtension)) {
-            alert('กรุณาเลือกไฟล์ Excel (.xlsx หรือ .xls) เท่านั้น');
+            toast.warning('กรุณาเลือกไฟล์ Excel (.xlsx หรือ .xls) เท่านั้น');
             return;
         }
 
@@ -54,7 +56,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
                 if (jsonData.length === 0) {
-                    alert('ไฟล์ Excel ว่างเปล่า');
+                    toast.warning('ไฟล์ Excel ว่างเปล่า');
                     return;
                 }
 
@@ -118,7 +120,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                 validateData(mappedData);
             } catch (error) {
                 console.error('Error reading Excel:', error);
-                alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel');
+                toast.error('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel');
             }
         };
 
@@ -168,7 +170,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
         const validRows = validationResults.filter(r => r.isValid);
 
         if (validRows.length === 0) {
-            alert('ไม่มีข้อมูลที่ถูกต้องสำหรับนำเข้า');
+            toast.warning('ไม่มีข้อมูลที่ถูกต้องสำหรับนำเข้า');
             return;
         }
 
@@ -206,13 +208,13 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                     total: result.total 
                 });
                 
-                alert(`นำเข้าข้อมูลเสร็จสิ้น\nสำเร็จ: ${result.inserted} รายการ\nล้มเหลว: ${result.total - result.inserted} รายการ`);
+                toast.success(`นำเข้าข้อมูลเสร็จสิ้น - สำเร็จ: ${result.inserted} รายการ, ล้มเหลว: ${result.total - result.inserted} รายการ`);
 
                 if (result.inserted > 0) {
                     onImportComplete?.();
                 }
             } else {
-                alert(`เกิดข้อผิดพลาด: ${result.message || 'ไม่สามารถนำเข้าข้อมูลได้'}`);
+                toast.error(`เกิดข้อผิดพลาด: ${result.message || 'ไม่สามารถนำเข้าข้อมูลได้'}`);
                 setImportStatus({ 
                     success: result.inserted || 0, 
                     failed: result.total - (result.inserted || 0), 
@@ -228,7 +230,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
 
         } catch (error) {
             console.error('Import error:', error);
-            alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
+            toast.error('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
         } finally {
             setImporting(false);
         }
@@ -261,7 +263,9 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
     const invalidCount = validationResults.filter(r => !r.isValid).length;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <>
+            <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6">
@@ -435,6 +439,7 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                     </button>
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     );
 }

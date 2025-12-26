@@ -5,7 +5,7 @@ import { calculateDepreciation } from '../utils/calculations';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 import { hasRealImage, exportAssetsToCSV } from '../utils/assetManager';
 
-const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user, onPrintStickers }) => {
+const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState(initialFilter);
     const [categoryFilter, setCategoryFilter] = useState(initialCategoryFilter);
@@ -79,14 +79,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                     <p className="text-sm sm:text-base text-slate-500 mt-1">จัดการข้อมูลทรัพย์สินและอุปกรณ์สำนักงาน</p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                    <button
-                        onClick={onPrintStickers}
-                        className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-amber-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-200 hover:shadow-amber-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
-                    >
-                        <Tag className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="hidden sm:inline">พิมพ์สติ๊กเกอร์</span>
-                        <span className="sm:hidden">สติ๊กเกอร์</span>
-                    </button>
                     <button
                         onClick={() => exportAssetsToCSV(data)}
                         className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transform hover:-translate-y-0.5 w-full sm:w-auto"

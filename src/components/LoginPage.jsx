@@ -107,8 +107,8 @@ const LoginPage = ({ onLogin }) => {
 
                             {/* Features */}
                             <div className="space-y-4">
-                                <div className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
-                                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                <div className="flex items-start gap-4 p-4 rounded-xl">
+                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
                                         <ShieldCheck className="w-5 h-5 text-emerald-400" />
                                     </div>
                                     <div>
@@ -116,8 +116,8 @@ const LoginPage = ({ onLogin }) => {
                                         <p className="text-xs text-slate-400">ระบบเข้ารหัสและควบคุมการเข้าถึง</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
-                                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                                <div className="flex items-start gap-4 p-4 rounded-xl">
+                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
                                         <Lock className="w-5 h-5 text-blue-400" />
                                     </div>
                                     <div>
