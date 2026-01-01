@@ -1,37 +1,73 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# Dependency directories
-node_modules/
-dist/
-dist-ssr/
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea/
+# OS files
 .DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.local
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Vite / Build
-dist
-dist-ssr
+# Testing
 *.lcov
+coverage/
+
+# SQL files (development/migration)
+*.sql
+
+# Documentation guides (not needed in repo)
+*_GUIDE.md
+*_SETUP.md
+*_FIXED.md
+*_COMPLETE.md
+*_SUMMARY.md
+*_WORKFLOW.md
+*_FORMAT.md
+*_MIGRATION.md
+
+# Test/temp files
+test.txt
+api_test.htm
+
+# Scripts (development only)
+*.sh
+*.py
+*.php
+
+# Data files
+*.xlsx
+*.xls
+*.csv
+
+# Old Vite files (already migrated to Next.js)
+/index.html
+/src/index.css
+/src/main.jsx
+/src/App.jsx
+/vite.config.js

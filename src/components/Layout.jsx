@@ -18,7 +18,7 @@ import * as supabaseService from '@/services/supabaseService';
 import { ToastContainer, useToast } from '@/components/Toast';
 import StickerPrintModal from '@/components/StickerPrintModal';
 
-export default function Layout({ children, user }) {
+export default function Layout({ children, user, headerAction }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -105,12 +105,12 @@ export default function Layout({ children, user }) {
 
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         ></div>
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl border-r border-slate-800`}>
+      <aside className={`fixed inset-y-0 left-0 z-[100] w-72 bg-slate-900 text-white transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl border-r border-slate-800`}>
         <div className="p-6 pb-4 flex justify-between items-center border-b border-slate-800">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -180,14 +180,21 @@ export default function Layout({ children, user }) {
       <main className="flex-1 overflow-auto h-screen flex flex-col relative z-10 w-full">
         <header className="bg-white border-b border-slate-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-white" />
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-slate-900 text-lg">AssetTrack</span>
             </div>
-            <span className="font-bold text-slate-900 text-lg">AssetTrack</span>
           </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-            <Menu className="w-6 h-6" />
-          </button>
+          {headerAction && (
+            <div className="flex items-center">
+              {headerAction}
+            </div>
+          )}
         </header>
 
         {children}
