@@ -56,6 +56,7 @@ export default function App() {
     const [repairAsset, setRepairAsset] = useState(null);
     const [selectedCycle, setSelectedCycle] = useState(null);
     const [inventoryView, setInventoryView] = useState('manager'); // manager, counting, reconciliation, report
+    const [isLoading, setIsLoading] = useState(false);
 
     // -- API Interaction --
     useEffect(() => {
@@ -65,7 +66,9 @@ export default function App() {
     }, [user]);
 
     const fetchData = async () => {
+        setIsLoading(true);
         try {
+            // ใช้ Promise.all เพื่อดึงข้อมูลพร้อมกัน
             const [assetsData, logsData, catsData] = await Promise.all([
                 supabaseService.fetchAssets(),
                 supabaseService.fetchAuditLogs(),
@@ -95,6 +98,8 @@ export default function App() {
             setAssets([]);
             setAuditLogs([]);
             setCategories([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 

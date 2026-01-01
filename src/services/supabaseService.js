@@ -147,8 +147,9 @@ export const fetchAssets = async () => {
   try {
     const { data, error } = await supabase
       .from('assets')
-      .select('*')
+      .select('id, code, name, brand, color, serial, price, location, status, purchase_date, category, useful_life, image, is_sticker_printed, notes, custodian, vendor, warranty_expiry')
       .order('code', { ascending: true })
+      .limit(10000) // เพิ่ม limit เพื่อป้องกันการดึงข้อมูลมากเกินไป
 
     if (error) {
       console.error('Supabase assets error:', error)
@@ -381,7 +382,7 @@ export const fetchAuditLogs = async () => {
   try {
     const { data, error } = await supabase
       .from('audit_logs')
-      .select('*')
+      .select('id, action_date, action, asset_code, operator, document_ref')
       .order('action_date', { ascending: false })
       .limit(100)
 
