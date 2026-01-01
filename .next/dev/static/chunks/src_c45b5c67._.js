@@ -5588,7 +5588,9 @@ function AssetsContent() {
                 setAssetFilter(filter);
             }
             if (category) {
-                setCategoryFilter(category);
+                // Decode category name จาก URL
+                const decodedCategory = decodeURIComponent(category);
+                setCategoryFilter(decodedCategory);
             }
             if (editId && assets.length > 0) {
                 const asset = assets.find({
@@ -5693,7 +5695,7 @@ function AssetsContent() {
                 categories: categories
             }, void 0, false, {
                 fileName: "[project]/src/app/assets/page.jsx",
-                lineNumber: 139,
+                lineNumber: 141,
                 columnNumber: 7
             }, this),
             repairAsset && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$RepairRequestModal$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -5703,7 +5705,7 @@ function AssetsContent() {
                 user: user
             }, void 0, false, {
                 fileName: "[project]/src/app/assets/page.jsx",
-                lineNumber: 147,
+                lineNumber: 149,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$AssetRegistry$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -5719,13 +5721,13 @@ function AssetsContent() {
                 categories: categories
             }, void 0, false, {
                 fileName: "[project]/src/app/assets/page.jsx",
-                lineNumber: 154,
+                lineNumber: 156,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/assets/page.jsx",
-        lineNumber: 138,
+        lineNumber: 140,
         columnNumber: 5
     }, this);
 }
@@ -5744,17 +5746,17 @@ function AssetsPage() {
             children: "Loading..."
         }, void 0, false, {
             fileName: "[project]/src/app/assets/page.jsx",
-            lineNumber: 172,
+            lineNumber: 174,
             columnNumber: 25
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AssetsContent, {}, void 0, false, {
             fileName: "[project]/src/app/assets/page.jsx",
-            lineNumber: 173,
+            lineNumber: 175,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/assets/page.jsx",
-        lineNumber: 172,
+        lineNumber: 174,
         columnNumber: 5
     }, this);
 }

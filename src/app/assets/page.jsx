@@ -42,7 +42,9 @@ function AssetsContent() {
       setAssetFilter(filter);
     }
     if (category) {
-      setCategoryFilter(category);
+      // Decode category name จาก URL
+      const decodedCategory = decodeURIComponent(category);
+      setCategoryFilter(decodedCategory);
     }
     if (editId && assets.length > 0) {
       const asset = assets.find(a => a.id === parseInt(editId));
