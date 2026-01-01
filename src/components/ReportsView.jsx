@@ -168,8 +168,9 @@ const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
                         <button
                             onClick={handlePrint}
                             className="flex items-center justify-center px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 flex-1 sm:flex-initial"
+                            style={{ color: '#ffffff' }}
                         >
-                            <Printer className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" /> 
+                            <Printer className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" style={{ color: '#ffffff', stroke: '#ffffff' }} /> 
                             <span className="hidden sm:inline">พิมพ์รายงาน</span>
                             <span className="sm:hidden">พิมพ์</span>
                         </button>

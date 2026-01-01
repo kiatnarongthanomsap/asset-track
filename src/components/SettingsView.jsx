@@ -214,6 +214,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                     onClick={handleSaveAllSettings}
                     disabled={isSaving}
                     className={`flex items-center px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={{ color: '#ffffff' }}
                 >
                     {isSaving ? (
                         <>

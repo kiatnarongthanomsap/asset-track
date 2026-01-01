@@ -150,27 +150,54 @@ const InventoryCountingView = ({ cycle, user, onBack, categories = [], onCountSa
     };
 
     const handleQRScan = (scannedCode) => {
-        // ค้นหา asset ที่มี code ตรงกับที่สแกนได้
-        const scannedCodeClean = scannedCode.trim().toUpperCase();
-        const foundAsset = assets.find(item => {
-            const asset = item.asset;
-            if (!asset) return false;
-            return asset.code.toUpperCase() === scannedCodeClean;
-        });
+        try {
+            // ตรวจสอบว่า scannedCode มีค่าหรือไม่
+            if (!scannedCode || typeof scannedCode !== 'string') {
+                toast.error('ไม่สามารถอ่าน QR Code ได้ กรุณาลองใหม่อีกครั้ง');
+                return;
+            }
 
-        if (foundAsset) {
-            handleAssetClick(foundAsset);
-            setShowQRScanner(false);
-            // Scroll to selected asset
-            setTimeout(() => {
-                const element = document.getElementById(`asset-${foundAsset.id}`);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 100);
-            toast.success(`พบครุภัณฑ์รหัส "${scannedCodeClean}"`);
-        } else {
-            toast.warning(`ไม่พบครุภัณฑ์รหัส "${scannedCodeClean}" ในรอบการตรวจนับนี้`);
+            // ค้นหา asset ที่มี code ตรงกับที่สแกนได้
+            const scannedCodeClean = scannedCode.trim().toUpperCase();
+            
+            if (!scannedCodeClean) {
+                toast.error('QR Code ที่สแกนได้ว่างเปล่า');
+                return;
+            }
+
+            // ตรวจสอบว่า assets array มีข้อมูลหรือไม่
+            if (!assets || !Array.isArray(assets) || assets.length === 0) {
+                toast.warning('ยังไม่มีข้อมูลครุภัณฑ์ในรอบการตรวจนับนี้');
+                setShowQRScanner(false);
+                return;
+            }
+
+            const foundAsset = assets.find(item => {
+                if (!item) return false;
+                const asset = item.asset;
+                if (!asset || !asset.code) return false;
+                const assetCode = String(asset.code).trim().toUpperCase();
+                return assetCode === scannedCodeClean;
+            });
+
+            if (foundAsset) {
+                handleAssetClick(foundAsset);
+                setShowQRScanner(false);
+                // Scroll to selected asset
+                setTimeout(() => {
+                    const element = document.getElementById(`asset-${foundAsset.id}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+                toast.success(`พบครุภัณฑ์รหัส "${scannedCodeClean}"`);
+            } else {
+                toast.warning(`ไม่พบครุภัณฑ์รหัส "${scannedCodeClean}" ในรอบการตรวจนับนี้`);
+                setShowQRScanner(false);
+            }
+        } catch (error) {
+            console.error('Error handling QR scan:', error);
+            toast.error('เกิดข้อผิดพลาดในการประมวลผล QR Code: ' + (error.message || 'Unknown error'));
             setShowQRScanner(false);
         }
     };
@@ -336,8 +363,9 @@ const InventoryCountingView = ({ cycle, user, onBack, categories = [], onCountSa
                                         onClick={() => setShowQRScanner(true)}
                                         className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center"
                                         title="สแกน QR Code"
+                                        style={{ color: '#ffffff' }}
                                     >
-                                        <QrCode className="w-5 h-5" />
+                                        <QrCode className="w-5 h-5" style={{ color: '#ffffff', stroke: '#ffffff' }} />
                                     </button>
                                 )}
                                 <select
@@ -566,6 +594,7 @@ const InventoryCountingView = ({ cycle, user, onBack, categories = [], onCountSa
                                     onClick={handleSaveCount}
                                     disabled={!countData.counted_status || saving}
                                     className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                    style={{ color: '#ffffff' }}
                                 >
                                     {saving ? (
                                         <>

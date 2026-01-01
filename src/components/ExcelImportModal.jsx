@@ -302,8 +302,9 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                                 <button
                                     onClick={downloadTemplate}
                                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    style={{ color: '#ffffff' }}
                                 >
-                                    ดาวน์โหลด Template
+                                    <span style={{ color: '#ffffff' }}>ดาวน์โหลด Template</span>
                                 </button>
                             </div>
                         </div>
@@ -326,8 +327,9 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                             <label
                                 htmlFor="excel-upload"
                                 className="cursor-pointer inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                                style={{ color: '#ffffff' }}
                             >
-                                เลือกไฟล์
+                                <span style={{ color: '#ffffff' }}>เลือกไฟล์</span>
                             </label>
                             {file && (
                                 <p className="mt-3 text-sm text-slate-600">
@@ -434,8 +436,9 @@ export default function ExcelImportModal({ isOpen, onClose, onImportComplete }) 
                         onClick={handleImport}
                         disabled={validCount === 0 || importing}
                         className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:bg-slate-300 disabled:cursor-not-allowed"
+                        style={{ color: validCount === 0 || importing ? undefined : '#ffffff' }}
                     >
-                        {importing ? 'กำลังนำเข้า...' : `นำเข้าข้อมูล (${validCount} รายการ)`}
+                        <span style={{ color: validCount === 0 || importing ? undefined : '#ffffff' }}>{importing ? 'กำลังนำเข้า...' : `นำเข้าข้อมูล (${validCount} รายการ)`}</span>
                     </button>
                 </div>
             </div>

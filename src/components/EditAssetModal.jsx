@@ -285,9 +285,9 @@ const EditAssetModal = ({ isOpen, onClose, asset, onSave, categories }) => {
                         <button type="button" onClick={onClose} className="px-6 py-2 rounded-xl text-slate-600 font-medium hover:bg-slate-100 transition-colors">
                             ยกเลิก
                         </button>
-                        <button type="submit" className="px-6 py-2 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 flex items-center">
-                            <Save className="w-4 h-4 mr-2" />
-                            บันทึกข้อมูล
+                        <button type="submit" className="px-6 py-2 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all transform hover:-translate-y-0.5 flex items-center" style={{ color: '#ffffff' }}>
+                            <Save className="w-4 h-4 mr-2" style={{ color: '#ffffff' }} />
+                            <span style={{ color: '#ffffff' }}>บันทึกข้อมูล</span>
                         </button>
                     </div>
                 </form>

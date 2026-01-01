@@ -361,6 +361,7 @@ const InventoryReconciliation = ({ cycle, user, onBack }) => {
                                     onClick={handleApplyAdjustment}
                                     disabled={!adjustmentData.reason || saving}
                                     className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                                    style={{ color: '#ffffff' }}
                                 >
                                     {saving ? (
                                         <>

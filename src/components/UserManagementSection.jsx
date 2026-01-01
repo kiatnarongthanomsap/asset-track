@@ -128,8 +128,9 @@ const UserManagementSection = ({ currentUser }) => {
                 <button 
                     onClick={() => setIsAddingUser(true)}
                     className="flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md"
+                    style={{ color: '#ffffff' }}
                 >
-                    <UserPlus className="w-4 h-4 mr-2" />
+                    <UserPlus className="w-4 h-4 mr-2" style={{ color: '#ffffff', stroke: '#ffffff' }} />
                     เพิ่มผู้ใช้ใหม่
                 </button>
             </div>

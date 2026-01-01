@@ -3,9 +3,11 @@ import { X, Wrench, Download, FileText, User, CreditCard } from 'lucide-react';
 import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
 import { hasRealImage } from '../utils/assetManager';
 import { ToastContainer, useToast } from './Toast';
+import RepairApprovalDocument from './RepairApprovalDocument';
 
-const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
+const RepairRequestModal = ({ asset, onClose, categories = [], user }) => {
     const toast = useToast();
+    const [showDocument, setShowDocument] = useState(false);
     const [formData, setFormData] = useState({
         reason: '',
         serviceProvider: '',
@@ -15,14 +17,33 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Here we would typically save and generate the document
-        toast.success('ระบบจำลองการสร้างหนังสือขออนุมัติซ่อมเรียบร้อยแล้ว (กำลังดาวน์โหลดไฟล์...)');
-        onClose();
+        if (!formData.reason || !formData.serviceProvider || !formData.estimatedCost) {
+            toast.error('กรุณากรอกข้อมูลให้ครบถ้วน');
+            return;
+        }
+        setShowDocument(true);
     };
 
     return (
         <>
             <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+            
+            {/* Document View */}
+            {showDocument && (
+                <RepairApprovalDocument
+                    isOpen={showDocument}
+                    onClose={() => {
+                        setShowDocument(false);
+                        onClose();
+                    }}
+                    asset={asset}
+                    formData={formData}
+                    user={user}
+                />
+            )}
+
+            {/* Form Modal */}
+            {!showDocument && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="bg-gradient-to-r from-blue-700 to-indigo-600 p-8 text-white relative">
@@ -156,6 +177,7 @@ const RepairRequestModal = ({ asset, onClose, categories = [] }) => {
                 </form>
             </div>
             </div>
+            )}
         </>
     );
 };

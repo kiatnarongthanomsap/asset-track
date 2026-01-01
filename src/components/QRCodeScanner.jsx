@@ -36,18 +36,40 @@ const QRCodeScanner = ({ onScan, onClose }) => {
                 },
                 (decodedText, decodedResult) => {
                     // Successfully scanned
-                    html5QrCode.stop().then(() => {
-                        setIsScanning(false);
-                        onScan(decodedText);
-                    }).catch(() => {});
+                    if (decodedText && decodedText.trim()) {
+                        html5QrCode.stop().then(() => {
+                            setIsScanning(false);
+                            onScan(decodedText);
+                        }).catch((err) => {
+                            console.error('Error stopping scanner after scan:', err);
+                            setIsScanning(false);
+                            onScan(decodedText);
+                        });
+                    }
                 },
                 (errorMessage) => {
                     // Ignore scanning errors (they're normal while scanning)
+                    // Only log if it's not a common scanning error
+                    if (errorMessage && !errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
+                        console.debug('QR Scanner:', errorMessage);
+                    }
                 }
             );
         } catch (err) {
             console.error('Error starting scanner:', err);
-            setError('ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงกล้อง');
+            let errorMessage = 'ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงกล้อง';
+            
+            if (err.message) {
+                if (err.message.includes('Permission denied') || err.message.includes('NotAllowedError')) {
+                    errorMessage = 'ไม่ได้รับอนุญาตให้เข้าถึงกล้อง กรุณาอนุญาตการเข้าถึงกล้องในเบราว์เซอร์';
+                } else if (err.message.includes('NotFoundError') || err.message.includes('No camera')) {
+                    errorMessage = 'ไม่พบกล้องในอุปกรณ์นี้';
+                } else if (err.message.includes('NotReadableError')) {
+                    errorMessage = 'ไม่สามารถอ่านข้อมูลจากกล้องได้ อาจมีแอปอื่นกำลังใช้กล้องอยู่';
+                }
+            }
+            
+            setError(errorMessage);
             setIsScanning(false);
         }
     };
@@ -55,12 +77,20 @@ const QRCodeScanner = ({ onScan, onClose }) => {
     const stopScanning = async () => {
         if (html5QrCodeRef.current) {
             try {
-                await html5QrCodeRef.current.stop();
-                html5QrCodeRef.current.clear();
+                await html5QrCodeRef.current.stop().catch(() => {
+                    // Ignore errors when stopping (scanner might already be stopped)
+                });
+                try {
+                    html5QrCodeRef.current.clear();
+                } catch (clearErr) {
+                    // Ignore clear errors
+                    console.debug('Error clearing scanner:', clearErr);
+                }
             } catch (err) {
                 console.error('Error stopping scanner:', err);
+            } finally {
+                html5QrCodeRef.current = null;
             }
-            html5QrCodeRef.current = null;
         }
         setIsScanning(false);
     };
@@ -110,8 +140,9 @@ const QRCodeScanner = ({ onScan, onClose }) => {
                         <button
                             onClick={startScanning}
                             className="flex-1 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center justify-center"
+                            style={{ color: '#ffffff' }}
                         >
-                            <Camera className="w-5 h-5 mr-2" />
+                            <Camera className="w-5 h-5 mr-2" style={{ color: '#ffffff', stroke: '#ffffff' }} />
                             เริ่มสแกน
                         </button>
                     ) : (

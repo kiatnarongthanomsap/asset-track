@@ -90,10 +90,11 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                     <button
                         onClick={onAddAsset}
                         className="flex items-center justify-center px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                        style={{ color: '#ffffff' }}
                     >
-                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="hidden sm:inline">เพิ่มทรัพย์สินใหม่</span>
-                        <span className="sm:hidden">เพิ่มใหม่</span>
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" style={{ color: '#ffffff', stroke: '#ffffff' }} />
+                        <span className="hidden sm:inline" style={{ color: '#ffffff' }}>เพิ่มทรัพย์สินใหม่</span>
+                        <span className="sm:hidden" style={{ color: '#ffffff' }}>เพิ่มใหม่</span>
                     </button>
                 </div>
             </div>
