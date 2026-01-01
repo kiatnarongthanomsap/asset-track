@@ -3613,18 +3613,37 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 ;
 ;
 const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=>{
-    const categoryStats = categories.map((cat)=>{
-        const catAssets = data.filter((a)=>a.category === cat.name);
+    // Normalize function สำหรับ category name
+    const normalizeCategoryName = (name)=>{
+        if (!name) return '';
+        return String(name).trim();
+    };
+    // คำนวณ total book value ของทั้งหมด
+    const totalBookValue = data.reduce((sum, a)=>{
+        const dep = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$calculations$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["calculateDepreciation"])(a.price || 0, a.purchaseDate, a.usefulLife || 5);
+        return sum + dep.bookValue;
+    }, 0);
+    // สร้าง category stats โดย normalize category name
+    const categoryStats = categories.filter((cat)=>cat && cat.name) // กรอง category ที่ไม่มี name
+    .map((cat)=>{
+        const normalizedCatName = normalizeCategoryName(cat.name);
+        // Filter assets โดย normalize category name ทั้งสองฝั่ง
+        const catAssets = data.filter((a)=>{
+            const assetCategory = normalizeCategoryName(a.category);
+            return assetCategory === normalizedCatName;
+        });
         const totalValue = catAssets.reduce((sum, a)=>{
             const dep = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$calculations$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["calculateDepreciation"])(a.price || 0, a.purchaseDate, a.usefulLife || 5);
             return sum + dep.bookValue;
         }, 0);
         return {
             ...cat,
+            name: normalizedCatName,
             count: catAssets.length,
             totalValue
         };
-    }).sort((a, b)=>b.totalValue - a.totalValue);
+    }).filter((cat)=>cat.count > 0 || cat.totalValue > 0) // แสดงเฉพาะ category ที่มี assets
+    .sort((a, b)=>b.totalValue - a.totalValue);
     const maxValue = categoryStats.length > 0 ? Math.max(...categoryStats.map((c)=>c.totalValue)) : 1;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200",
@@ -3639,7 +3658,7 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                 children: "มูลค่าตามหมวดหมู่"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                lineNumber: 24,
+                                lineNumber: 53,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3647,13 +3666,13 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                 children: "สรุปมูลค่าปัจจุบันของทรัพย์สินแต่ละหมวด"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                lineNumber: 25,
+                                lineNumber: 54,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                        lineNumber: 23,
+                        lineNumber: 52,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3662,18 +3681,18 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                             className: "w-5 h-5 text-slate-600"
                         }, void 0, false, {
                             fileName: "[project]/src/components/ValueStatusSection.jsx",
-                            lineNumber: 28,
+                            lineNumber: 57,
                             columnNumber: 13
                         }, ("TURBOPACK compile-time value", void 0))
                     }, void 0, false, {
                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                        lineNumber: 27,
+                        lineNumber: 56,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                lineNumber: 22,
+                lineNumber: 51,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3683,7 +3702,7 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                     const IconComponent = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$categoryIcons$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCategoryIcon"])(cat.name, iconName);
                     const percentage = cat.totalValue / maxValue * 100;
                     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        onClick: ()=>onCategoryClick(cat),
+                        onClick: ()=>onCategoryClick && onCategoryClick(cat),
                         className: "group flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 hover:border-emerald-300 cursor-pointer transition-all duration-200",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3696,12 +3715,12 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                             strokeWidth: 2
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                            lineNumber: 47,
+                                            lineNumber: 76,
                                             columnNumber: 23
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                        lineNumber: 46,
+                                        lineNumber: 75,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3712,7 +3731,7 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                                 children: cat.name
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                lineNumber: 50,
+                                                lineNumber: 79,
                                                 columnNumber: 23
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3726,7 +3745,7 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                        lineNumber: 54,
+                                                        lineNumber: 83,
                                                         columnNumber: 25
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3740,35 +3759,35 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                                lineNumber: 59,
+                                                                lineNumber: 88,
                                                                 columnNumber: 29
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                            lineNumber: 58,
+                                                            lineNumber: 87,
                                                             columnNumber: 27
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                        lineNumber: 57,
+                                                        lineNumber: 86,
                                                         columnNumber: 25
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                lineNumber: 53,
+                                                lineNumber: 82,
                                                 columnNumber: 23
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                        lineNumber: 49,
+                                        lineNumber: 78,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                lineNumber: 45,
+                                lineNumber: 74,
                                 columnNumber: 19
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3785,27 +3804,24 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                lineNumber: 70,
+                                                lineNumber: 99,
                                                 columnNumber: 23
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "text-xs text-slate-500 font-medium hidden sm:block",
                                                 children: [
-                                                    (cat.totalValue / data.reduce((sum, a)=>{
-                                                        const dep = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$utils$2f$calculations$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["calculateDepreciation"])(a.price || 0, a.purchaseDate, a.usefulLife || 5);
-                                                        return sum + dep.bookValue;
-                                                    }, 0) * 100).toFixed(1),
+                                                    totalBookValue > 0 ? (cat.totalValue / totalBookValue * 100).toFixed(1) : '0.0',
                                                     "% ของทั้งหมด"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                                lineNumber: 73,
+                                                lineNumber: 102,
                                                 columnNumber: 23
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                        lineNumber: 69,
+                                        lineNumber: 98,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3814,24 +3830,24 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                                             className: "w-5 h-5 text-emerald-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                            lineNumber: 81,
+                                            lineNumber: 107,
                                             columnNumber: 23
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                        lineNumber: 80,
+                                        lineNumber: 106,
                                         columnNumber: 21
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                                lineNumber: 68,
+                                lineNumber: 97,
                                 columnNumber: 19
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
-                    }, cat.id || cat.name, true, {
+                    }, cat.id || cat.name || index, true, {
                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                        lineNumber: 40,
+                        lineNumber: 69,
                         columnNumber: 17
                     }, ("TURBOPACK compile-time value", void 0));
                 }) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3841,23 +3857,23 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories })=
                         children: "ยังไม่มีข้อมูลหมวดหมู่"
                     }, void 0, false, {
                         fileName: "[project]/src/components/ValueStatusSection.jsx",
-                        lineNumber: 89,
+                        lineNumber: 115,
                         columnNumber: 15
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/ValueStatusSection.jsx",
-                    lineNumber: 88,
+                    lineNumber: 114,
                     columnNumber: 13
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/ValueStatusSection.jsx",
-                lineNumber: 32,
+                lineNumber: 61,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/ValueStatusSection.jsx",
-        lineNumber: 21,
+        lineNumber: 50,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -4056,14 +4072,14 @@ const AuditTrailTable = ({ logs, isLoading = false })=>{
                     children: logs.slice(0, 10).map((log, idx)=>{
                         const { icon: ActionIcon, color, bgColor } = getActionIcon(log.action);
                         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "bg-white rounded-xl p-4 sm:p-5 border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group",
+                            className: "bg-white rounded-xl p-4 border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all",
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "flex items-start gap-4",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: `w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`,
+                                        className: `w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center shrink-0`,
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ActionIcon, {
-                                            className: `w-6 h-6 ${color}`
+                                            className: `w-5 h-5 ${color}`
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/AuditTrailTable.jsx",
                                             lineNumber: 96,
@@ -4078,148 +4094,123 @@ const AuditTrailTable = ({ logs, isLoading = false })=>{
                                         className: "flex-1 min-w-0",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex items-start justify-between gap-3 mb-2",
-                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: "flex-1 min-w-0",
-                                                    children: [
-                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "flex items-center gap-2 flex-wrap mb-2",
-                                                            children: [
-                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                                    className: "font-black text-base text-slate-900",
-                                                                    children: log.action || '-'
-                                                                }, void 0, false, {
-                                                                    fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                    lineNumber: 105,
-                                                                    columnNumber: 31
-                                                                }, ("TURBOPACK compile-time value", void 0)),
-                                                                log.asset_code && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
-                                                                    children: [
-                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
-                                                                            className: "w-4 h-4 text-slate-400 shrink-0"
-                                                                        }, void 0, false, {
-                                                                            fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                            lineNumber: 108,
-                                                                            columnNumber: 35
-                                                                        }, ("TURBOPACK compile-time value", void 0)),
-                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                            className: "font-mono text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg",
-                                                                            children: log.asset_code
-                                                                        }, void 0, false, {
-                                                                            fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                            lineNumber: 109,
-                                                                            columnNumber: 35
-                                                                        }, ("TURBOPACK compile-time value", void 0))
-                                                                    ]
-                                                                }, void 0, true)
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                            lineNumber: 104,
-                                                            columnNumber: 29
-                                                        }, ("TURBOPACK compile-time value", void 0)),
-                                                        log.document_ref && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                            className: "flex items-center gap-1.5 text-xs text-slate-600 mb-2",
-                                                            children: [
-                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileCheck$3e$__["FileCheck"], {
-                                                                    className: "w-3.5 h-3.5"
-                                                                }, void 0, false, {
-                                                                    fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                    lineNumber: 119,
-                                                                    columnNumber: 33
-                                                                }, ("TURBOPACK compile-time value", void 0)),
-                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                    className: "font-medium",
-                                                                    children: [
-                                                                        "เอกสารอ้างอิง: ",
-                                                                        log.document_ref
-                                                                    ]
-                                                                }, void 0, true, {
-                                                                    fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                    lineNumber: 120,
-                                                                    columnNumber: 33
-                                                                }, ("TURBOPACK compile-time value", void 0))
-                                                            ]
-                                                        }, void 0, true, {
-                                                            fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                            lineNumber: 118,
-                                                            columnNumber: 31
-                                                        }, ("TURBOPACK compile-time value", void 0))
-                                                    ]
-                                                }, void 0, true, {
-                                                    fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                    lineNumber: 103,
-                                                    columnNumber: 27
-                                                }, ("TURBOPACK compile-time value", void 0))
-                                            }, void 0, false, {
+                                                className: "mb-2",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "flex items-center gap-2 flex-wrap mb-1",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                className: "font-bold text-base text-slate-900",
+                                                                children: log.action || '-'
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                lineNumber: 104,
+                                                                columnNumber: 29
+                                                            }, ("TURBOPACK compile-time value", void 0)),
+                                                            log.asset_code && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {
+                                                                        className: "w-3.5 h-3.5 text-slate-400 shrink-0"
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                        lineNumber: 109,
+                                                                        columnNumber: 33
+                                                                    }, ("TURBOPACK compile-time value", void 0)),
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                        className: "font-mono text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded",
+                                                                        children: log.asset_code
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                        lineNumber: 110,
+                                                                        columnNumber: 33
+                                                                    }, ("TURBOPACK compile-time value", void 0))
+                                                                ]
+                                                            }, void 0, true)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                        lineNumber: 103,
+                                                        columnNumber: 27
+                                                    }, ("TURBOPACK compile-time value", void 0)),
+                                                    log.document_ref && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "flex items-center gap-1.5 text-xs text-slate-600 mt-1",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileCheck$3e$__["FileCheck"], {
+                                                                className: "w-3 h-3 text-slate-500"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                lineNumber: 120,
+                                                                columnNumber: 31
+                                                            }, ("TURBOPACK compile-time value", void 0)),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                children: [
+                                                                    "เอกสารอ้างอิง: ",
+                                                                    log.document_ref
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                lineNumber: 121,
+                                                                columnNumber: 31
+                                                            }, ("TURBOPACK compile-time value", void 0))
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                        lineNumber: 119,
+                                                        columnNumber: 29
+                                                    }, ("TURBOPACK compile-time value", void 0))
+                                                ]
+                                            }, void 0, true, {
                                                 fileName: "[project]/src/components/AuditTrailTable.jsx",
                                                 lineNumber: 102,
                                                 columnNumber: 25
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm",
+                                                className: "flex flex-wrap items-center gap-3 text-xs text-slate-500",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "flex items-center gap-1.5 text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg",
+                                                        className: "flex items-center gap-1.5",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"], {
-                                                                className: "w-3.5 h-3.5 text-slate-500"
+                                                                className: "w-3.5 h-3.5"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
+                                                                lineNumber: 129,
+                                                                columnNumber: 29
+                                                            }, ("TURBOPACK compile-time value", void 0)),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                children: formatDateTime(log.action_date)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AuditTrailTable.jsx",
                                                                 lineNumber: 130,
                                                                 columnNumber: 29
-                                                            }, ("TURBOPACK compile-time value", void 0)),
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                className: "font-medium",
-                                                                children: formatDateTime(log.action_date)
-                                                            }, void 0, false, {
-                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                lineNumber: 131,
-                                                                columnNumber: 29
-                                                            }, ("TURBOPACK compile-time value", void 0)),
-                                                            log.action_date && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                className: "text-slate-400 ml-1 hidden sm:inline",
-                                                                children: [
-                                                                    "(",
-                                                                    new Date(log.action_date).toLocaleTimeString('th-TH', {
-                                                                        hour: '2-digit',
-                                                                        minute: '2-digit'
-                                                                    }),
-                                                                    ")"
-                                                                ]
-                                                            }, void 0, true, {
-                                                                fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                lineNumber: 133,
-                                                                columnNumber: 31
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                        lineNumber: 129,
+                                                        lineNumber: 128,
                                                         columnNumber: 27
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     log.operator && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "flex items-center gap-1.5 text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg",
+                                                        className: "flex items-center gap-1.5",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__["User"], {
-                                                                className: "w-3.5 h-3.5 text-slate-500"
+                                                                className: "w-3.5 h-3.5"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                lineNumber: 142,
+                                                                lineNumber: 134,
                                                                 columnNumber: 31
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                className: "font-medium",
                                                                 children: log.operator
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                                lineNumber: 143,
+                                                                lineNumber: 135,
                                                                 columnNumber: 31
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                                        lineNumber: 141,
+                                                        lineNumber: 133,
                                                         columnNumber: 29
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
@@ -4259,12 +4250,12 @@ const AuditTrailTable = ({ logs, isLoading = false })=>{
                                 className: "w-8 h-8 text-slate-400"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/AuditTrailTable.jsx",
-                                lineNumber: 156,
+                                lineNumber: 148,
                                 columnNumber: 17
                             }, ("TURBOPACK compile-time value", void 0))
                         }, void 0, false, {
                             fileName: "[project]/src/components/AuditTrailTable.jsx",
-                            lineNumber: 155,
+                            lineNumber: 147,
                             columnNumber: 15
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4272,13 +4263,13 @@ const AuditTrailTable = ({ logs, isLoading = false })=>{
                             children: "ยังไม่มีประวัติการทำงาน"
                         }, void 0, false, {
                             fileName: "[project]/src/components/AuditTrailTable.jsx",
-                            lineNumber: 158,
+                            lineNumber: 150,
                             columnNumber: 15
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/AuditTrailTable.jsx",
-                    lineNumber: 154,
+                    lineNumber: 146,
                     columnNumber: 13
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {

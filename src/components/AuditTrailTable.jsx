@@ -88,59 +88,51 @@ const AuditTrailTable = ({ logs, isLoading = false }) => {
                 return (
                   <div
                     key={log.id || idx}
-                    className="bg-white rounded-xl p-4 sm:p-5 border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group"
+                    className="bg-white rounded-xl p-4 border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start gap-4">
                       {/* Action Icon */}
-                      <div className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-                        <ActionIcon className={`w-6 h-6 ${color}`} />
+                      <div className={`w-12 h-12 rounded-lg ${bgColor} flex items-center justify-center shrink-0`}>
+                        <ActionIcon className={`w-5 h-5 ${color}`} />
                       </div>
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         {/* Action & Asset Code */}
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap mb-2">
-                              <p className="font-black text-base text-slate-900">{log.action || '-'}</p>
-                              {log.asset_code && (
-                                <>
-                                  <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
-                                  <span className="font-mono text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                                    {log.asset_code}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                            
-                            {/* Document Reference */}
-                            {log.document_ref && (
-                              <div className="flex items-center gap-1.5 text-xs text-slate-600 mb-2">
-                                <FileCheck className="w-3.5 h-3.5" />
-                                <span className="font-medium">เอกสารอ้างอิง: {log.document_ref}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Metadata */}
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
-                          {/* Date & Time */}
-                          <div className="flex items-center gap-1.5 text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="font-medium">{formatDateTime(log.action_date)}</span>
-                            {log.action_date && (
-                              <span className="text-slate-400 ml-1 hidden sm:inline">
-                                ({new Date(log.action_date).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })})
-                              </span>
+                        <div className="mb-2">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <p className="font-bold text-base text-slate-900">
+                              {log.action || '-'}
+                            </p>
+                            {log.asset_code && (
+                              <>
+                                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span className="font-mono text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                                  {log.asset_code}
+                                </span>
+                              </>
                             )}
                           </div>
                           
-                          {/* Operator */}
+                          {/* Document Reference */}
+                          {log.document_ref && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
+                              <FileCheck className="w-3 h-3 text-slate-500" />
+                              <span>เอกสารอ้างอิง: {log.document_ref}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Metadata */}
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{formatDateTime(log.action_date)}</span>
+                          </div>
                           {log.operator && (
-                            <div className="flex items-center gap-1.5 text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg">
-                              <User className="w-3.5 h-3.5 text-slate-500" />
-                              <span className="font-medium">{log.operator}</span>
+                            <div className="flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5" />
+                              <span>{log.operator}</span>
                             </div>
                           )}
                         </div>

@@ -6,14 +6,43 @@ import { calculateDepreciation } from '@/utils/calculations';
 import { ArrowRight, TrendingUp } from 'lucide-react';
 
 const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories }) => {
-  const categoryStats = categories.map(cat => {
-    const catAssets = data.filter(a => a.category === cat.name);
-    const totalValue = catAssets.reduce((sum, a) => {
-      const dep = calculateDepreciation(a.price || 0, a.purchaseDate, a.usefulLife || 5);
-      return sum + dep.bookValue;
-    }, 0);
-    return { ...cat, count: catAssets.length, totalValue };
-  }).sort((a, b) => b.totalValue - a.totalValue);
+  // Normalize function สำหรับ category name
+  const normalizeCategoryName = (name) => {
+    if (!name) return '';
+    return String(name).trim();
+  };
+
+  // คำนวณ total book value ของทั้งหมด
+  const totalBookValue = data.reduce((sum, a) => {
+    const dep = calculateDepreciation(a.price || 0, a.purchaseDate, a.usefulLife || 5);
+    return sum + dep.bookValue;
+  }, 0);
+
+  // สร้าง category stats โดย normalize category name
+  const categoryStats = categories
+    .filter(cat => cat && cat.name) // กรอง category ที่ไม่มี name
+    .map(cat => {
+      const normalizedCatName = normalizeCategoryName(cat.name);
+      // Filter assets โดย normalize category name ทั้งสองฝั่ง
+      const catAssets = data.filter(a => {
+        const assetCategory = normalizeCategoryName(a.category);
+        return assetCategory === normalizedCatName;
+      });
+      
+      const totalValue = catAssets.reduce((sum, a) => {
+        const dep = calculateDepreciation(a.price || 0, a.purchaseDate, a.usefulLife || 5);
+        return sum + dep.bookValue;
+      }, 0);
+      
+      return { 
+        ...cat, 
+        name: normalizedCatName, // ใช้ normalized name
+        count: catAssets.length, 
+        totalValue 
+      };
+    })
+    .filter(cat => cat.count > 0 || cat.totalValue > 0) // แสดงเฉพาะ category ที่มี assets
+    .sort((a, b) => b.totalValue - a.totalValue);
 
   const maxValue = categoryStats.length > 0 ? Math.max(...categoryStats.map(c => c.totalValue)) : 1;
 
@@ -38,8 +67,8 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories }) 
               
               return (
                 <div
-                  key={cat.id || cat.name}
-                  onClick={() => onCategoryClick(cat)}
+                  key={cat.id || cat.name || index}
+                  onClick={() => onCategoryClick && onCategoryClick(cat)}
                   className="group flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 hover:border-emerald-300 cursor-pointer transition-all duration-200"
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -71,10 +100,7 @@ const ValueStatusSection = ({ data, onStatClick, onCategoryClick, categories }) 
                         ฿{Math.round(cat.totalValue).toLocaleString()}
                       </p>
                       <p className="text-xs text-slate-500 font-medium hidden sm:block">
-                        {((cat.totalValue / data.reduce((sum, a) => {
-                          const dep = calculateDepreciation(a.price || 0, a.purchaseDate, a.usefulLife || 5);
-                          return sum + dep.bookValue;
-                        }, 0)) * 100).toFixed(1)}% ของทั้งหมด
+                        {totalBookValue > 0 ? ((cat.totalValue / totalBookValue) * 100).toFixed(1) : '0.0'}% ของทั้งหมด
                       </p>
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
