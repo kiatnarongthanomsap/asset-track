@@ -56,7 +56,6 @@ export default function App() {
     const [repairAsset, setRepairAsset] = useState(null);
     const [selectedCycle, setSelectedCycle] = useState(null);
     const [inventoryView, setInventoryView] = useState('manager'); // manager, counting, reconciliation, report
-    const [isLoading, setIsLoading] = useState(false);
 
     // -- API Interaction --
     useEffect(() => {
@@ -66,9 +65,7 @@ export default function App() {
     }, [user]);
 
     const fetchData = async () => {
-        setIsLoading(true);
         try {
-            // ใช้ Promise.all เพื่อดึงข้อมูลพร้อมกัน
             const [assetsData, logsData, catsData] = await Promise.all([
                 supabaseService.fetchAssets(),
                 supabaseService.fetchAuditLogs(),
@@ -98,8 +95,6 @@ export default function App() {
             setAssets([]);
             setAuditLogs([]);
             setCategories([]);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -199,7 +194,8 @@ export default function App() {
     }
 
     return (
-        <div className="min-h-screen font-sans text-slate-800 flex flex-col md:flex-row relative bg-gray-50">
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col md:flex-row">
+            <div className="fixed inset-0 bg-gray-50/50 pointer-events-none z-0"></div>
             
             {/* Toast Container */}
             <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
@@ -238,20 +234,20 @@ export default function App() {
             )}
 
             {/* Sidebar Navigation */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl border-r border-slate-800`}>
-                <div className="p-6 pb-4 flex justify-between items-center border-b border-slate-800">
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-white transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl border-r border-slate-700/50`}>
+                <div className="p-6 pb-4 flex justify-between items-center border-b border-slate-700/50">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                                <ShieldCheck className="w-5 h-5 text-white" />
+                            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg">
+                                <ShieldCheck className="w-5 h-5 text-emerald-400" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-white tracking-tight">AssetTrack</h1>
-                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">ระบบจัดการทรัพย์สิน</p>
+                                <h1 className="text-lg font-black text-white tracking-tight">AssetTrack</h1>
+                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">ระบบจัดการทรัพย์สิน</p>
                             </div>
                         </div>
                     </div>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -280,13 +276,13 @@ export default function App() {
                                     setActiveTab(item.id);
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group relative ${activeTab === item.id
-                                    ? 'bg-primary-600 text-white shadow-md'
-                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden ${activeTab === item.id
+                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 border border-emerald-500/50'
+                                    : 'text-slate-300 hover:bg-white/10 hover:text-white hover:shadow-md'
                                     }`}
                             >
                                 {activeTab === item.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-400 rounded-l-lg"></div>
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-l-xl"></div>
                                 )}
                                 <item.icon className={`w-5 h-5 mr-3 transition-all duration-300 group-hover:scale-110 ${activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} strokeWidth={activeTab === item.id ? 2.5 : 2} />
                                 {item.label}
@@ -295,24 +291,24 @@ export default function App() {
                     })}
                 </nav>
 
-                <div className="absolute bottom-0 w-full p-6 border-t border-slate-800">
-                    <div className="bg-slate-800 rounded-lg p-4">
+                <div className="absolute bottom-0 w-full p-6 border-t border-slate-700/50">
+                    <div className="bg-slate-700/50 backdrop-blur-md rounded-xl p-4 border border-slate-600/50 shadow-lg">
                         <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-lg bg-primary-600 flex items-center justify-center shrink-0">
-                                <span className="text-sm font-semibold text-white">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow-md shrink-0">
+                                <span className="text-xs font-bold text-white">
                                     {user?.name?.charAt(0) || 'S'}
                                 </span>
                             </div>
                             <div className="ml-3 overflow-hidden flex-1">
-                                <p className="text-sm font-semibold text-white truncate">{user?.name || 'Staff Member'}</p>
+                                <p className="text-sm font-bold text-white truncate">{user?.name || 'Staff Member'}</p>
                                 <p className="text-xs text-slate-400 truncate">{user?.role || 'Asset Officer'}</p>
                             </div>
                             <button
                                 onClick={() => setUser(null)}
-                                className="ml-2 p-2 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+                                className="ml-2 p-2 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-all group"
                                 title="ออกจากระบบ"
                             >
-                                <LogOut className="w-5 h-5" />
+                                <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
                             </button>
                         </div>
                     </div>
@@ -338,12 +334,12 @@ export default function App() {
                 </div>
 
                 {/* Mobile Header */}
-                <header className="bg-white border-b border-slate-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
+                <header className="bg-white border-b-2 border-slate-200 p-4 md:hidden flex justify-between items-center sticky top-0 z-30 shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                            <ShieldCheck className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
                         </div>
-                        <span className="font-bold text-slate-900 text-lg">AssetTrack</span>
+                        <span className="font-black text-slate-800 text-lg">AssetTrack</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationBell
@@ -367,67 +363,79 @@ export default function App() {
                 {activeTab === 'dashboard' && (
                     <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto space-y-6 sm:space-y-8 lg:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {/* Welcome Header Section */}
-                        <div className="bg-white rounded-xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center">
-                                            <BarChart3 className="w-6 h-6 text-white" />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 rounded-3xl blur-3xl"></div>
+                            <div className="relative bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-slate-200 shadow-lg">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                                <BarChart3 className="w-6 h-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+                                                    ยินดีต้อนรับกลับมา
+                                                </h2>
+                                                <p className="text-sm text-slate-500 font-medium mt-1">
+                                                    {user?.name || 'Staff Member'} • {user?.role || 'Asset Officer'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                                                ยินดีต้อนรับกลับมา
-                                            </h2>
-                                            <p className="text-sm text-slate-600 font-medium mt-1">
-                                                {user?.name || 'Staff Member'} • {user?.role || 'Asset Officer'}
-                                            </p>
+                                        <div className="flex items-center gap-2 text-slate-600 font-medium text-sm sm:text-base">
+                                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-md shadow-emerald-500/50"></div>
+                                            <span>
+                                                {new Date().toLocaleDateString('th-TH', {
+                                                    weekday: 'long',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-slate-500 text-sm">
-                                        <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-                                        <span>
-                                            {new Date().toLocaleDateString('th-TH', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
-                                            })}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="bg-primary-50 border border-primary-200 px-6 py-4 rounded-lg flex items-center gap-4">
-                                    <div className="text-right">
-                                        <p className="text-xs font-medium text-primary-700 uppercase tracking-wide leading-none mb-1">สถานะระบบ</p>
-                                        <p className="text-primary-900 font-semibold text-sm">พร้อมใช้งาน</p>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-lg bg-primary-600 flex items-center justify-center">
-                                        <ShieldCheck className="w-5 h-5 text-white" />
+                                    <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 px-6 py-4 rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 flex items-center gap-4 group">
+                                        <div className="text-right">
+                                            <p className="text-xs font-semibold text-emerald-100 uppercase tracking-wide leading-none mb-1">สถานะระบบ</p>
+                                            <p className="text-white font-bold text-sm group-hover:scale-105 transition-transform">พร้อมใช้งาน</p>
+                                        </div>
+                                        <div className="w-12 h-12 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                                            <ShieldCheck className="w-5 h-5 text-white" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* KPI Cards Section */}
-                        <div>
-                            <KPICards
-                                data={assets}
-                                onStatClick={handleDashboardStatClick}
-                            />
+                        {/* Financial Summary Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-emerald-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative">
+                                <ValueStatusSection
+                                    data={assets}
+                                    onStatClick={handleDashboardStatClick}
+                                    onCategoryClick={handleCategoryClick}
+                                    categories={categories}
+                                />
+                            </div>
                         </div>
 
-                        {/* Financial Summary Section */}
-                        <div>
-                            <ValueStatusSection
-                                data={assets}
-                                onStatClick={handleDashboardStatClick}
-                                onCategoryClick={handleCategoryClick}
-                                categories={categories}
-                            />
+                        {/* KPI Cards Section */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-blue-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative">
+                                <KPICards
+                                    data={assets}
+                                    onStatClick={handleDashboardStatClick}
+                                />
+                            </div>
                         </div>
 
                         {/* Audit Trail Section */}
-                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <AuditTrailTable logs={auditLogs} />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-3xl blur-2xl"></div>
+                            <div className="relative bg-white rounded-3xl shadow-lg border-2 border-slate-200 overflow-hidden">
+                                <AuditTrailTable logs={auditLogs} />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -529,7 +537,6 @@ export default function App() {
                         asset={repairAsset}
                         onClose={() => setRepairAsset(null)}
                         categories={categories}
-                        user={user}
                     />
                 )}
 

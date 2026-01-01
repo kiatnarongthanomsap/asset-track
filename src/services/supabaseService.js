@@ -849,6 +849,47 @@ export const updateInventoryCycle = async (cycleId, updateData) => {
 }
 
 /**
+ * ลบรอบการตรวจนับ
+ */
+export const deleteInventoryCycle = async (cycleId) => {
+  try {
+    // ลบ inventory_counts ที่เกี่ยวข้องก่อน
+    const { error: countsError } = await supabase
+      .from('inventory_counts')
+      .delete()
+      .eq('cycle_id', cycleId)
+
+    if (countsError) {
+      console.error('Error deleting inventory counts:', countsError)
+      // ยังคงดำเนินการต่อเพื่อลบ cycle
+    }
+
+    // ลบ inventory_assignments ที่เกี่ยวข้อง
+    const { error: assignmentsError } = await supabase
+      .from('inventory_assignments')
+      .delete()
+      .eq('cycle_id', cycleId)
+
+    if (assignmentsError) {
+      console.error('Error deleting inventory assignments:', assignmentsError)
+      // ยังคงดำเนินการต่อเพื่อลบ cycle
+    }
+
+    // ลบ cycle
+    const { error } = await supabase
+      .from('inventory_cycles')
+      .delete()
+      .eq('id', cycleId)
+
+    if (error) throw error
+    return { status: 'success' }
+  } catch (error) {
+    console.error('Error deleting inventory cycle:', error)
+    return { status: 'error', message: error.message }
+  }
+}
+
+/**
  * ดึงรายการทรัพย์สินที่ต้องตรวจนับในรอบนี้
  */
 export const fetchAssetsForCounting = async (cycleId, filters = {}) => {

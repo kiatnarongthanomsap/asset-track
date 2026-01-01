@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
@@ -95,7 +97,6 @@ const Toast = ({ message, type = 'success', duration = 3000, onClose }) => {
     );
 };
 
-// Toast Container Component
 export const ToastContainer = ({ toasts, removeToast }) => {
     return (
         <div className="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none">
@@ -113,7 +114,6 @@ export const ToastContainer = ({ toasts, removeToast }) => {
     );
 };
 
-// Hook for managing toasts
 export const useToast = () => {
     const [toasts, setToasts] = useState([]);
 

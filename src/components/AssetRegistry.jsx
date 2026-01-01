@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown, MapPin, FileSpreadsheet } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, LayoutGrid, List, Edit2, Wrench, X, Tag, ChevronDown, MapPin, FileSpreadsheet, Calendar } from 'lucide-react';
 import StatusBadge from './StatusBadge';
-import { calculateDepreciation } from '../utils/calculations';
-import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
-import { hasRealImage, exportAssetsToCSV } from '../utils/assetManager';
+import { calculateDepreciation } from '@/utils/calculations';
+import { getCategoryIcon, getIconNameFromCategories } from '@/utils/categoryIcons';
+import { hasRealImage, exportAssetsToCSV } from '@/utils/assetManager';
 
 const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initialFilter = 'All', onFilterChange, initialCategoryFilter = null, onCategoryFilterChange, categories = [], user }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -11,7 +13,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
     const [categoryFilter, setCategoryFilter] = useState(initialCategoryFilter);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
 
-    // Sync state if prop changes (e.g. navigation from dashboard)
     React.useEffect(() => {
         setFilterStatus(initialFilter);
     }, [initialFilter]);
@@ -29,18 +30,15 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
         const query = searchQuery.toLowerCase().trim();
         
         const filtered = data.filter(asset => {
-            // Filter by category
             if (categoryFilter && (asset.category || 'ไม่ระบุ') !== categoryFilter) {
                 return false;
             }
 
-            // Filter by status
             const matchesStatus = filterStatus === 'All' || asset.status === filterStatus;
             if (!matchesStatus) {
                 return false;
             }
 
-            // ถ้ามี search query ให้ค้นหา
             let matchesSearch = true;
             if (query) {
                 const searchFields = [
@@ -63,7 +61,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
             return matchesSearch;
         });
 
-        // Sort by code to ensure consistent ordering
         return filtered.sort((a, b) => {
             const codeA = (a.code || '').toUpperCase()
             const codeB = (b.code || '').toUpperCase()
@@ -99,7 +96,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                 </div>
             </div>
 
-            {/* Active Filters Display */}
             {(categoryFilter || filterStatus !== 'All') && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 sm:p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -152,9 +148,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                 </div>
             )}
 
-            {/* Filters Toolbar */}
             <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col gap-4">
-                {/* Top Row: Search and View Mode */}
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -185,9 +179,7 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                     </div>
                 </div>
 
-                {/* Bottom Row: Category and Status Filters */}
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                    {/* Category Filter */}
                     <div className="relative flex-1 md:flex-initial">
                         <div className="relative">
                             <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
@@ -211,7 +203,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                         </div>
                     </div>
 
-                    {/* Status Filter */}
                     <div className="flex items-center space-x-1 flex-wrap gap-2">
                         {['All', 'Normal', 'Repair', 'Check', 'Disposed'].map((status) => (
                             <button
@@ -232,7 +223,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                 </div>
             </div>
 
-            {/* Grid View */}
             {viewMode === 'grid' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                     {filteredAssets.map(asset => {
@@ -246,7 +236,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                             alt={asset.name} 
                                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                             onError={(e) => {
-                                                // ซ่อนรูปภาพและแสดง icon แทน
                                                 e.target.style.display = 'none';
                                                 const iconContainer = e.target.nextElementSibling;
                                                 if (iconContainer) {
@@ -309,6 +298,17 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                                 style={{ width: `${(dep.bookValue / asset.price) * 100}%` }}
                                             ></div>
                                         </div>
+                                        {asset.purchaseDate && (
+                                            <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span>อายุ</span>
+                                                </div>
+                                                <span className="font-semibold text-slate-700">
+                                                    {parseFloat(dep.ageYears || 0).toFixed(1)} ปี
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -317,7 +317,6 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                 </div>
             )}
 
-            {/* List View */}
             {viewMode === 'list' && (
                 <div className="flex-1 overflow-visible">
                     <div className="overflow-x-auto">
@@ -330,113 +329,131 @@ const AssetRegistry = ({ data, onEditAsset, onAddAsset, onRepairRequest, initial
                                     <th className="px-3 sm:px-6 py-2 hidden lg:table-cell">สถานที่ตั้ง</th>
                                     <th className="px-3 sm:px-6 py-2 text-right">ราคาทุน</th>
                                     <th className="px-3 sm:px-6 py-2 text-right hidden md:table-cell">มูลค่าปัจจุบัน</th>
+                                    <th className="px-3 sm:px-6 py-2 hidden lg:table-cell">อายุ</th>
                                     <th className="px-3 sm:px-6 py-2">สถานะ</th>
                                     <th className="px-3 sm:px-6 py-2"></th>
                                 </tr>
                             </thead>
-                        <tbody>
-                            {filteredAssets.length > 0 ? (
-                                filteredAssets.map((asset) => {
-                                    const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
-                                    return (
-                                        <tr key={asset.id} className="bg-white shadow-sm hover:shadow-lg transition-all duration-300 group rounded-2xl">
-                                            <td className="p-3 sm:p-4 rounded-l-2xl border-y border-l border-slate-50 group-hover:border-slate-100">
-                                                {hasRealImage(asset.image) ? (
-                                                    <img 
-                                                        src={asset.image} 
-                                                        alt="" 
-                                                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shadow-sm"
-                                                        onError={(e) => {
-                                                            // ซ่อนรูปภาพและแสดง icon แทน
-                                                            e.target.style.display = 'none';
-                                                            const iconContainer = e.target.nextElementSibling;
-                                                            if (iconContainer) {
-                                                                iconContainer.style.display = 'flex';
-                                                            }
-                                                        }}
-                                                    />
-                                                ) : null}
-                                                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
-                                                    {(() => {
-                                                        const iconName = getIconNameFromCategories(asset.category, categories);
-                                                        const IconComponent = getCategoryIcon(asset.category, iconName);
-                                                        return <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" strokeWidth={2} />;
-                                                    })()}
-                                                </div>
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
-                                                <span className="font-mono text-xs sm:text-sm font-semibold text-emerald-700 bg-emerald-50/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">{asset.code}</span>
-                                                {asset.serial && (
-                                                    <div className="text-xs text-slate-400 mt-1">S/N: {asset.serial}</div>
-                                                )}
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
-                                                <div className="font-bold text-sm sm:text-base text-slate-700">{asset.name}</div>
-                                                <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
-                                                    {asset.brand && <span>{asset.brand}</span>}
-                                                    {asset.category && (
-                                                        <>
-                                                            {asset.brand && <span>•</span>}
-                                                            <div className="flex items-center gap-1.5">
-                                                                <div className="w-3.5 h-3.5 flex items-center justify-center">
-                                                                    {(() => {
-                                                                        const iconName = getIconNameFromCategories(asset.category, categories);
-                                                                        const IconComponent = getCategoryIcon(asset.category, iconName);
-                                                                        return <IconComponent className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />;
-                                                                    })()}
-                                                                </div>
-                                                                <span>{asset.category}</span>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                {asset.location && (
-                                                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1 lg:hidden">
-                                                        <MapPin className="w-3 h-3" />
-                                                        <span>{asset.location}</span>
+                            <tbody>
+                                {filteredAssets.length > 0 ? (
+                                    filteredAssets.map((asset) => {
+                                        const dep = calculateDepreciation(asset.price, asset.purchaseDate, asset.usefulLife);
+                                        return (
+                                            <tr key={asset.id} className="bg-white shadow-sm hover:shadow-lg transition-all duration-300 group rounded-2xl">
+                                                <td className="p-3 sm:p-4 rounded-l-2xl border-y border-l border-slate-50 group-hover:border-slate-100">
+                                                    {hasRealImage(asset.image) ? (
+                                                        <img 
+                                                            src={asset.image} 
+                                                            alt="" 
+                                                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shadow-sm"
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                const iconContainer = e.target.nextElementSibling;
+                                                                if (iconContainer) {
+                                                                    iconContainer.style.display = 'flex';
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-sm ${hasRealImage(asset.image) ? 'hidden' : 'flex'}`}>
+                                                        {(() => {
+                                                            const iconName = getIconNameFromCategories(asset.category, categories);
+                                                            const IconComponent = getCategoryIcon(asset.category, iconName);
+                                                            return <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" strokeWidth={2} />;
+                                                        })()}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 hidden lg:table-cell">
-                                                <div className="text-sm text-slate-600 font-medium">
-                                                    {asset.location}
-                                                </div>
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 font-mono text-xs sm:text-sm text-slate-500 text-right">
-                                                {asset.price.toLocaleString()}
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 text-right hidden md:table-cell">
-                                                <div className="font-mono text-xs sm:text-sm font-bold text-slate-800">{Math.round(dep.bookValue).toLocaleString()}</div>
-                                                <div className="text-[10px] text-slate-400">เสื่อม: {Math.round(dep.accumulatedDepreciation).toLocaleString()}</div>
-                                            </td>
-                                            <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
-                                                <StatusBadge status={asset.status} />
-                                            </td>
-                                            <td className="p-3 sm:p-4 rounded-r-2xl border-y border-r border-slate-50 group-hover:border-slate-100 text-center">
-                                                <div className="flex justify-center gap-1">
-                                                    <button onClick={() => onRepairRequest(asset)} className="p-1.5 sm:p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors" title="ขออนุมัติซ่อม">
-                                                        <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                    </button>
-                                                    <button onClick={() => onEditAsset(asset)} className="p-1.5 sm:p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors" title="แก้ไข">
-                                                        <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="p-12 text-center text-gray-400">
-                                        <div className="flex flex-col items-center justify-center">
-                                            <Search className="w-12 h-12 mb-4 text-gray-200" />
-                                            <p>ไม่พบข้อมูลที่ค้นหา</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                                    <span className="font-mono text-xs sm:text-sm font-semibold text-emerald-700 bg-emerald-50/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">{asset.code}</span>
+                                                    {asset.serial && (
+                                                        <div className="text-xs text-slate-400 mt-1">S/N: {asset.serial}</div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                                    <div className="font-bold text-sm sm:text-base text-slate-700">{asset.name}</div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
+                                                        {asset.brand && <span>{asset.brand}</span>}
+                                                        {asset.category && (
+                                                            <>
+                                                                {asset.brand && <span>•</span>}
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <div className="w-3.5 h-3.5 flex items-center justify-center">
+                                                                        {(() => {
+                                                                            const iconName = getIconNameFromCategories(asset.category, categories);
+                                                                            const IconComponent = getCategoryIcon(asset.category, iconName);
+                                                                            return <IconComponent className="w-3.5 h-3.5 text-slate-400" strokeWidth={2} />;
+                                                                        })()}
+                                                                    </div>
+                                                                    <span>{asset.category}</span>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {asset.location && (
+                                                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-1 lg:hidden">
+                                                            <MapPin className="w-3 h-3" />
+                                                            <span>{asset.location}</span>
+                                                        </div>
+                                                    )}
+                                                    {asset.purchaseDate && (
+                                                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-1 lg:hidden">
+                                                            <Calendar className="w-3 h-3" />
+                                                            <span>อายุ {parseFloat(dep.ageYears || 0).toFixed(1)} ปี</span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 hidden lg:table-cell">
+                                                    <div className="text-sm text-slate-600 font-medium">
+                                                        {asset.location}
+                                                    </div>
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 font-mono text-xs sm:text-sm text-slate-500 text-right">
+                                                    {asset.price.toLocaleString()}
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 text-right hidden md:table-cell">
+                                                    <div className="font-mono text-xs sm:text-sm font-bold text-slate-800">{Math.round(dep.bookValue).toLocaleString()}</div>
+                                                    <div className="text-[10px] text-slate-400">เสื่อม: {Math.round(dep.accumulatedDepreciation).toLocaleString()}</div>
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100 hidden lg:table-cell">
+                                                    {asset.purchaseDate ? (
+                                                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                                                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                                            <span className="font-semibold text-slate-700">
+                                                                {parseFloat(dep.ageYears || 0).toFixed(1)} ปี
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400">-</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-3 sm:p-4 border-y border-slate-50 group-hover:border-slate-100">
+                                                    <StatusBadge status={asset.status} />
+                                                </td>
+                                                <td className="p-3 sm:p-4 rounded-r-2xl border-y border-r border-slate-50 group-hover:border-slate-100 text-center">
+                                                    <div className="flex justify-center gap-1">
+                                                        <button onClick={() => onRepairRequest(asset)} className="p-1.5 sm:p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg text-slate-400 transition-colors" title="ขออนุมัติซ่อม">
+                                                            <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                        </button>
+                                                        <button onClick={() => onEditAsset(asset)} className="p-1.5 sm:p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg text-slate-400 transition-colors" title="แก้ไข">
+                                                            <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan="9" className="p-12 text-center text-gray-400">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <Search className="w-12 h-12 mb-4 text-gray-200" />
+                                                <p>ไม่พบข้อมูลที่ค้นหา</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             )}

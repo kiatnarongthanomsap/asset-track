@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
     Search,
@@ -13,9 +15,9 @@ import {
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import QRCodeScanner from './QRCodeScanner';
-import * as supabaseService from '../services/supabaseService';
-import { hasRealImage } from '../utils/assetManager';
-import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
+import * as supabaseService from '@/services/supabaseService';
+import { hasRealImage } from '@/utils/assetManager';
+import { getCategoryIcon, getIconNameFromCategories } from '@/utils/categoryIcons';
 import { ToastContainer, useToast } from './Toast';
 
 const InventoryCountingView = ({ cycle, user, onBack, categories = [], onCountSaved }) => {

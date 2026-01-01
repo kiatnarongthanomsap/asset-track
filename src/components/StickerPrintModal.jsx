@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { X, Printer, QrCode, Grid, List, CheckCircle2, Filter, CheckCircle } from 'lucide-react';
-import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
-import * as supabaseService from '../services/supabaseService';
+import { getCategoryIcon, getIconNameFromCategories } from '@/utils/categoryIcons';
+import * as supabaseService from '@/services/supabaseService';
 import { ToastContainer, useToast } from './Toast';
 
 // QR Code Generator using Online API

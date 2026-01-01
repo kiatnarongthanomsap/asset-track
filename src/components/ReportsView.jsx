@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo, useState, useEffect } from 'react';
 import {
     PieChart,
@@ -14,10 +16,10 @@ import {
     ArrowLeft
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
-import { exportAssetsToCSV } from '../utils/assetManager';
-import { calculateDepreciation } from '../utils/calculations';
-import { getCategoryIcon, getIconNameFromCategories } from '../utils/categoryIcons';
-import { getImageUrl } from '../services/imageService';
+import { exportAssetsToCSV } from '@/utils/assetManager';
+import { calculateDepreciation } from '@/utils/calculations';
+import { getCategoryIcon, getIconNameFromCategories } from '@/utils/categoryIcons';
+import { getImageUrl } from '@/services/imageService';
 
 const ReportsView = ({ data, onUpdateStatus, categories = [] }) => {
     const [reportMode, setReportMode] = useState('analytics'); // 'analytics' or 'detailed'

@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Edit3, Trash2, X, Save, Lock, Shield, Eye, EyeOff } from 'lucide-react';
-import * as supabaseService from '../services/supabaseService';
+import * as supabaseService from '@/services/supabaseService';
 
 const UserManagementSection = ({ currentUser }) => {
     const [users, setUsers] = useState([]);

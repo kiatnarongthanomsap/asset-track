@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Lock, User, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import * as supabaseService from '../services/supabaseService';
+import * as supabaseService from '@/services/supabaseService';
 
 const LoginPage = ({ onLogin }) => {
     const [username, setUsername] = useState('admin');
@@ -16,7 +18,6 @@ const LoginPage = ({ onLogin }) => {
             if (result.success) {
                 onLogin(result.user);
             } else {
-                // ถ้า Supabase ไม่สามารถเชื่อมต่อได้ หรือ table ไม่มี ให้ใช้ mock user
                 if (result.message && (
                     result.message.includes('relation') || 
                     result.message.includes('does not exist') ||
@@ -24,7 +25,6 @@ const LoginPage = ({ onLogin }) => {
                     result.message.includes('PGRST116')
                 )) {
                     console.warn('Supabase tables not found, using mock login');
-                    // ใช้ mock user สำหรับ development
                     onLogin({
                         id: 1,
                         username: username,
@@ -32,7 +32,6 @@ const LoginPage = ({ onLogin }) => {
                         role: 'Admin'
                     });
                 } else if (result.message && result.message.includes('Invalid credentials')) {
-                    // ถ้า credentials ไม่ถูกต้อง และเป็น admin/123456 ให้ใช้ mock login
                     if (username === 'admin' && password === '123456') {
                         console.warn('User not found in Supabase, using mock login for admin');
                         onLogin({
@@ -50,7 +49,6 @@ const LoginPage = ({ onLogin }) => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            // ถ้าเกิด error ให้ใช้ mock login
             console.warn('Supabase connection error, using mock login');
             onLogin({
                 id: 1,
@@ -65,15 +63,12 @@ const LoginPage = ({ onLogin }) => {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans bg-gray-50">
-            {/* Subtle Background Elements */}
             <div className="absolute top-0 left-0 w-96 h-96 bg-primary-50 rounded-full blur-3xl opacity-50"></div>
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-slate-100 rounded-full blur-3xl opacity-50"></div>
 
             <div className="w-full max-w-5xl flex bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative z-10 m-4">
-                {/* Left Side: Organization Info */}
                 <div className="hidden lg:flex flex-col flex-1 bg-slate-900 p-12 text-white relative">
                     <div className="relative z-10 h-full flex flex-col">
-                        {/* Logo Section */}
                         <div className="mb-12">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="w-14 h-14 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -86,7 +81,6 @@ const LoginPage = ({ onLogin }) => {
                             </div>
                         </div>
 
-                        {/* Content Section */}
                         <div className="flex-1 flex flex-col justify-center">
                             <div className="mb-10">
                                 <h2 className="text-3xl font-bold leading-tight mb-4">
@@ -98,7 +92,6 @@ const LoginPage = ({ onLogin }) => {
                                 </p>
                             </div>
 
-                            {/* Features */}
                             <div className="space-y-4">
                                 <div className="flex items-start gap-4 p-4 rounded-lg bg-slate-800/50">
                                     <div className="w-10 h-10 rounded-lg bg-primary-600/20 flex items-center justify-center shrink-0">
@@ -121,7 +114,6 @@ const LoginPage = ({ onLogin }) => {
                             </div>
                         </div>
 
-                        {/* Footer */}
                         <div className="mt-auto pt-8 border-t border-slate-800">
                             <p className="text-xs text-slate-400">
                                 © 2024 สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด
@@ -130,10 +122,8 @@ const LoginPage = ({ onLogin }) => {
                     </div>
                 </div>
 
-                {/* Right Side: Login Form */}
                 <div className="flex-1 lg:flex-[0.9] p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
                     <div className="max-w-md mx-auto w-full">
-                        {/* Mobile Logo */}
                         <div className="lg:hidden mb-8 text-center">
                             <div className="inline-flex items-center gap-3 mb-4">
                                 <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -220,7 +210,6 @@ const LoginPage = ({ onLogin }) => {
                             </button>
                         </form>
 
-                        {/* Security Notice */}
                         <div className="mt-10 pt-6 border-t border-slate-200">
                             <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
                                 <ShieldCheck className="w-4 h-4 text-primary-600" />
@@ -231,7 +220,6 @@ const LoginPage = ({ onLogin }) => {
                 </div>
             </div>
 
-            {/* Footer */}
             <div className="absolute bottom-6 w-full text-center z-10">
                 <p className="text-slate-500 text-xs">
                     © 2024 สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์ จำกัด • เวอร์ชัน 1.0.4
@@ -242,3 +230,4 @@ const LoginPage = ({ onLogin }) => {
 };
 
 export default LoginPage;
+

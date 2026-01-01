@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
     Save,
@@ -27,10 +29,10 @@ import {
     exportAssetsToCSV,
     downloadCSVTemplate,
     parseAssetCSV
-} from '../utils/assetManager';
-import { getCategoryIcon, getIconNameFromCategories, getIconByName } from '../utils/categoryIcons';
+} from '@/utils/assetManager';
+import { getCategoryIcon, getIconNameFromCategories, getIconByName } from '@/utils/categoryIcons';
 import UserManagementSection from './UserManagementSection';
-import * as supabaseService from '../services/supabaseService';
+import * as supabaseService from '@/services/supabaseService';
 
 // List of available icons
 const AVAILABLE_ICONS = [
@@ -97,7 +99,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                     setCategories(updatedCategories);
                 }
                 setNewCategory({ name: '', prefix: '', usefulLife: 5, icon_name: null });
-        setIsAddingCategory(false);
+                setIsAddingCategory(false);
                 alert('เพิ่มหมวดหมู่สำเร็จ');
             } else {
                 alert('ไม่สามารถเพิ่มหมวดหมู่ได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
@@ -119,7 +121,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                     const updatedCategories = await supabaseService.fetchCategories();
                     setCategories(updatedCategories);
                 }
-        setEditingCategory(null);
+                setEditingCategory(null);
                 alert('อัพเดทหมวดหมู่สำเร็จ');
             } else {
                 alert('ไม่สามารถอัพเดทหมวดหมู่ได้: ' + (result.message || 'เกิดข้อผิดพลาด'));
@@ -163,7 +165,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
             // Save general settings to database (if you have a settings table)
             // For now, we'll just save numbering and depreciation patterns
             // This is a placeholder - adjust based on your database schema
-            const { supabase } = await import('../config/supabase');
+            const { supabase } = await import('@/config/supabase');
             
             // Save settings to a settings table if it exists
             // Example: await supabase.from('settings').upsert({...})
@@ -342,27 +344,27 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                                 }}
                                                 className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-emerald-50 transition-colors flex items-center justify-between"
                                             >
-                                                            <div className="flex items-center gap-2">
-                                                                {newCategory.icon_name ? (
-                                                                    <>
-                                                                        {(() => {
-                                                                            try {
-                                                                                const IconComponent = getIconByName(newCategory.icon_name);
-                                                                                if (IconComponent) {
-                                                                                    return <IconComponent className="w-4 h-4 text-emerald-600" strokeWidth={2} />;
-                                                                                }
-                                                                                return null;
-                                                                            } catch (error) {
-                                                                                console.error('Error rendering icon:', error);
-                                                                                return null;
-                                                                            }
-                                                                        })()}
-                                                                        <span className="text-xs font-medium text-slate-700">{newCategory.icon_name}</span>
-                                                                    </>
-                                                                ) : (
-                                                                    <span className="text-xs text-slate-400">เลือก Icon</span>
-                                                                )}
-                                                            </div>
+                                                <div className="flex items-center gap-2">
+                                                    {newCategory.icon_name ? (
+                                                        <>
+                                                            {(() => {
+                                                                try {
+                                                                    const IconComponent = getIconByName(newCategory.icon_name);
+                                                                    if (IconComponent) {
+                                                                        return <IconComponent className="w-4 h-4 text-emerald-600" strokeWidth={2} />;
+                                                                    }
+                                                                    return null;
+                                                                } catch (error) {
+                                                                    console.error('Error rendering icon:', error);
+                                                                    return null;
+                                                                }
+                                                            })()}
+                                                            <span className="text-xs font-medium text-slate-700">{newCategory.icon_name}</span>
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400">เลือก Icon</span>
+                                                    )}
+                                                </div>
                                                 <ChevronDown className="w-4 h-4 text-slate-400" />
                                             </button>
                                         </div>
@@ -411,7 +413,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                                             onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                                                         />
                                                     ) : (
-                                                            <span>{cat.name}</span>
+                                                        <span>{cat.name}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-600">
@@ -629,7 +631,7 @@ const SettingsView = ({ categories = [], setCategories, assets = [], setAssets, 
                                         if (confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลทรัพย์สินทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
                                             try {
                                                 // Delete all assets from database
-                                                const { supabase: supabaseClient } = await import('../config/supabase');
+                                                const { supabase: supabaseClient } = await import('@/config/supabase');
                                                 const { error } = await supabaseClient
                                                     .from('assets')
                                                     .delete()
